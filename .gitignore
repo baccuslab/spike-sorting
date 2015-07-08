@@ -1,0 +1,13 @@
+*.DAT
+*.FRK
+*.xSYM
+*.μ
+*PPC*
+*__pycache__*
+*.pyc
+*.dSYM
+*.mex
+*.swp
+*.mat
+*.m~
+*.DS_Store

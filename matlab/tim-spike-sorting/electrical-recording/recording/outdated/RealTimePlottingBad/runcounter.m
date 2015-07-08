@@ -1,0 +1,1 @@
+function runcounterglobal isrunningisrunning = 1;texth = findobj(gcf,'Tag','CounterText');counter = 0;set(texth,'String','Starting');while (isrunning & counter < 5e3)	counter = counter+1;	%set(texth,'String',sprintf('Counter: %d',counter));	%drawnowendset(texth,'String','All done');

@@ -1,0 +1,1 @@
+function Inew = avoidTimes(Iold,Iavoid,n)% Inew = avoidTimes(Iold,Iavoid,n)% Given a set of times Iold, eliminate those that are within% n of times on IavoidInew = setdiff(Iold,Iavoid);for i = 1:n	Inew = setdiff(Inew,Iavoid+i);	Inew = setdiff(Inew,Iavoid-i);end;

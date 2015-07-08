@@ -1,0 +1,1 @@
+function X = snip(d,I,sniprange)% X = snip(d,I,sniprange)% Picks out samples from a waveform d at sample points I,% where each sample spans a region sniprange from the point in IX = zeros(length(I),sniprange(2)-sniprange(1)+1);for i = 1:length(I)	X(i,:) = d(I(i)+sniprange(1):I(i)+sniprange(2));endX = X';

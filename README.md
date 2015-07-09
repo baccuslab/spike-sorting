@@ -16,4 +16,7 @@ extract
 Contains source code for C++ application to extract spike and noise snippets
 from raw data HDF5 files.
 
+wiki
+----
 
+See the [Wiki](https://github.com/baccuslab/spike-sorting/wiki) for more info

@@ -11,3 +11,8 @@
 *.mat
 *.m~
 *.DS_Store
+*.h5
+*.dylib
+*.so
+extract/bin/*
+extract/build/*

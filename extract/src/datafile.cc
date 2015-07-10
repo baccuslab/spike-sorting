@@ -140,14 +140,88 @@ void datafile::DataFile::readDatasetStringAttr(std::string name, std::string& s)
 	}
 }
 
-std::string datafile::DataFile::filename() { return filename_; }
-std::string datafile::DataFile::date() { return date_; }
-std::string datafile::DataFile::time() { return time_; }
-float datafile::DataFile::sampleRate() { return sampleRate_; }
-float datafile::DataFile::gain() { return gain_; }
-float datafile::DataFile::offset() { return offset_; }
-std::string datafile::DataFile::array() { return array_; } 
-size_t datafile::DataFile::nsamples() { return nsamples_; }
-size_t datafile::DataFile::nchannels() { return nchannels_; }
-double datafile::DataFile::length() { return length_; }
+std::string datafile::DataFile::filename() const { return filename_; }
+std::string datafile::DataFile::date() const { return date_; }
+std::string datafile::DataFile::time() const { return time_; }
+float datafile::DataFile::sampleRate() const { return sampleRate_; }
+float datafile::DataFile::gain() const { return gain_; }
+float datafile::DataFile::offset() const { return offset_; }
+std::string datafile::DataFile::array() const { return array_; } 
+size_t datafile::DataFile::nsamples() const { return nsamples_; }
+size_t datafile::DataFile::nchannels() const { return nchannels_; }
+double datafile::DataFile::length() const { return length_; }
+
+void datafile::DataFile::data(size_t start, size_t end, datafile::sampleMat& out)
+{
+	/* Verify input and resize return array */
+	if (end <= start) {
+		std::cerr << "Requested sample range is invalid: " << start << " - " 
+			<< end << std::endl;
+		throw std::logic_error("Requested sample range invalid");
+	}
+	size_t requestedSamples = end - start;
+	out.set_size(requestedSamples, nchannels());
+
+	/* Select hyperslab from the file */
+	hsize_t spaceOffset[datafile::DATASET_RANK] = {0, start};
+	hsize_t spaceCount[datafile::DATASET_RANK] = {nchannels(), requestedSamples};
+	dataspace.selectHyperslab(H5S_SELECT_SET, spaceCount, spaceOffset);
+	if (!dataspace.selectValid()) {
+		std::cerr << "Dataset selection invalid" << std::endl;
+		std::cerr << "Offset: (0, " << start << ")" << std::endl;
+		std::cerr << "Count: (" << nchannels() << ", " << requestedSamples << ")" << std::endl;
+		throw std::logic_error("Dataset selection invalid");
+	}
+
+	/* Define memory dataspace */
+	hsize_t mdims[datafile::DATASET_RANK] = {nchannels(), requestedSamples};
+	H5::DataSpace mspace(datafile::DATASET_RANK, mdims);
+	hsize_t moffset[datafile::DATASET_RANK] = {0, 0};
+	hsize_t mcount[datafile::DATASET_RANK] = {nchannels(), requestedSamples};
+	mspace.selectHyperslab(H5S_SELECT_SET, mcount, moffset);
+	if (!mspace.selectValid()) {
+		std::cerr << "Memory dataspace selection invalid" << std::endl;
+		std::cerr << "Count: (" << requestedSamples << ", " << nchannels() << ")" << std::endl;
+		throw std::logic_error("Memory dataspace selection invalid");
+	}
+
+	dataset.read(out.memptr(), H5::PredType::IEEE_F64LE, mspace, dataspace);
+}
+
+void datafile::DataFile::data(size_t channel, size_t start, size_t end, datafile::sampleVec& out)
+{
+	/* Verify input and resize return array */
+	if (end <= start) {
+		std::cerr << "Requested sample range is invalid: " << start << " - " 
+			<< end << std::endl;
+		throw std::logic_error("Requested sample range invalid");
+	}
+	size_t requestedSamples = end - start;
+	out.set_size(requestedSamples);
+
+	/* Select hyperslab from the file */
+	hsize_t spaceOffset[datafile::DATASET_RANK] = {channel, start};
+	hsize_t spaceCount[datafile::DATASET_RANK] = {1, requestedSamples};
+	dataspace.selectHyperslab(H5S_SELECT_SET, spaceCount, spaceOffset);
+	if (!dataspace.selectValid()) {
+		std::cerr << "Dataset selection invalid" << std::endl;
+		std::cerr << "Offset: (" << channel << ", " << start << ")" << std::endl;
+		std::cerr << "Count: (" << nchannels() << ", " << requestedSamples << ")" << std::endl;
+		throw std::logic_error("Dataset selection invalid");
+	}
+
+	/* Define memory dataspace */
+	hsize_t mdims[datafile::DATASET_RANK] = {1, requestedSamples};
+	H5::DataSpace mspace(datafile::DATASET_RANK, mdims);
+	hsize_t moffset[datafile::DATASET_RANK] = {0, 0};
+	hsize_t mcount[datafile::DATASET_RANK] = {1, requestedSamples};
+	mspace.selectHyperslab(H5S_SELECT_SET, mcount, moffset);
+	if (!mspace.selectValid()) {
+		std::cerr << "Memory dataspace selection invalid" << std::endl;
+		std::cerr << "Count: (" << requestedSamples << ", " << nchannels() << ")" << std::endl;
+		throw std::logic_error("Memory dataspace selection invalid");
+	}
+
+	dataset.read(out.memptr(), H5::PredType::IEEE_F64LE, mspace, dataspace);
+}
 

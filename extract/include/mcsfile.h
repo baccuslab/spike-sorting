@@ -29,8 +29,8 @@ class McsFile : public datafile::DataFile {
 
 		virtual void data(size_t start, size_t end, sampleMat& out);
 		virtual void data(size_t channel, size_t start, size_t end, sampleVec& out);
-		virtual void data(size_t start, size_t end, datafile::sampleMat& out);
-		virtual void data(size_t channel, size_t start, size_t end, datafile::sampleVec& out);
+		//virtual void data(size_t start, size_t end, datafile::sampleMat& out);
+		//virtual void data(size_t channel, size_t start, size_t end, datafile::sampleVec& out);
 };
 };
 

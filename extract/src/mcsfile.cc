@@ -25,7 +25,7 @@ void mcsfile::McsFile::data(size_t start, size_t end, arma::Mat<int16_t>& out)
 		throw std::logic_error("Requested sample range invalid");
 	}
 	size_t requestedSamples = end - start;
-	out.set_size(nchannels(), requestedSamples);
+	out.set_size(requestedSamples, nchannels());
 
 	/* Select hyperslab from the file */
 	hsize_t spaceOffset[datafile::DATASET_RANK] = {0, start};
@@ -89,21 +89,5 @@ void mcsfile::McsFile::data(
 	}
 
 	dataset.read(out.memptr(), H5::PredType::STD_I16LE, mspace, dataspace);
-}
-
-void mcsfile::McsFile::data(size_t start, size_t end, datafile::sampleMat& out)
-{
-	mcsfile::sampleMat tmp;
-	data(start, end, tmp);
-	out = arma::conv_to<datafile::sampleMat>::from(tmp);
-	out = out * gain() + offset();
-}
-
-void mcsfile::McsFile::data(size_t channel, size_t start, size_t end, datafile::sampleVec& out)
-{
-	mcsfile::sampleVec tmp;
-	data(channel, start, end, tmp);
-	out = arma::conv_to<datafile::sampleVec>::from(tmp);
-	out = out * gain() + offset();
 }
 

@@ -33,30 +33,28 @@ class DataFile {
 		DataFile(const DataFile& other) = delete;
 		virtual ~DataFile();
 
-		std::string filename();
-		std::string date();		// Date of recording
-		std::string time();		// Time of recording
-		float sampleRate();		// Sample rate of data
-		float gain();			// ADC gain
-		float offset();			// ADC offset
-		std::string array();	// Array type
+		std::string filename() const;
+		std::string date() const;	// Date of recording
+		std::string time() const;	// Time of recording
+		float sampleRate() const;	// Sample rate of data
+		float gain() const;			// ADC gain
+		float offset() const;		// ADC offset
+		std::string array() const;	// Array type
+		size_t nsamples() const;
+		size_t nchannels() const;
+		double length() const;
 
-		size_t nsamples();
-		size_t nchannels();
-		double length();
+		void data(size_t start, size_t end, arma::mat& out);
+		void data(size_t channel, size_t start, size_t end, arma::vec& out);
 
-		virtual void data(
-				size_t start, size_t end, arma::mat& out) { };
-		virtual void data(
-				size_t channel, size_t start, size_t end, arma::vec& out) { };
-		virtual void data(
-				size_t start, size_t end, arma::Mat<int16_t>& data) { };
-		virtual void data(
-				size_t channel, size_t start, size_t end, arma::Col<int16_t>& data) { };
-		virtual void data(
-				size_t start, size_t end, arma::Mat<uint8_t>& data) { };
-		virtual void data(
-				size_t channel, size_t start, size_t end, arma::Col<uint8_t>& data) { };
+		virtual void data(size_t start, size_t end, 
+				arma::Mat<int16_t>& data) { };
+		virtual void data(size_t channel, size_t start, size_t end, 
+				arma::Col<int16_t>& data) { };
+		virtual void data(size_t start, size_t end, 
+				arma::Mat<uint8_t>& data) { };
+		virtual void data(size_t channel, size_t start, size_t end, 
+				arma::Col<uint8_t>& data) { };
 
 	protected:
 		std::string filename_;

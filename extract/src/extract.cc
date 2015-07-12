@@ -32,6 +32,8 @@
 #define SPIKE_SNIP_EXTENSION ".ssnp"
 #define RANDOM_SNIP_EXTENSION ".rsnp"
 
+using sampleMat = arma::Mat<short>;
+
 const char PROGRAM[] = "extract";
 const char AUTHOR[] = "Benajmin Naecker";
 const char AUTHOR_EMAIL[] = "bnaecker@stanford.edu";
@@ -94,7 +96,7 @@ H5::DataType get_array_dtype(std::string array)
 	return (array == "hidens") ? H5::PredType::STD_U8LE : H5::PredType::STD_I16LE;
 }
 
-void parse_chan_list(std::string arg, std::vector<unsigned int>& channels, 
+void parse_chan_list(std::string arg, arma::uvec& channels, 
 		unsigned int max)
 {
 	/* Split the input string on ','. Each element is either a single channel
@@ -122,7 +124,7 @@ void parse_chan_list(std::string arg, std::vector<unsigned int>& channels,
 			auto dash = each.find('-');
 			if (dash == std::string::npos) {
 				auto x = std::stoul(each);
-				channels.push_back(x);
+				channels << x;
 			} else {
 				size_t pos;
 				unsigned long start;
@@ -135,7 +137,7 @@ void parse_chan_list(std::string arg, std::vector<unsigned int>& channels,
 					end = (tmp > max) ? max : tmp;
 				}
 				for (auto i = start; i < end; i++)
-					channels.push_back(i);
+					channels << i;
 			}
 		}
 	} catch ( std::exception& e ) {
@@ -196,6 +198,11 @@ void parse_command_line(int argc, char **argv,
 	}
 }
 
+std::string get_array(std::string filename)
+{
+	return datafile::DataFile(filename).array();
+}
+
 void randsample(std::vector<arma::uvec>& out, size_t min, size_t max)
 {
 	size_t min_size = arma::datum::inf;
@@ -225,14 +232,12 @@ void randsample(std::vector<arma::uvec>& out, size_t min, size_t max)
 	}
 }
 
-template<class T>
-arma::vec compute_thresholds(const T& data, double thresh)
+arma::vec compute_thresholds(const sampleMat& data, double thresh)
 {
-	return arma::conv_to<arma::vec>::from(arma::median(arma::abs(data), 0));
+	return thresh * arma::conv_to<arma::vec>::from(arma::median(arma::abs(data), 0));
 }
 
-template<class T>
-bool is_local_max(const T& data, size_t channel, size_t sample, size_t n)
+bool is_local_max(const sampleMat& data, size_t channel, size_t sample, size_t n)
 {
 	/* Compute box-car average of samples in data(i, j) of size n,
 	 * and return true if mid-point is a local maximum.
@@ -246,9 +251,8 @@ bool is_local_max(const T& data, size_t channel, size_t sample, size_t n)
 			arma::all(tmp(arma::span(mid, n - 1)) <= tmp(mid)));
 }
 
-template<class T, class V>
-void extract_noise(const T& data,
-		std::vector<arma::uvec>& idx, std::vector<V>& snips)
+void extract_noise(const sampleMat& data,
+		std::vector<arma::uvec>& idx, std::vector<sampleMat>& snips)
 {
 	/* Create random indices into each channel */
 	auto nsamples_per_snip = snipfile::NUM_SAMPLES_BEFORE + 
@@ -259,8 +263,17 @@ void extract_noise(const T& data,
 	randsample(idx, snipfile::NUM_SAMPLES_BEFORE, 
 			nsamples - snipfile::NUM_SAMPLES_AFTER);
 
+#ifdef DEBUG
+	std::cout << "Extracting noise snippets" << std::endl;
+#endif
+
 	/* Extract snippets at those random indices */
 	for (auto c = 0; c < nchannels; c++) {
+
+#ifdef DEBUG
+		std::cout << " Channel " << c << std::endl;
+#endif
+
 		auto& snip_mat = snips.at(c);
 		snip_mat.set_size(nsamples_per_snip, snipfile::NUM_RANDOM_SNIPPETS);
 		auto& ix = idx.at(c);
@@ -273,18 +286,23 @@ void extract_noise(const T& data,
 	}
 }
 
-template<class T, class V>
-void extract_spikes(const T& data, const arma::vec& thresholds, 
-		std::vector<arma::uvec>& idx, std::vector<V>& snips)
+void extract_spikes(const sampleMat& data, const arma::vec& thresholds, 
+		std::vector<arma::uvec>& idx, std::vector<sampleMat>& snips)
 {
 	auto nsamples_per_snip = snipfile::NUM_SAMPLES_BEFORE + 
 		snipfile::NUM_SAMPLES_AFTER;
 	auto nsamples = data.n_rows, nchannels = data.n_cols;
-	
+
+#ifdef DEBUG
+	std::cout << "Extracting spike snippets" << std::endl;
+#endif 
+
 	for (auto c = 0; c < nchannels; c++) {
+		auto& idx_vec = idx.at(c);
 		auto& snip_mat = snips.at(c);
 		auto& thresh = thresholds(c);
 		snip_mat.set_size(nsamples_per_snip, snipfile::DEFAULT_NUM_SNIPPETS);
+		idx_vec.set_size(snipfile::DEFAULT_NUM_SNIPPETS);
 		size_t snip_num = 0;
 
 		/* Find snippets */
@@ -292,8 +310,11 @@ void extract_spikes(const T& data, const arma::vec& thresholds,
 		while (i < nsamples - snipfile::NUM_SAMPLES_AFTER) {
 			if (data(i, c) > thresh) {
 				if (is_local_max(data, c, i, snipfile::WINDOW_SIZE)) {
-					if (snip_num >= snip_mat.n_cols)
+					if (snip_num >= snip_mat.n_cols) {
 						snip_mat.resize(snip_mat.n_rows, 2 * snip_mat.n_cols);
+						idx_vec.resize(2 * snip_mat.n_cols);
+					}
+					idx_vec(snip_num) = i;
 					snip_mat(arma::span::all, snip_num) = data(
 							arma::span(i - snipfile::NUM_SAMPLES_BEFORE,
 							i + snipfile::NUM_SAMPLES_AFTER - 1), c);
@@ -305,75 +326,65 @@ void extract_spikes(const T& data, const arma::vec& thresholds,
 				i++;
 		}
 		snip_mat.resize(snip_mat.n_rows, snip_num);
+		idx_vec.resize(snip_num);
+
+#ifdef DEBUG
+		std::cout << " Channel " << c << ": " << snip_num << " snippets" << std::endl;
+#endif
+
 	}
+}
+
+bool sequential_channels(const arma::uvec& channels)
+{
+	if (channels.n_elem == 1)
+		return true;
+	return arma::any(channels(arma::span(1, channels.n_elem - 1)) -
+			channels(arma::span(0, channels.n_elem - 2)) > 1);
 }
 
 int main(int argc, char *argv[])
 {	
+	/* Parse input and get the array type */
 	auto thresh = DEFAULT_THRESHOLD;
 	std::string chan_arg, output, filename;
 	parse_command_line(argc, argv, thresh, chan_arg, output, filename);
-
-	/* Open file */
-	datafile::DataFile* f = new datafile::DataFile(filename);
+	std::string array = get_array(filename);
 
 	/* Get channels based on input */
-	std::vector<unsigned int> channels;
+	arma::uvec channels;
 	if (chan_arg.empty()) {
-		auto min = channel_min(f->array()), max = channel_max(f->array());
-		channels.resize(max - min);
+		auto min = channel_min(array), max = channel_max(array);
+		channels.set_size(max - min);
 		for (auto& each : channels)
 			each = min++;
 	} else
-		parse_chan_list(chan_arg, channels, channel_max(f->array()));
+		parse_chan_list(chan_arg, channels, channel_max(array));
 
-	/* Create snippet files */
-	//snipfile::SnipFile spike_file(output + SPIKE_SNIP_EXTENSION, f);
-	//snipfile::SnipFile noise_file(output + RANDOM_SNIP_EXTENSION, f);
+	/* Open the data file and read all data */
+#ifdef DEBUG
+	std::cout << "Loading data from channels: " << std::endl << channels << std::endl;
+#endif
+	datafile::DataFile file(filename);
+	sampleMat data;
+	if (sequential_channels(channels))
+		file.data(channels, 0, file.nsamples(), data);
+	else
+		file.data(channels.min(), channels.max(), 
+				0, file.nsamples(), data);
 
-	/* Extract spikes and noise */
-	delete f;
-	if (is_hidens(f->array())) {
-		/* Read raw data */ 
-		hidensfile::sampleMat raw_data;
-		hidensfile::HidensFile file(filename);
-		file.data(0, file.nsamples(), raw_data);
+	/* Compute thresholds */
+#ifdef DEBUG
+	std::cout << "Computing thresholds" << std::endl;
+#endif
+	auto thresholds = compute_thresholds(data, thresh);
 
-		/* Compute thresholds */
-		arma::mat thresholds = compute_thresholds(raw_data, thresh);
-
-		/* Extract noise */
-		std::vector<hidensfile::sampleMat> noise_snippets;
-		std::vector<arma::uvec> noise_idx;
-		extract_noise(raw_data, noise_idx, noise_snippets);
-		//noise_file.writeSnippets(noise_idx, noise_snippets);
-
-		/* Extract spikes */
-		std::vector<hidensfile::sampleMat> spike_snippets;
-		std::vector<arma::uvec> spike_idx;
-		extract_spikes(raw_data, thresholds, spike_idx, spike_snippets);
-		//spike_file.writeSnippets(spike_idx, spike_snippets);
-	} else {
-		/* Read raw data */ 
-		mcsfile::sampleMat raw_data;
-		mcsfile::McsFile file(filename);
-		file.data(0, file.nsamples(), raw_data);
-
-		/* Compute thresholds */
-		arma::mat thresholds = compute_thresholds(raw_data, thresh);
-
-		/* Extract noise */
-		std::vector<mcsfile::sampleMat> noise_snippets(file.nchannels());
-		std::vector<arma::uvec> noise_idx(file.nchannels());
-		extract_noise(raw_data, noise_idx, noise_snippets);
-		//noise_file.writeSnippets(noise_idx, noise_snippets);
-
-		/* Extract spikes */
-		std::vector<mcsfile::sampleMat> spike_snippets(file.nchannels());
-		std::vector<arma::uvec> spike_idx(file.nchannels());
-		extract_spikes(raw_data, thresholds, spike_idx, spike_snippets);
-		//spike_file.writeSnippets(spike_idx, spike_snippets);
-	}
+	/* Find noise and spike snippets */
+	auto nchannels = channels.size();
+	std::vector<arma::uvec> spike_idx(nchannels), noise_idx(nchannels);
+	std::vector<sampleMat> spike_snips(nchannels), noise_snips(nchannels);
+	extract_noise(data, noise_idx, noise_snips);
+	extract_spikes(data, thresholds, spike_idx, spike_snips);
 	
 	return 0;
 }

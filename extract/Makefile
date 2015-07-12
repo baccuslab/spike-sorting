@@ -5,7 +5,7 @@ LINK = ln -sf
 # General compilation and linking flags
 CXXFLAGS = -I. -Iinclude -std=c++11
 CXXFLAGS_RELEASE = -O3 -I.
-CXXFLAGS_DEBUG = -O0 -g -Wall -Wextra -I.
+CXXFLAGS_DEBUG = -O0 -g -Wall -Wextra -I. -DDEBUG
 LIB_CXXFLAGS = -fPIC
 
 # Project structure
@@ -19,7 +19,7 @@ BIN_DIR = bin
 VERSION = 0.1
 
 # File names for library
-LIB_SOURCES = datafile.cc mcsfile.cc hidensfile.cc snipfile.cc
+LIB_SOURCES = datafile.cc snipfile.cc # mcsfile.cc hidensfile.cc
 BIN_SOURCES = test.cc extract.cc
 SOURCES = $(LIB_SOURCES) $(BIN_SOURCES)
 vpath %.cc $(SRC_DIR)

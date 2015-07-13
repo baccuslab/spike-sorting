@@ -29,8 +29,6 @@
 #define HIDENS_CHANNEL_MIN 1
 #define MCS_CHANNEL_MAX 64
 #define MCS_CHANNEL_MIN 3
-#define SPIKE_SNIP_EXTENSION ".ssnp"
-#define RANDOM_SNIP_EXTENSION ".rsnp"
 
 using sampleMat = arma::Mat<short>;
 
@@ -52,7 +50,7 @@ const char USAGE[] = "\n\
    " UL_PRE "chan" UL_POST "\t\tA comma- or dash-separated list of channels from which\n\
    \t\tsnippets will be extracted. E.g., \"0,1,2,3\" will extract data only from\n\
    \t\tthe first 4 channels, while \"[0-4,8,10-]\" will extract data from the first\n\
-   \t\t5 channels, the 9th, and channels 11 to the number of channels in the file.\n\
+   \t\t4 channels, the 9th, and channels 11 to the number of channels in the file.\n\
    \t\tFor MCS data files, the default is [3-63], and for Hidens files, the default\n\
    \t\tis [1-].\n\
    " UL_PRE "output" UL_POST "\tThe base-name for the output spike and random snippet\n\
@@ -124,7 +122,8 @@ void parse_chan_list(std::string arg, arma::uvec& channels,
 			auto dash = each.find('-');
 			if (dash == std::string::npos) {
 				auto x = std::stoul(each);
-				channels << x;
+				channels.resize(channels.n_elem + 1);
+				channels(channels.n_elem - 1) = x;
 			} else {
 				size_t pos;
 				unsigned long start;
@@ -136,8 +135,10 @@ void parse_chan_list(std::string arg, arma::uvec& channels,
 					auto tmp = std::stoul(each.substr(dash + 1));
 					end = (tmp > max) ? max : tmp;
 				}
-				for (auto i = start; i < end; i++)
-					channels << i;
+				auto num = end - start;
+				channels.resize(channels.n_elem + num);
+				for (auto i = 0; i < num; i++)
+					channels(channels.n_elem - i - 1) = start + i;
 			}
 		}
 	} catch ( std::exception& e ) {
@@ -363,7 +364,7 @@ int main(int argc, char *argv[])
 
 	/* Open the data file and read all data */
 #ifdef DEBUG
-	std::cout << "Loading data from channels: " << std::endl << channels << std::endl;
+	std::cout << "Loading data from channels: " << std::endl << channels;
 #endif
 	datafile::DataFile file(filename);
 	sampleMat data;
@@ -372,6 +373,8 @@ int main(int argc, char *argv[])
 	else
 		file.data(channels.min(), channels.max(), 
 				0, file.nsamples(), data);
+	snipfile::SnipFile snip_file(
+			output + snipfile::FILE_EXTENSION, file);
 
 	/* Compute thresholds */
 #ifdef DEBUG
@@ -385,6 +388,12 @@ int main(int argc, char *argv[])
 	std::vector<sampleMat> spike_snips(nchannels), noise_snips(nchannels);
 	extract_noise(data, noise_idx, noise_snips);
 	extract_spikes(data, thresholds, spike_idx, spike_snips);
+
+	/* Write snippets to disk */
+	snip_file.setChannels(channels);
+	snip_file.setThresholds(thresholds);
+	snip_file.writeSpikeSnips(spike_idx, spike_snips);
+	//snip_file.writeNoiseSnips(noise_idx, noise_snips);
 	
 	return 0;
 }

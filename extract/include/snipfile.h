@@ -10,6 +10,7 @@
 #define EXTRACT_SNIPFILE_H_
 
 #include <string>
+#include <vector>
 
 #include <armadillo>
 #include "H5Cpp.h"
@@ -17,13 +18,14 @@
 #include "datafile.h"
 
 namespace snipfile {
-const std::string SPIKE_FILE_EXTENSION(".ssnp");
-const std::string NOISE_FILE_EXTENSION(".rsnp");
+const std::string FILE_EXTENSION(".snip");
 const size_t NUM_RANDOM_SNIPPETS = 5000;
 const size_t NUM_SAMPLES_BEFORE = 10;
 const size_t NUM_SAMPLES_AFTER = 25;
 const size_t DEFAULT_NUM_SNIPPETS = 1000;
 const size_t WINDOW_SIZE = 3;
+const size_t SNIP_DATASET_RANK = 2;
+const size_t IDX_DATASET_RANK = 1;
 
 class SnipFile {
 	public:
@@ -31,8 +33,12 @@ class SnipFile {
 		SnipFile(const SnipFile& other) = delete;
 		~SnipFile();
 
-		template<class T> void writeSnippets(const std::vector<arma::uvec>& indices, 
-				const std::vector<T>& snippets);
+		void setChannels(const arma::uvec& channels);
+		void setThresholds(const arma::vec& thresh);
+		void writeSpikeSnips(const std::vector<arma::uvec>& idx,
+				const std::vector<arma::Mat<short> >& snips);
+		void writeNoiseSnips(const std::vector<arma::uvec>& idx,
+				const std::vector<arma::Mat<short> >& snips);
 
 		H5::DataType dtype();
 		std::string filename();
@@ -46,6 +52,9 @@ class SnipFile {
 		std::string date();
 		std::string time();
 
+		arma::uvec channels();
+		arma::vec thresholds();
+
 	private:
 		std::string filename_;
 		std::string array_;
@@ -57,13 +66,27 @@ class SnipFile {
 		float offset_;
 		size_t nchannels_;
 		size_t nsamples_;
+		arma::uvec channels_;
+		arma::vec thresholds_;
+
+		/* HDF components */
 		H5::H5File file;
 		std::vector<H5::Group> channelGroups;
-		std::vector<H5::DataSet> snipDatasets;
-		std::vector<H5::DataSet> idxDatasets;
+		std::vector<H5::DataSet> spikeDatasets;
+		std::vector<H5::DataSet> noiseDatasets;
+		std::vector<H5::DataSet> spikeIdxDatasets;
+		std::vector<H5::DataSet> noiseIdxDatasets;
+		H5::DataType dstType;
 
 		void getSourceInfo(const datafile::DataFile& source);
-
+		void writeSnips(const std::string& type, 
+				const std::vector<arma::uvec>& idx,
+				const std::vector<arma::Mat<short> >& snips);
+		void writeAttributes();
+		void writeFileStringAttr(const std::string& name, const std::string& value);
+		void writeFileAttr(const std::string& name, const H5::DataType& type,
+				const void* buf);
+		void writeChannels(const arma::uvec& channels);
 };
 };
 

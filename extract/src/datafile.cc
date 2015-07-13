@@ -151,6 +151,7 @@ std::string datafile::DataFile::array() const { return array_; }
 size_t datafile::DataFile::nsamples() const { return nsamples_; }
 size_t datafile::DataFile::nchannels() const { return nchannels_; }
 double datafile::DataFile::length() const { return length_; }
+H5::DataType datafile::DataFile::datatype() const { return dataset.getDataType(); };
 
 void datafile::DataFile::data(size_t start, size_t end, arma::mat& out)
 {

@@ -40,6 +40,7 @@ class DataFile {
 		size_t nsamples() const;
 		size_t nchannels() const;
 		double length() const;
+		H5::DataType datatype() const;
 
 		void data(size_t start, size_t end, arma::mat& out);
 		void data(size_t channel, size_t start, size_t end, arma::vec& out);
@@ -69,7 +70,7 @@ class DataFile {
 
 		H5::H5File file;
 		H5::DataSpace dataspace;
-		H5::DataType datatype;
+		H5::DataType datatype_;
 		H5::DSetCreatPropList props;
 		H5::DataSet dataset;
 		bool rdonly;

@@ -85,7 +85,15 @@ class DataFile {
 		void readDatasetStringAttr(std::string name, std::string& s);
 		void computeCoords(const arma::uvec& channels, size_t start, 
 				size_t end, arma::Mat<hsize_t> *coords, hsize_t *nelem);
+
+		template<class T>
+		void _read_data(const size_t, const size_t, const size_t, const size_t, T&);
+		template<class T>
+		void _read_data(const arma::uvec&, const size_t, const size_t, T&);
 };
 };
+
+/* Implementation of templates, included in this compilation unit */
+#include "datafile.tc"
 
 #endif

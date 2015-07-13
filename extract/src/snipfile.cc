@@ -73,7 +73,7 @@ void snipfile::SnipFile::setChannels(const arma::uvec& channels)
 	if (channelGroups.size() == 0) {
 		for (auto& c : channels) {
 			std::string buf(32, '\0');
-			std::snprintf(&buf[0], buf.size(), "channel-%02llu", c);
+			std::snprintf(&buf[0], buf.size(), "channel-%03llu", c);
 			channelGroups.push_back(file.createGroup(buf.c_str()));
 		}
 	}

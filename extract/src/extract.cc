@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <getopt.h>
+#include <sys/stat.h>
 
 #include <algorithm>
 #include <string>
@@ -196,6 +197,12 @@ void parse_command_line(int argc, char **argv,
 	if (output.empty()) {
 		size_t pos = filename.rfind(".");
 		output = filename.substr(0, pos);
+		std::string output_name = output + snipfile::FILE_EXTENSION;
+		struct stat buf;
+		if (stat(output_name.c_str(), &buf) == 0) {
+			std::cerr << "Output file already exists: " + output_name << std::endl;
+			exit(EXIT_FAILURE);
+		}
 	}
 }
 
@@ -393,7 +400,7 @@ int main(int argc, char *argv[])
 	snip_file.setChannels(channels);
 	snip_file.setThresholds(thresholds);
 	snip_file.writeSpikeSnips(spike_idx, spike_snips);
-	//snip_file.writeNoiseSnips(noise_idx, noise_snips);
+	snip_file.writeNoiseSnips(noise_idx, noise_snips);
 	
 	return 0;
 }

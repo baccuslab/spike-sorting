@@ -16,3 +16,4 @@
 *.so
 extract/bin/*
 extract/build/*
+*.snip

@@ -8,6 +8,7 @@
 
 #include <sys/stat.h>
 #include <iostream>
+#include <typeinfo>
 
 #include "include/datafile.h"
 
@@ -140,14 +141,71 @@ void datafile::DataFile::readDatasetStringAttr(std::string name, std::string& s)
 	}
 }
 
-std::string datafile::DataFile::filename() { return filename_; }
-std::string datafile::DataFile::date() { return date_; }
-std::string datafile::DataFile::time() { return time_; }
-float datafile::DataFile::sampleRate() { return sampleRate_; }
-float datafile::DataFile::gain() { return gain_; }
-float datafile::DataFile::offset() { return offset_; }
-std::string datafile::DataFile::array() { return array_; } 
-size_t datafile::DataFile::nsamples() { return nsamples_; }
-size_t datafile::DataFile::nchannels() { return nchannels_; }
-double datafile::DataFile::length() { return length_; }
+std::string datafile::DataFile::filename() const { return filename_; }
+std::string datafile::DataFile::date() const { return date_; }
+std::string datafile::DataFile::time() const { return time_; }
+float datafile::DataFile::sampleRate() const { return sampleRate_; }
+float datafile::DataFile::gain() const { return gain_; }
+float datafile::DataFile::offset() const { return offset_; }
+std::string datafile::DataFile::array() const { return array_; } 
+size_t datafile::DataFile::nsamples() const { return nsamples_; }
+size_t datafile::DataFile::nchannels() const { return nchannels_; }
+double datafile::DataFile::length() const { return length_; }
+H5::DataType datafile::DataFile::datatype() const { return dataset.getDataType(); };
+
+void datafile::DataFile::data(size_t start, size_t end, arma::mat& out)
+{
+	_read_data(0, nchannels(), start, end, out);
+}
+
+void datafile::DataFile::data(size_t channel, size_t start, size_t end, arma::vec& out)
+{
+	arma::mat tmp;
+	_read_data(channel, channel + 1, start, end, tmp);
+	out = tmp;
+}
+
+void datafile::DataFile::data(size_t startChan, size_t endChan,
+		size_t start, size_t end, arma::mat& out)
+{
+	_read_data(startChan, endChan, start, end, out);
+}
+
+void datafile::DataFile::data(const arma::uvec& channels, size_t start,
+		size_t end, arma::mat& out)
+{
+	_read_data(channels, start, end, out);
+}
+
+void datafile::DataFile::computeCoords(const arma::uvec& channels, 
+		size_t start, size_t end, arma::Mat<hsize_t> *out, hsize_t *nelem)
+{
+	auto nsamp = end - start;
+	auto nchan = channels.n_elem;
+	*nelem = nsamp * nchan;
+	out->set_size(datafile::DATASET_RANK, *nelem);
+	for (auto c = 0; c < nchan; c++) {
+		for (auto s = 0; s < nsamp; s++) {
+			(*out)(0, c * nsamp + s) = channels(c);
+			(*out)(1, c * nsamp + s) = s + start;
+		}
+	}
+}
+
+void datafile::DataFile::data(size_t start, size_t end, arma::Mat<short>& out)
+{
+	_read_data(0, nchannels(), start, end, out);
+}
+
+void datafile::DataFile::data(size_t startChan, size_t endChan,
+		size_t start, size_t end, arma::Mat<short>& out)
+{
+	_read_data(startChan, endChan, start, end, out);
+}
+
+void datafile::DataFile::data(const arma::uvec& channels, size_t start,
+		size_t end, arma::Mat<short>& out)
+{
+	_read_data(channels, start, end, out);
+}
 

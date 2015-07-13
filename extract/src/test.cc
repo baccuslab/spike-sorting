@@ -14,7 +14,7 @@
 
 int main(int argc, const char *argv[])
 {
-	mcsfile::McsFile f("./2015-01-27a.h5");
+	datafile::DataFile f("./2015-01-27a.h5");
 	std::cout << f.nchannels() << std::endl;
 	std::cout << f.array() << std::endl;
 	datafile::sampleMat out;

@@ -23,9 +23,6 @@ const unsigned int CHUNK_CACHE_SIZE = 5;	// Number of chunks HDF library should 
 const std::string DATE_FMT = "%a, %b %d, %Y";
 const std::string TIME_FMT = "%I:%M:%S %p";
 
-using sampleMat = arma::mat;
-using sampleVec = arma::vec;
-
 class DataFile { 
 
 	public:
@@ -33,30 +30,31 @@ class DataFile {
 		DataFile(const DataFile& other) = delete;
 		virtual ~DataFile();
 
-		std::string filename();
-		std::string date();		// Date of recording
-		std::string time();		// Time of recording
-		float sampleRate();		// Sample rate of data
-		float gain();			// ADC gain
-		float offset();			// ADC offset
-		std::string array();	// Array type
+		std::string filename() const;
+		std::string date() const;	// Date of recording
+		std::string time() const;	// Time of recording
+		float sampleRate() const;	// Sample rate of data
+		float gain() const;			// ADC gain
+		float offset() const;		// ADC offset
+		std::string array() const;	// Array type
+		size_t nsamples() const;
+		size_t nchannels() const;
+		double length() const;
+		H5::DataType datatype() const;
 
-		size_t nsamples();
-		size_t nchannels();
-		double length();
+		void data(size_t start, size_t end, arma::mat& out);
+		void data(size_t channel, size_t start, size_t end, arma::vec& out);
+		void data(size_t startChan, size_t endChan, size_t start, size_t end, 
+				arma::mat& out);
+		void data(const arma::uvec& channels, size_t start, size_t end,
+				arma::mat& out);
 
-		virtual void data(
-				size_t start, size_t end, arma::mat& out) { };
-		virtual void data(
-				size_t channel, size_t start, size_t end, arma::vec& out) { };
-		virtual void data(
-				size_t start, size_t end, arma::Mat<int16_t>& data) { };
-		virtual void data(
-				size_t channel, size_t start, size_t end, arma::Col<int16_t>& data) { };
-		virtual void data(
-				size_t start, size_t end, arma::Mat<uint8_t>& data) { };
-		virtual void data(
-				size_t channel, size_t start, size_t end, arma::Col<uint8_t>& data) { };
+		void data(size_t start, size_t end, arma::Mat<short>& out);
+		void data(size_t channel, size_t start, size_t end, arma::Col<short>& out);
+		void data(size_t startChan, size_t endChan, size_t start, size_t end, 
+				arma::Mat<short>& out);
+		void data(const arma::uvec& channels, size_t start, size_t end,
+				arma::Mat<short>& out);
 
 	protected:
 		std::string filename_;
@@ -72,7 +70,7 @@ class DataFile {
 
 		H5::H5File file;
 		H5::DataSpace dataspace;
-		H5::DataType datatype;
+		H5::DataType datatype_;
 		H5::DSetCreatPropList props;
 		H5::DataSet dataset;
 		bool rdonly;
@@ -86,7 +84,17 @@ class DataFile {
 		void readDatasetSize();
 		void readDatasetAttr(std::string name, void *buf);
 		void readDatasetStringAttr(std::string name, std::string& s);
+		void computeCoords(const arma::uvec& channels, size_t start, 
+				size_t end, arma::Mat<hsize_t> *coords, hsize_t *nelem);
+
+		template<class T>
+		void _read_data(const size_t, const size_t, const size_t, const size_t, T&);
+		template<class T>
+		void _read_data(const arma::uvec&, const size_t, const size_t, T&);
 };
 };
+
+/* Implementation of templates, included in this compilation unit */
+#include "datafile.tc"
 
 #endif

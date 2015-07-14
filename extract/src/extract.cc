@@ -14,6 +14,7 @@
 #include <sstream>
 #include <iostream>
 #include <vector>
+#include <numeric>
 
 #include <armadillo>
 
@@ -23,13 +24,14 @@
 
 #define UL_PRE "\033[4m"
 #define UL_POST "\033[0m"
-#define DEFAULT_THRESHOLD 4.5;
+#define DEFAULT_THRESHOLD 4.5
+#define DEFAULT_THRESH_STR "4.5"
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 1
+#define VERSION_MINOR 2
 #define HIDENS_CHANNEL_MAX 127
 #define HIDENS_CHANNEL_MIN 1
 #define MCS_CHANNEL_MAX 64
-#define MCS_CHANNEL_MIN 3
+#define MCS_CHANNEL_MIN 4
 
 using sampleMat = arma::Mat<short>;
 
@@ -44,19 +46,20 @@ const char USAGE[] = "\n\
   \t\t\t[-o | --output " UL_PRE"name" UL_POST "]\n\
   \t\t\t" UL_PRE "recording-file" UL_POST "\n\n\
  Extract noise and spike snippets from the given recording file\n\n\
- Parameters:\n\
+ Parameters:\n\n\
    " UL_PRE "threshold" UL_POST "\tThreshold multiplier for determining spike\n\
    \t\tsnippets. The threshold will be set independently for each channel, such\n\
-   \t\tthat: " UL_PRE "threshold" UL_POST " * median(abs(v)). Default = DEFAULT_THRESHOLD\n\
+   \t\tthat: " UL_PRE "threshold" UL_POST " * median(abs(v)). Default = " DEFAULT_THRESH_STR "\n\n\
    " UL_PRE "chan" UL_POST "\t\tA comma- or dash-separated list of channels from which\n\
    \t\tsnippets will be extracted. E.g., \"0,1,2,3\" will extract data only from\n\
-   \t\tthe first 4 channels, while \"[0-4,8,10-]\" will extract data from the first\n\
+   \t\tthe first 4 channels, while \"0-4,8,10-\" will extract data from the first\n\
    \t\t4 channels, the 9th, and channels 11 to the number of channels in the file.\n\
-   \t\tFor MCS data files, the default is [3-63], and for Hidens files, the default\n\
-   \t\tis [1-].\n\
-   " UL_PRE "output" UL_POST "\tThe base-name for the output spike and random snippet\n\
-   \t\tfiles. They will be named as: " UL_PRE "basename" UL_POST ".ssnp and "\
-   UL_PRE "basename" UL_POST ".rsnp\n\n";
+   \t\tFor MCS data files, the default is \"3-63\", and for Hidens files, the default\n\
+   \t\tis \"1-\". Note that ranges are half-open, so that the range specified as \"3-15\"\n\
+   \t\twill collect channels 4 through 14, inclusive, but not channel 15. Also note\n\
+   \t\tthat indexing is 0-based.\n\n\
+   " UL_PRE "output" UL_POST "\tThe base-name for the output snippet file, which contains\n\
+   \t\tboth random and noise snippets. It will be named as " UL_PRE "basename" UL_POST ".snip\n\n";
 
 void print_usage_and_exit()
 {
@@ -347,7 +350,7 @@ bool sequential_channels(const arma::uvec& channels)
 {
 	if (channels.n_elem == 1)
 		return true;
-	return arma::any(channels(arma::span(1, channels.n_elem - 1)) -
+	return !arma::any(channels(arma::span(1, channels.n_elem - 1)) -
 			channels(arma::span(0, channels.n_elem - 2)) > 1);
 }
 
@@ -364,8 +367,7 @@ int main(int argc, char *argv[])
 	if (chan_arg.empty()) {
 		auto min = channel_min(array), max = channel_max(array);
 		channels.set_size(max - min);
-		for (auto& each : channels)
-			each = min++;
+		std::iota(channels.begin(), channels.end(), min);
 	} else
 		parse_chan_list(chan_arg, channels, channel_max(array));
 
@@ -376,10 +378,10 @@ int main(int argc, char *argv[])
 	datafile::DataFile file(filename);
 	sampleMat data;
 	if (sequential_channels(channels))
-		file.data(channels, 0, file.nsamples(), data);
-	else
-		file.data(channels.min(), channels.max(), 
+		file.data(channels.min(), channels.max() + 1, 
 				0, file.nsamples(), data);
+	else
+		file.data(channels, 0, file.nsamples(), data);
 	snipfile::SnipFile snip_file(
 			output + snipfile::FILE_EXTENSION, file);
 

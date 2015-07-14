@@ -40,6 +40,7 @@ const char YEAR[] = "2015";
 const char USAGE[] = "\n\
  Usage: extract \t[-v | --version] [-h | --help]\n\
   \t\t\t[-t | --threshold " UL_PRE "threshold" UL_POST "]\n\
+  \t\t\t[-n | --nrandom " UL_PRE "nrandom" UL_POST "]\n\
   \t\t\t[-c | --chan " UL_PRE "chan-list" UL_POST "]\n\
   \t\t\t[-o | --output " UL_PRE"name" UL_POST "]\n\
   \t\t\t" UL_PRE "recording-file" UL_POST "\n\n\
@@ -48,6 +49,7 @@ const char USAGE[] = "\n\
    " UL_PRE "threshold" UL_POST "\tThreshold multiplier for determining spike\n\
    \t\tsnippets. The threshold will be set independently for each channel, such\n\
    \t\tthat: " UL_PRE "threshold" UL_POST " * median(abs(v)). Default = " DEFAULT_THRESH_STR "\n\n\
+   " UL_PRE "nrandom" UL_POST "\tThe number of random snippets to extract.\n\n\
    " UL_PRE "chan" UL_POST "\t\tA comma- or dash-separated list of channels from which\n\
    \t\tsnippets will be extracted. E.g., \"0,1,2,3\" will extract data only from\n\
    \t\tthe first 4 channels, while \"0-4,8,10-\" will extract data from the first\n\
@@ -152,8 +154,8 @@ void parse_chan_list(std::string arg, arma::uvec& channels,
 }
 
 void parse_command_line(int argc, char **argv, 
-		double& thresh, std::string& chan_arg, std::string& output, 
-		std::string& filename)
+		double& thresh, size_t& nrandom_snippets, std::string& chan_arg, 
+		std::string& output, std::string& filename)
 {
 	if (argc == 1)
 		print_usage_and_exit();
@@ -164,10 +166,11 @@ void parse_command_line(int argc, char **argv,
 		{ "help", 		no_argument, 		nullptr, 'h' },
 		{ "version", 	no_argument, 		nullptr, 'v' },
 		{ "chan", 		required_argument, 	nullptr, 'c' },
+		{ "nrandom", 	required_argument,  nullptr, 'n' },
 		{ nullptr, 		0, 					nullptr, 0 	 }
 	};
 	int opt;
-	while ( (opt = getopt_long(argc, argv, "t:hhvc:", options, nullptr)) != -1 ) {
+	while ( (opt = getopt_long(argc, argv, "t:hhvc:n:", options, nullptr)) != -1 ) {
 		switch (opt) {
 			case 'h':
 				print_usage_and_exit();
@@ -186,6 +189,9 @@ void parse_command_line(int argc, char **argv,
 				break;
 			case 'o':
 				output = std::string(optarg);
+				break;
+			case 'n':
+				nrandom_snippets = std::stoul(std::string(optarg));
 				break;
 		}
 	}
@@ -241,6 +247,12 @@ void randsample(std::vector<arma::uvec>& out, size_t min, size_t max)
 	}
 }
 
+void mean_subtract(sampleMat& data)
+{
+	for (auto i = 0; i < data.n_cols; i++)
+		data.col(i) -= arma::mean(data.col(i));
+}
+
 arma::vec compute_thresholds(const sampleMat& data, double thresh)
 {
 	return thresh * arma::conv_to<arma::vec>::from(arma::median(arma::abs(data), 0));
@@ -260,7 +272,7 @@ bool is_local_max(const sampleMat& data, size_t channel, size_t sample, size_t n
 			arma::all(tmp(arma::span(mid, n - 1)) <= tmp(mid)));
 }
 
-void extract_noise(const sampleMat& data,
+void extract_noise(const sampleMat& data, const size_t& nrandom_snippets,
 		std::vector<arma::uvec>& idx, std::vector<sampleMat>& snips)
 {
 	/* Create random indices into each channel */
@@ -268,7 +280,7 @@ void extract_noise(const sampleMat& data,
 		snipfile::NUM_SAMPLES_AFTER;
 	auto nsamples = data.n_rows, nchannels = data.n_cols;
 	for (auto& each : idx)
-		each.set_size(snipfile::NUM_RANDOM_SNIPPETS);
+		each.set_size(nrandom_snippets);
 	randsample(idx, snipfile::NUM_SAMPLES_BEFORE, 
 			nsamples - snipfile::NUM_SAMPLES_AFTER);
 
@@ -284,9 +296,9 @@ void extract_noise(const sampleMat& data,
 #endif
 
 		auto& snip_mat = snips.at(c);
-		snip_mat.set_size(nsamples_per_snip, snipfile::NUM_RANDOM_SNIPPETS);
+		snip_mat.set_size(nsamples_per_snip, nrandom_snippets);
 		auto& ix = idx.at(c);
-		for (auto s = 0; s < snipfile::NUM_RANDOM_SNIPPETS; s++) {
+		for (auto s = 0; s < nrandom_snippets; s++) {
 			auto& start = ix.at(s);
 			snip_mat(arma::span::all, s) = data(
 					arma::span(start - snipfile::NUM_SAMPLES_BEFORE,
@@ -356,8 +368,10 @@ int main(int argc, char *argv[])
 {	
 	/* Parse input and get the array type */
 	auto thresh = DEFAULT_THRESHOLD;
+	auto nrandom_snippets = snipfile::NUM_RANDOM_SNIPPETS;
 	std::string chan_arg, output, filename;
-	parse_command_line(argc, argv, thresh, chan_arg, output, filename);
+	parse_command_line(argc, argv, thresh, nrandom_snippets, 
+			chan_arg, output, filename);
 	std::string array = get_array(filename);
 
 	/* Get channels based on input */
@@ -387,13 +401,14 @@ int main(int argc, char *argv[])
 #ifdef DEBUG
 	std::cout << "Computing thresholds" << std::endl;
 #endif
+	mean_subtract(data);
 	auto thresholds = compute_thresholds(data, thresh);
 
 	/* Find noise and spike snippets */
 	auto nchannels = channels.size();
 	std::vector<arma::uvec> spike_idx(nchannels), noise_idx(nchannels);
 	std::vector<sampleMat> spike_snips(nchannels), noise_snips(nchannels);
-	extract_noise(data, noise_idx, noise_snips);
+	extract_noise(data, nrandom_snippets, noise_idx, noise_snips);
 	extract_spikes(data, thresholds, spike_idx, spike_snips);
 
 	/* Write snippets to disk */

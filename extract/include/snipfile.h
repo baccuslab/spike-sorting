@@ -29,7 +29,8 @@ const size_t IDX_DATASET_RANK = 1;
 
 class SnipFile {
 	public:
-		SnipFile(std::string filename, const datafile::DataFile& source);
+		SnipFile(std::string filename, const datafile::DataFile& source); // New file
+		SnipFile(std::string filename);	// Existing file
 		SnipFile(const SnipFile& other) = delete;
 		~SnipFile();
 
@@ -39,6 +40,15 @@ class SnipFile {
 				const std::vector<arma::Mat<short> >& snips);
 		void writeNoiseSnips(const std::vector<arma::uvec>& idx,
 				const std::vector<arma::Mat<short> >& snips);
+
+		void spikeSnips(std::vector<arma::uvec>& idx,
+				std::vector<arma::Mat<short> >& snips);
+		void noiseSnips(std::vector<arma::uvec>& idx,
+				std::vector<arma::Mat<short> >& snips);
+		void spikeSnips(std::vector<arma::uvec>& idx,
+				std::vector<arma::mat>& snips);
+		void noiseSnips(std::vector<arma::uvec>& idx,
+				std::vector<arma::mat>& snips);
 
 		H5::DataType dtype();
 		std::string filename();
@@ -83,10 +93,18 @@ class SnipFile {
 				const std::vector<arma::uvec>& idx,
 				const std::vector<arma::Mat<short> >& snips);
 		void writeAttributes();
+		void readAttributes();
 		void writeFileStringAttr(const std::string& name, const std::string& value);
 		void writeFileAttr(const std::string& name, const H5::DataType& type,
 				const void* buf);
+		void readFileStringAttr(const std::string& name, std::string& value);
+		void readFileAttr(const std::string& name, void *buf);
 		void writeChannels(const arma::uvec& channels);
+		void readChannels();
+		void writeThresholds(const arma::vec& thresholds);
+		void readThresholds();
+		void snips(const std::string& type, std::vector<arma::uvec>& idx,
+				std::vector<arma::Mat<short> >& snips);
 };
 };
 

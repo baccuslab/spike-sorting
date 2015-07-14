@@ -158,14 +158,15 @@ done
 for file in $(ls); do
     echo
     filename=${file%.*}
-    echo $filename
     
     for locs in $(find_source_codes $currdir | grep $filename); do
         fileloc=${locs%/*}
-        echo "copy $file to $fileloc"
+        cp $file $fileloc
+        echo "copied $file to $fileloc"
     done
 done
 
 cd $currdir 
+rm -rf $MEXCODESDIR
 
 

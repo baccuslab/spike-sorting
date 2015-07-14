@@ -6,7 +6,7 @@ INCLUDE_DIR = include
 BUILD_DIR = build
 LIB_DIR = lib
 BIN_DIR = bin
-VERSION = 0.2
+VERSION = 0.3
 
 # Command-line programs to use
 CXX = g++

@@ -19,8 +19,8 @@ CXXFLAGS_DEBUG = -O0 -g -Wall -Wextra -I. -DDEBUG
 LIB_CXXFLAGS = -fPIC
 
 # Source, include and object file name information
-LIB_SOURCES = datafile.cc snipfile.cc
-BIN_SOURCES = test.cc extract.cc
+LIB_SOURCES = datafile.cc snipfile.cc extract.cc
+BIN_SOURCES = main.cc
 SOURCES = $(LIB_SOURCES) $(BIN_SOURCES)
 vpath %.cc $(SRC_DIR)
 vpath %.h $(INCLUDE_DIR)
@@ -30,7 +30,7 @@ LIB_DEBUG_OBJECTS = $(LIB_SOURCES:%.cc=$(BUILD_DIR)/%-debug.o)
 OBJECTS = $(LIB_OBJECTS) $(BIN_SOURCES:%.cc=%.o)
 
 # Flags and options for building shared library
-LIB_BASE_NAME = extractfiles
+LIB_BASE_NAME = extract
 LIBS = -lhdf5_cpp -lhdf5
 OS := $(shell uname -s)
 ifeq ($(OS),Darwin)
@@ -55,11 +55,11 @@ all: lib extract
 	
 debug: lib-debug extract-debug
 
-extract: lib $(BUILD_DIR)/extract.o
-	$(CXX) -o $(BIN_DIR)/$@ $(BUILD_DIR)/$@.o $(LDFLAGS) $(LIBS)
+extract: $(BUILD_DIR)/main.o lib
+	$(CXX) -o $(BIN_DIR)/$@ $< $(LDFLAGS) $(LIBS)
 
-extract-debug: lib-debug $(BUILD_DIR)/extract-debug.o
-	$(CXX) -o $(BIN_DIR)/$@ $(BUILD_DIR)/$@.o $(LDFLAGS) $(LIBS)
+extract-debug: $(BUILD_DIR)/main-debug.o lib-debug
+	$(CXX) -o $(BIN_DIR)/$@ $< $(LDFLAGS) $(LIBS)
 
 lib: $(LIB_OBJECTS)
 	$(CXX) $(LIB_LDFLAGS) -o $(LIB_DIR)/$(LIB_NAME) $^ $(LIBS)
@@ -68,6 +68,9 @@ lib: $(LIB_OBJECTS)
 lib-debug: $(LIB_DEBUG_OBJECTS)
 	$(CXX) $(LIB_LDFLAGS) -o $(LIB_DIR)/$(LIB_NAME) $^ $(LIBS)
 	$(LINK) $(CWD)/$(LIB_DIR)/$(LIB_NAME) $(CWD)/$(LIB_DIR)/$(LIB_LINK_NAME)
+
+$(BUILD_DIR)/main.o: $(SRC_DIR)/main.cc
+	$(CXX) -c -o $@ $(LIB_CXXFLAGS) $(CXXFLAGS) $(CXXFLAGS_RELEASE) $<
 
 $(BUILD_DIR)/%.o: %.cc %.h
 	$(CXX) -c -o $@ $(LIB_CXXFLAGS) $(CXXFLAGS) $(CXXFLAGS_RELEASE) $<

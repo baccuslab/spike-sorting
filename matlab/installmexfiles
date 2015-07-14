@@ -1,0 +1,172 @@
+#!/usr/bin/env bash
+# Install mex code files
+#    This code identifies c and c++ source codes in spike-sorting directory(and subdirectories),
+#    and compiles to mex code. 
+#   
+# usage:
+#    run ./installmexfiles in the `spike-sorting/matlab` folder
+#    runs with compile_mex.m mcode.
+#    check if compile_mex.m mcode is in the same folder.
+#
+# custom variables: 
+#    MEXCODESDIR
+#    -----------
+#       name of the directory. copy c and c++ source codes to `MEXCODESDIR` folder
+#
+#    COMPILE
+#    -------
+#       m-code name. (default: compile_mex.m)
+#
+#    MATLAB
+#    ------
+#       matlab executable file.
+#
+
+# ***** Setting custom variables ***** #
+# mex codes dir, and compile matlab code, and matlab executable.
+MEXCODESDIR="mexcodes"
+COMPILE="compile_mex.m"
+MATLAB="/Applications/MATLAB_R2014a.app/bin/matlab"
+# ************************************ #
+
+if [ ! -f "$COMPILE" ]; then
+    echo "[Error] file $COMPILE not found.
+          Need to have m-code(compile_mex.m) in the same directory to compile mex codes.
+          Check if the m-code name is assigned to COMPILE variable correctly."
+    exit 1
+fi
+if [ ! -f "$MATLAB" ]; then
+    echo "[Error] Incorrect matlab path: $MATLAB not found.
+          Set the matlab executable file path correctly to the MATLAB variable."
+    exit 1
+fi
+
+
+
+set -eu
+
+start_message() {
+    echo
+    echo "Install mex codes..."
+    echo
+}
+
+
+display_help() {
+    echo
+    echo "[HELP] installmexfiles"
+    echo "  usage: ./installmexfiles [option]"
+    echo
+    echo "  Run this code in the spike-sorting/matlab folder of GroupCW
+
+  description: Install mex code files
+     This code identifies c and c++ source codes in spike-sorting directory(and subdirectories),
+     and compiles to mex code. 
+    
+  usage:
+     run ./installmexfiles in the spike-sorting/matlab folder
+     runs with compile_mex.m mcode.
+     check if compile_mex.m mcode is in the same folder.
+ 
+  custom variables: 
+     MEXCODESDIR
+     -----------
+        name of the directory. copy c and c++ source codes to MEXCODESDIR folder
+ 
+     COMPILE
+     -------
+        m-code name. (default: compile_mex.m)
+ 
+     MATLAB
+     ------
+        matlab executable file."
+    echo
+    echo "  -h, --help         print a help message, menu and usage."
+    echo "  -v, --verbose      print verbose output."
+    exit 1
+}
+
+# find all source codes and header files
+find_all() {
+    if [ $# -eq 1 ]; then
+        currdir=$1
+        find $currdir -iname "*.c*" -o -iname "*.h*"
+    else
+        find . -iname "*.c*" -o -iname "*.h*"
+    fi
+}
+
+# find source codes only (c and c++ codes)
+find_source_codes() {
+
+    if [ $# -eq 1 ]; then
+        currdir=$1
+        find $currdir -iname "*.c" -o -iname "*.cpp"
+    else
+        find . -iname "*.c" -o -iname "*.cpp"
+    fi
+}
+
+# check usage of the shell script.
+if [ $# -gt 0 ]; then
+    option=$1
+    case "$option" in
+        -h | --help) display_help;;
+    #--help) display_help;;
+        -v) vflag=on;;
+        --verbose) vflag=on;;
+    esac
+else
+    start_message
+fi
+
+# current dir path
+currdir=$PWD
+
+# make mexcodes dir, copy source codes into mexcodes dir.
+mkdir -p $MEXCODESDIR
+for file in $(find_all $currdir); do
+    filefullname=${file##*/}
+    if [ -f "$MEXCODESDIR/$filefullname" ]
+    then
+        echo "$filefullname in $MEXCODESDIR folder... not copied"
+    else
+        echo "$filefullname not in $MEXCODESDIR folder... copied $filefullname to $MEXCODESDIR folder"
+        cp $file ./$MEXCODESDIR/
+    fi
+done
+
+# copy compile.m matlab code to mexcodes dir
+cp $COMPILE ./$MEXCODESDIR/
+cd $MEXCODESDIR
+
+# run matlab, compile source codes into mex files
+$MATLAB -nodisplay -nosplash -nodesktop -nojvm -r ${COMPILE%.*} $MEXCODESDIR #| tail -n 3
+
+# delete compile.m matlab file and source files
+rm -f $COMPILE
+for file in $(find_all); do
+    filefullname=${file##*/}
+    if [ -f "$filefullname" ]
+    then
+        echo "$filefullname in $MEXCODESDIR deleted..."
+        rm -f $filefullname
+    fi
+done
+
+# copy compiled mex codes to the original source locations
+for file in $(ls); do
+    echo
+    filename=${file%.*}
+    
+    for locs in $(find_source_codes $currdir | grep $filename); do
+        fileloc=${locs%/*}
+        cp $file $fileloc
+        echo "copied $file to $fileloc"
+    done
+done
+
+cd $currdir 
+rm -rf $MEXCODESDIR
+
+

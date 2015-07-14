@@ -56,10 +56,10 @@ all: lib extract
 debug: lib-debug extract-debug
 
 extract: $(BUILD_DIR)/main.o lib
-	$(CXX) -o $(BIN_DIR)/$@ $< $(LDFLAGS) $(LIBS)
+	$(CXX) -o $(BIN_DIR)/$@ $< $(LDFLAGS) $(LIBS) $(BIN_LDFLAGS)
 
 extract-debug: $(BUILD_DIR)/main-debug.o lib-debug
-	$(CXX) -o $(BIN_DIR)/$@ $< $(LDFLAGS) $(LIBS)
+	$(CXX) -o $(BIN_DIR)/$@ $< $(LDFLAGS) $(LIBS) $(BIN_LDFLAGS)
 
 lib: $(LIB_OBJECTS)
 	$(CXX) $(LIB_LDFLAGS) -o $(LIB_DIR)/$(LIB_NAME) $^ $(LIBS)

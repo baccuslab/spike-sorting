@@ -18,8 +18,6 @@
 
 #include <armadillo>
 
-#include "mcsfile.h"
-#include "hidensfile.h"
 #include "snipfile.h"
 
 #define UL_PRE "\033[4m"

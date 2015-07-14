@@ -51,7 +51,7 @@ LIB_LINK_NAME = lib$(LIB_BASE_NAME).$(LIB_EXT)
 LDFLAGS = -L$(LIB_DIR) -l$(LIB_BASE_NAME)
 
 # Rules
-all: lib extract test
+all: lib extract
 	
 debug: lib-debug extract-debug
 
@@ -61,9 +61,6 @@ extract: lib $(BUILD_DIR)/extract.o
 extract-debug: lib-debug $(BUILD_DIR)/extract-debug.o
 	$(CXX) -o $(BIN_DIR)/$@ $(BUILD_DIR)/$@.o $(LDFLAGS) $(LIBS)
 
-test: lib $(BUILD_DIR)/test.o
-	$(CXX) -o $(BIN_DIR)/$@ $(BUILD_DIR)/$@.o $(LDFLAGS) $(LIB)
-
 lib: $(LIB_OBJECTS)
 	$(CXX) $(LIB_LDFLAGS) -o $(LIB_DIR)/$(LIB_NAME) $^ $(LIBS)
 	$(LINK) $(CWD)/$(LIB_DIR)/$(LIB_NAME) $(CWD)/$(LIB_DIR)/$(LIB_LINK_NAME)
@@ -71,9 +68,6 @@ lib: $(LIB_OBJECTS)
 lib-debug: $(LIB_DEBUG_OBJECTS)
 	$(CXX) $(LIB_LDFLAGS) -o $(LIB_DIR)/$(LIB_NAME) $^ $(LIBS)
 	$(LINK) $(CWD)/$(LIB_DIR)/$(LIB_NAME) $(CWD)/$(LIB_DIR)/$(LIB_LINK_NAME)
-
-$(BUILD_DIR)/test.o: test.cc
-	$(CXX) -c -o $@ $(LIB_CXXFLAGS) $(CXXFLAGS) $(CXXFLAGS_RELEASE) $<
 
 $(BUILD_DIR)/%.o: %.cc %.h
 	$(CXX) -c -o $@ $(LIB_CXXFLAGS) $(CXXFLAGS) $(CXXFLAGS_RELEASE) $<

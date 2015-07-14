@@ -102,7 +102,8 @@ void snipfile::SnipFile::setChannels(const arma::uvec& channels)
 	if (channelGroups.size() == 0) {
 		std::string buf(32, '\0');
 		for (auto& c : channels) {
-			std::snprintf(&buf[0], buf.size(), "channel-%03llu", c);
+			buf.clear();
+			std::snprintf(&buf[0], buf.capacity(), "channel-%03llu", c);
 			channelGroups.push_back(file.createGroup(buf.c_str()));
 		}
 	}
@@ -146,7 +147,8 @@ void snipfile::SnipFile::writeSnips(const std::string& type,
 		spikeIdxDatasets.push_back(idxSet);
 
 		/* Write the datasets */
-		snipSet.write(snips.at(i).memptr(), dstType);
+		//snipSet.write(snips.at(i).memptr(), dstType);
+		snipSet.write(snips.at(i).memptr(), H5::PredType::STD_I16LE);
 		idxSet.write(idx.at(i).memptr(), H5::PredType::STD_U64LE);
 	}
 }
@@ -176,7 +178,7 @@ void snipfile::SnipFile::readFileStringAttr(const std::string& name,
 {
 	auto attr = file.openAttribute(name);
 	auto sz = attr.getStorageSize();
-	char *buf = new char[sz + 1];
+	char *buf = new char[sz + 1]();
 	readFileAttr(name, buf);
 	value.replace(0, sz, buf);
 	delete[] buf;
@@ -205,8 +207,16 @@ void snipfile::SnipFile::readChannels()
 	auto chanSpace = chanSet.getSpace();
 	hsize_t dims[1] = {0};
 	chanSpace.getSimpleExtentDims(dims);
+	nchannels_ = dims[0];
+	hsize_t spaceOffset[1] = {0};
+	hsize_t spaceCount[1] = {dims[0]};
+	chanSpace.selectHyperslab(H5S_SELECT_SET, spaceCount, spaceOffset);
+
+	/* Read channels */
+	auto memspace = H5::DataSpace(1, dims);
+	memspace.selectHyperslab(H5S_SELECT_SET, spaceCount, spaceOffset);
 	channels_.set_size(dims[0]);
-	chanSet.read(channels_.memptr(), H5::PredType::STD_U64LE, H5::DataSpace::ALL);
+	chanSet.read(channels_.memptr(), H5::PredType::STD_U64LE, memspace, chanSpace);
 }
 
 void snipfile::SnipFile::writeThresholds(const arma::vec& thresholds)
@@ -224,8 +234,14 @@ void snipfile::SnipFile::readThresholds()
 	auto threshSpace = threshSet.getSpace();
 	hsize_t dims[1] = {0};
 	threshSpace.getSimpleExtentDims(dims);
+	hsize_t spaceOffset[1] = {0};
+	hsize_t spaceCount[1] = {dims[0]};
+	threshSpace.selectHyperslab(H5S_SELECT_SET, spaceCount, spaceOffset);
+
+	auto memspace = H5::DataSpace(1, dims);
+	memspace.selectHyperslab(H5S_SELECT_SET, spaceCount, spaceOffset);
 	thresholds_.set_size(dims[0]);
-	threshSet.read(thresholds_.memptr(), H5::PredType::IEEE_F64LE, H5::DataSpace::ALL);
+	threshSet.read(thresholds_.memptr(), H5::PredType::IEEE_F64LE, memspace, threshSpace);
 }
 
 void snipfile::SnipFile::spikeSnips(std::vector<arma::uvec>& idx, 
@@ -261,18 +277,19 @@ void snipfile::SnipFile::noiseSnips(std::vector<arma::uvec>& idx,
 }
 
 void snipfile::SnipFile::snips(const std::string& type, 
-		std::vector<arma::uvec>& idx, std::vector<arma::Mat<short> >& snips)
+		std::vector<arma::uvec>& idx, std::vector<arma::Mat<short> >& snippets)
 {
-	snips.resize(nchannels());
+	snippets.resize(nchannels());
 	idx.resize(nchannels());
-	std::string buf(32, '\0');
+	std::string grpName(32, '\0');
 	for (auto c = 0; c < nchannels(); c++) {
-		auto grpName = std::snprintf(&buf[0], buf.size(), "channel-%03llu", c);
+		grpName.erase();
+		std::snprintf(&grpName[0], grpName.capacity(), "channel-%03d", c);
 		H5::Group grp;
 		try {
-			grp = file.openGroup(buf);
+			grp = file.openGroup(grpName);
 		} catch (H5::GroupIException &e) {
-			std::cerr << "Channel group does not exist: " << buf << std::endl;
+			std::cerr << "Channel group does not exist: " << grpName << std::endl;
 		}
 		
 		/* Read indices */
@@ -280,19 +297,29 @@ void snipfile::SnipFile::snips(const std::string& type,
 		auto idxSpace = tmpIdxSet.getSpace();
 		hsize_t idxDims[1] = {0};
 		idxSpace.getSimpleExtentDims(idxDims);
-		auto nsnip = idxDims[0];
-		auto& idxVec = idx.at(c);
-		idxVec.set_size(nsnip);
-		tmpIdxSet.read(idxVec.memptr(), H5::PredType::STD_U64LE, H5::DataSpace::ALL);
+		hsize_t nsnips = idxDims[0];
+		hsize_t spaceOffset[1] = {0};
+		hsize_t spaceCount[1] = {nsnips};
+		idxSpace.selectHyperslab(H5S_SELECT_SET, spaceCount, spaceOffset);
+		
+		auto idxMemSpace = H5::DataSpace(1, idxDims);
+		idxMemSpace.selectHyperslab(H5S_SELECT_SET, spaceCount, spaceOffset);
+		idx.at(c).set_size(nsnips);
+		tmpIdxSet.read(idx.at(c).memptr(), H5::PredType::STD_U64LE, idxSpace, idxMemSpace);
 		
 		/* Read snippets */
 		auto tmpSnipSet = grp.openDataSet(type + "-snippets");
 		auto snipSpace = tmpSnipSet.getSpace();
 		hsize_t snipDims[2] = {0, 0};
 		snipSpace.getSimpleExtentDims(snipDims);
-		auto& snipMat = snips.at(c);
-		snipMat.set_size(nsnip, snipDims[1]);
-		tmpSnipSet.read(snipMat.memptr(), H5::PredType::STD_I16LE, H5::DataSpace::ALL);
+		hsize_t snipCount[2] = {nsnips, snipDims[1]};
+		hsize_t snipOffset[2] = {0, 0};
+		snipSpace.selectHyperslab(H5S_SELECT_SET, snipCount, snipOffset);
+
+		auto snipMemSpace = H5::DataSpace(2, snipDims);
+		snipMemSpace.selectHyperslab(H5S_SELECT_SET, snipCount, snipOffset);
+		snippets.at(c).set_size(nsnips, snipDims[1]);
+		tmpSnipSet.read(snippets.at(c).memptr(), H5::PredType::STD_I16LE, H5::DataSpace::ALL);
 	}
 }
 

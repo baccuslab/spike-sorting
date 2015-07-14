@@ -15,7 +15,6 @@
 #include <iostream>
 #include <vector>
 #include <numeric>
-#include <set>
 
 #include <armadillo>
 
@@ -230,6 +229,18 @@ bool sequential_channels(const arma::uvec& channels)
 
 void verify_channels(arma::uvec& channels, const datafile::DataFile& file)
 {
+	arma::uvec file_channels(file.nchannels(), arma::fill::zeros);
+	std::iota(file_channels.begin(), file_channels.end(), 0);
+	arma::uvec valid_channels(file_channels.n_elem, arma::fill::zeros);
+	size_t nelem = 0;
+	for (auto i = 0; i < channels.n_elem; i++) {
+		if (arma::any(file_channels == channels(i))) {
+			valid_channels(nelem) = channels(i);
+			nelem++;
+		}
+	}
+	valid_channels.resize(nelem);
+	channels = valid_channels;
 }
 
 int main(int argc, char *argv[])

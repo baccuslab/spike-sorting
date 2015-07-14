@@ -124,7 +124,7 @@ void datafile::DataFile::readDatasetStringAttr(std::string name, std::string& s)
 	try {
 		H5::Attribute attr = dataset.openAttribute(name);
 		hsize_t sz = attr.getStorageSize();
-		char *buf = new char[sz];
+		char *buf = new char[sz + 1]();
 		readDatasetAttr(name, buf);
 		s.reserve(sz);
 		s.replace(0, sz, buf);

@@ -40,12 +40,12 @@ void extract::randsample(std::vector<arma::uvec>& out, size_t min, size_t max)
 void extract::meanSubtract(sampleMat& data)
 {
 	for (auto i = 0; i < data.n_cols; i++)
-		data.col(i) -= arma::mean(data.col(i));
+		data.col(i) -= arma::mean(arma::conv_to<arma::vec>::from(data.col(i)));
 }
 
 arma::vec extract::computeThresholds(const sampleMat& data, double thresh)
 {
-	return thresh * arma::conv_to<arma::vec>::from(arma::median(arma::abs(data), 0));
+	return thresh * arma::conv_to<arma::vec>::from(arma::median(arma::abs(data)));
 }
 
 bool extract::isLocalMax(const sampleMat& data, size_t channel, 

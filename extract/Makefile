@@ -72,6 +72,9 @@ lib-debug: $(LIB_DEBUG_OBJECTS)
 $(BUILD_DIR)/main.o: $(SRC_DIR)/main.cc
 	$(CXX) -c -o $@ $(LIB_CXXFLAGS) $(CXXFLAGS) $(CXXFLAGS_RELEASE) $<
 
+$(BUILD_DIR)/main-debug.o: $(SRC_DIR)/main.cc
+	$(CXX) -c -o $@ $(LIB_CXXFLAGS) $(CXXFLAGS) $(CXXFLAGS_DEBUG) $<
+
 $(BUILD_DIR)/%.o: %.cc %.h
 	$(CXX) -c -o $@ $(LIB_CXXFLAGS) $(CXXFLAGS) $(CXXFLAGS_RELEASE) $<
 

@@ -15,6 +15,7 @@
 #include <iostream>
 #include <vector>
 #include <numeric>
+#include <set>
 
 #include <armadillo>
 
@@ -227,6 +228,10 @@ bool sequential_channels(const arma::uvec& channels)
 			channels(arma::span(0, channels.n_elem - 2)) > 1);
 }
 
+void verify_channels(arma::uvec& channels, const datafile::DataFile& file)
+{
+}
+
 int main(int argc, char *argv[])
 {	
 	/* Parse input and get the array type */
@@ -246,11 +251,14 @@ int main(int argc, char *argv[])
 	} else
 		parse_chan_list(chan_arg, channels, channel_max(array));
 
-	/* Open the data file and read all data */
+	/* Open the file and verify the channels requested */
+	datafile::DataFile file(filename);
+	verify_channels(channels, file);
+
+	/* Read all data from the requested channels */
 #ifdef DEBUG
 	std::cout << "Loading data from channels: " << std::endl << channels;
 #endif
-	datafile::DataFile file(filename);
 	sampleMat data;
 	if (sequential_channels(channels))
 		file.data(channels.min(), channels.max() + 1, 

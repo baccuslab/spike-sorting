@@ -45,7 +45,6 @@ datafile::DataFile::DataFile(std::string name)
 			readGain();
 			readOffset();
 			readDate();
-			readTime();
 			readArray();
 			readDatasetSize();
 		} catch ( ... ) {
@@ -84,11 +83,6 @@ void datafile::DataFile::readOffset()
 void datafile::DataFile::readDate()
 {
 	readDatasetStringAttr("date", date_);
-}
-
-void datafile::DataFile::readTime()
-{
-	readDatasetStringAttr("time", time_);
 }
 
 void datafile::DataFile::readArray()
@@ -143,7 +137,6 @@ void datafile::DataFile::readDatasetStringAttr(std::string name, std::string& s)
 
 std::string datafile::DataFile::filename() const { return filename_; }
 std::string datafile::DataFile::date() const { return date_; }
-std::string datafile::DataFile::time() const { return time_; }
 float datafile::DataFile::sampleRate() const { return sampleRate_; }
 float datafile::DataFile::gain() const { return gain_; }
 float datafile::DataFile::offset() const { return offset_; }

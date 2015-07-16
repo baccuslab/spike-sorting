@@ -34,7 +34,7 @@ snipfile::SnipFile::SnipFile(std::string fname)
 	struct stat buf;
 	if (stat(filename_.c_str(), &buf) != 0) {
 		std::cerr << "Snippet file does not exist: " << filename_ << std::endl;
-		throw std::invalid_argument("Snippet file already exists");
+		throw std::invalid_argument("Snippet file does not exist");
 	}
 
 	file = H5::H5File(filename_, H5F_ACC_RDONLY);
@@ -53,7 +53,6 @@ void snipfile::SnipFile::writeAttributes()
 	writeFileStringAttr("array", array());
 	writeFileStringAttr("source-file", sourceFile());
 	writeFileStringAttr("date", date());
-	writeFileStringAttr("time", time());
 	writeFileAttr("nsamples", H5::PredType::STD_U64LE, &nsamples_);
 	writeFileAttr("gain", H5::PredType::IEEE_F32LE, &gain_);
 	writeFileAttr("offset", H5::PredType::IEEE_F32LE, &offset_);
@@ -64,7 +63,6 @@ void snipfile::SnipFile::readAttributes()
 	readFileStringAttr("array", array_);
 	readFileStringAttr("source-file", sourceFile_);
 	readFileStringAttr("date", date_);
-	readFileStringAttr("time", time_);
 	readFileAttr("nsamples", &nsamples_);
 	readFileAttr("gain", &gain_);
 	readFileAttr("offset", &offset_);
@@ -77,7 +75,6 @@ void snipfile::SnipFile::getSourceInfo(const datafile::DataFile& source)
 	sourceFile_ = source.filename();
 	sampleRate_ = source.sampleRate();
 	date_ = source.date();
-	time_ = source.time();
 	gain_ = source.gain();
 	offset_ = source.offset();
 	dstType = source.datatype();
@@ -89,7 +86,6 @@ size_t snipfile::SnipFile::nsamples() { return nsamples_; }
 std::string snipfile::SnipFile::sourceFile() { return sourceFile_; }
 float snipfile::SnipFile::sampleRate() { return sampleRate_; }
 std::string snipfile::SnipFile::date() { return date_; }
-std::string snipfile::SnipFile::time() { return time_; }
 float snipfile::SnipFile::gain() { return gain_; }
 float snipfile::SnipFile::offset() { return offset_; }
 arma::uvec snipfile::SnipFile::channels() { return channels_; }
@@ -253,7 +249,7 @@ void snipfile::SnipFile::spikeSnips(std::vector<arma::uvec>& idx,
 void snipfile::SnipFile::noiseSnips(std::vector<arma::uvec>& idx, 
 		std::vector<arma::Mat<short> >& snippets)
 {
-	snips("spike", idx, snippets);
+	snips("noise", idx, snippets);
 }
 
 void snipfile::SnipFile::spikeSnips(std::vector<arma::uvec>& idx,
@@ -284,7 +280,7 @@ void snipfile::SnipFile::snips(const std::string& type,
 	std::string grpName(32, '\0');
 	for (auto c = 0; c < nchannels(); c++) {
 		grpName.erase();
-		std::snprintf(&grpName[0], grpName.capacity(), "channel-%03d", c);
+		std::snprintf(&grpName[0], grpName.capacity(), "channel-%03llu", channels_(c));
 		H5::Group grp;
 		try {
 			grp = file.openGroup(grpName);
@@ -305,7 +301,8 @@ void snipfile::SnipFile::snips(const std::string& type,
 		auto idxMemSpace = H5::DataSpace(1, idxDims);
 		idxMemSpace.selectHyperslab(H5S_SELECT_SET, spaceCount, spaceOffset);
 		idx.at(c).set_size(nsnips);
-		tmpIdxSet.read(idx.at(c).memptr(), H5::PredType::STD_U64LE, idxSpace, idxMemSpace);
+		tmpIdxSet.read(idx.at(c).memptr(), 
+				H5::PredType::STD_U64LE, idxSpace, idxMemSpace);
 		
 		/* Read snippets */
 		auto tmpSnipSet = grp.openDataSet(type + "-snippets");
@@ -318,8 +315,9 @@ void snipfile::SnipFile::snips(const std::string& type,
 
 		auto snipMemSpace = H5::DataSpace(2, snipDims);
 		snipMemSpace.selectHyperslab(H5S_SELECT_SET, snipCount, snipOffset);
-		snippets.at(c).set_size(nsnips, snipDims[1]);
-		tmpSnipSet.read(snippets.at(c).memptr(), H5::PredType::STD_I16LE, H5::DataSpace::ALL);
+		snippets.at(c).set_size(snipDims[1], nsnips);
+		tmpSnipSet.read(snippets.at(c).memptr(), 
+				H5::PredType::STD_I16LE, snipSpace, snipMemSpace);
 	}
 }
 

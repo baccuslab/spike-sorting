@@ -20,8 +20,7 @@ const std::string EXTENSION = ".h5";		// File extension
 const unsigned int DATASET_RANK = 2;		// Rank of "data" dataset
 const unsigned int CHUNK_SIZE = 2000;		// HDF5 file chunk size, in _samples_
 const unsigned int CHUNK_CACHE_SIZE = 5;	// Number of chunks HDF library should cache
-const std::string DATE_FMT = "%a, %b %d, %Y";
-const std::string TIME_FMT = "%I:%M:%S %p";
+const std::string DATE_FMT = "%Y-%m-%dT%H:%M:%S";
 
 class DataFile { 
 
@@ -32,7 +31,6 @@ class DataFile {
 
 		std::string filename() const;
 		std::string date() const;	// Date of recording
-		std::string time() const;	// Time of recording
 		float sampleRate() const;	// Sample rate of data
 		float gain() const;			// ADC gain
 		float offset() const;		// ADC offset
@@ -59,7 +57,6 @@ class DataFile {
 	protected:
 		std::string filename_;
 		std::string date_;
-		std::string time_;
 		float sampleRate_;
 		float gain_;
 		float offset_;
@@ -79,7 +76,6 @@ class DataFile {
 		void readGain();
 		void readOffset();
 		void readDate();
-		void readTime();
 		void readArray();
 		void readDatasetSize();
 		void readDatasetAttr(std::string name, void *buf);

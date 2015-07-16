@@ -32,7 +32,7 @@ class SnipFile {
 		SnipFile(std::string filename, const datafile::DataFile& source); // New file
 		SnipFile(std::string filename);	// Existing file
 		SnipFile(const SnipFile& other) = delete;
-		~SnipFile();
+		virtual ~SnipFile();
 
 		void setChannels(const arma::uvec& channels);
 		void setThresholds(const arma::vec& thresh);
@@ -60,18 +60,17 @@ class SnipFile {
 		float offset();
 		float sampleRate();
 		std::string date();
-		std::string time();
 
 		arma::uvec channels();
 		arma::vec thresholds();
 
-	private:
+	protected:
+
 		std::string filename_;
 		std::string array_;
 		std::string sourceFile_;
 		float sampleRate_;
 		std::string date_;
-		std::string time_;
 		float gain_;
 		float offset_;
 		size_t nchannels_;

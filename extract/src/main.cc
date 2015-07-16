@@ -19,6 +19,8 @@
 #include <armadillo>
 
 #include "snipfile.h"
+#include "hidensfile.h"
+#include "hidenssnipfile.h"
 #include "extract.h"
 
 #define UL_PRE "\033[4m"
@@ -227,9 +229,9 @@ bool sequential_channels(const arma::uvec& channels)
 			channels(arma::span(0, channels.n_elem - 2)) > 1);
 }
 
-void verify_channels(arma::uvec& channels, const datafile::DataFile& file)
+void verify_channels(arma::uvec& channels, const datafile::DataFile* file)
 {
-	arma::uvec file_channels(file.nchannels(), arma::fill::zeros);
+	arma::uvec file_channels(file->nchannels(), arma::fill::zeros);
 	std::iota(file_channels.begin(), file_channels.end(), 0);
 	arma::uvec valid_channels(file_channels.n_elem, arma::fill::zeros);
 	size_t nelem = 0;
@@ -263,7 +265,15 @@ int main(int argc, char *argv[])
 		parse_chan_list(chan_arg, channels, channel_max(array));
 
 	/* Open the file and verify the channels requested */
-	datafile::DataFile file(filename);
+	datafile::DataFile *file;
+	if (array == "hidens")
+		file = dynamic_cast<datafile::DataFile*>(new hidensfile::HidensFile(filename));
+	else
+		file = new datafile::DataFile(filename);
+	if (!file) {
+		std::cerr << "Could not cast Hidens file to base datafile" << std::endl;
+		exit(EXIT_FAILURE);
+	}
 	verify_channels(channels, file);
 
 	/* Read all data from the requested channels */
@@ -272,12 +282,20 @@ int main(int argc, char *argv[])
 #endif
 	sampleMat data;
 	if (sequential_channels(channels))
-		file.data(channels.min(), channels.max() + 1, 
-				0, file.nsamples(), data);
+		file->data(channels.min(), channels.max() + 1, 
+				0, file->nsamples(), data);
 	else
-		file.data(channels, 0, file.nsamples(), data);
-	snipfile::SnipFile snip_file(
-			output + snipfile::FILE_EXTENSION, file);
+		file->data(channels, 0, file->nsamples(), data);
+
+	/* Create snippet file */
+	snipfile::SnipFile *snip_file;
+	if (array == "hidens")
+		snip_file = dynamic_cast<hidenssnipfile::HidensSnipFile*>(
+				new hidenssnipfile::HidensSnipFile(output + 
+				snipfile::FILE_EXTENSION, *dynamic_cast<hidensfile::HidensFile*>(file)));
+	else
+		snip_file = new snipfile::SnipFile(
+				output + snipfile::FILE_EXTENSION, *file);
 
 	/* Compute thresholds */
 #ifdef DEBUG
@@ -294,10 +312,14 @@ int main(int argc, char *argv[])
 	extract::extractSpikes(data, thresholds, spike_idx, spike_snips);
 
 	/* Write snippets to disk */
-	snip_file.setChannels(channels);
-	snip_file.setThresholds(thresholds);
-	snip_file.writeSpikeSnips(spike_idx, spike_snips);
-	snip_file.writeNoiseSnips(noise_idx, noise_snips);
+	snip_file->setChannels(channels);
+	snip_file->setThresholds(thresholds);
+	snip_file->writeSpikeSnips(spike_idx, spike_snips);
+	snip_file->writeNoiseSnips(noise_idx, noise_snips);
+
+	/* Cleanup */
+	delete file;
+	delete snip_file;
 	
 	return 0;
 }

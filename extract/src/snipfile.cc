@@ -249,7 +249,7 @@ void snipfile::SnipFile::spikeSnips(std::vector<arma::uvec>& idx,
 void snipfile::SnipFile::noiseSnips(std::vector<arma::uvec>& idx, 
 		std::vector<arma::Mat<short> >& snippets)
 {
-	snips("spike", idx, snippets);
+	snips("noise", idx, snippets);
 }
 
 void snipfile::SnipFile::spikeSnips(std::vector<arma::uvec>& idx,

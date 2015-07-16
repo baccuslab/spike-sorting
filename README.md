@@ -15,7 +15,7 @@ Include all the names of the source codes in the list `compile_mex.m` matlab cod
 
     source_codes = {'AutoCorr.cpp', 'CrossCorr.cpp'};
   
-Run the following command in the `spike-sorting/matlab' folder to compile c++ source 
+Run the following command in the `spike-sorting/matlab` folder to compile c++ source 
 codes into mex-functions in the command line:
 
     ./installmexfiles

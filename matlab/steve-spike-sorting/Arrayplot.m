@@ -1,4 +1,4 @@
-function arrayplot (channels,hch,xc,yc,nspikes) 
+function Arrayplot(channels,hch,xc,yc,nspikes) 
 	maxx=0;minx=0;maxy=0;miny=0;
 	for chindx=1:size(channels,2)
 		maxx=max([maxx xc{chindx}]);

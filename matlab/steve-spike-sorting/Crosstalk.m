@@ -15,7 +15,7 @@ sortchannels =getuprop (h,'sortchannels');
 allchannels = g.channels;
 nfiles=size(g.spikefiles,2);
 if g.pwflag
-	global proj,sptimes
+	global proj sptimes
 else
 	proj=loadproj('proj.bin',1:size(allchannels,2),size(allchannels,2),nfiles,2000);	
 	sptimes=g.plottimes;
@@ -29,7 +29,7 @@ idxc=cell(1,nchans);
 for ch = 1:nchans
 	idxc{ch}=cell(1,4);
 	npbtemp = CrossCorrRecRow1(ch1(1,:),sptimes{ch},tmax,20); %CrossCorrRecRow1 this file below
-	[placeholder,idxc{ch}] = CrossCorrRecRow1(ch1(1,:),sptimes{ch},ctsamp); %coincident spikes
+	[~,idxc{ch}] = CrossCorrRecRow1(ch1(1,:),sptimes{ch},ctsamp); %coincident spikes
 	%Keep only the 2nd channel
 	for fnum=1:nfiles
 		if (size(idxc{ch}{fnum},2)>0)
@@ -143,7 +143,7 @@ binning = 0;
 if (nargin == 4)
 	binning = 1;
 end
-if (nargout > 1 & binning)
+if (nargout > 1 && binning)
 	error('Only one output when binning');
 end
 if (~iscell(t1))			% Allow vector inputs for generality

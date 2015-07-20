@@ -170,10 +170,11 @@ void parse_command_line(int argc, char **argv,
 		{ "version", 	no_argument, 		nullptr, 'v' },
 		{ "chan", 		required_argument, 	nullptr, 'c' },
 		{ "nrandom", 	required_argument,  nullptr, 'n' },
+		{ "output", 	required_argument,  nullptr, 'o' },
 		{ nullptr, 		0, 					nullptr, 0 	 }
 	};
 	int opt;
-	while ( (opt = getopt_long(argc, argv, "t:hhvc:n:", options, nullptr)) != -1 ) {
+	while ( (opt = getopt_long(argc, argv, "hvo:t:c:n:", options, nullptr)) != -1 ) {
 		switch (opt) {
 			case 'h':
 				print_usage_and_exit();

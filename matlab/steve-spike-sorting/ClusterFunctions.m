@@ -37,11 +37,11 @@ case 'DoPolygon'
 	% Make sure only one cluster is selected if replacing
 	selvec = getuprop(hfig,'selectflag');
 	selclust = find(selvec);
-	if (length(selclust) == 0 & replace == 1)
+	if (isempty(selclust) && replace == 1)
 		errordlg('Must select a cluster to replace it','SelectionError','modal');
 		return
 	end
-	if (length(selclust) > 1 & replace == 1)
+	if (length(selclust) > 1 && replace == 1)
 		errordlg('Can only replace 1 cluster','SelectionError','modal');
 		return;
 	end
@@ -68,7 +68,7 @@ case 'DoPolygon'
 	end
 	%   Get selection polygon
 	[pvx,pvy] = GetSelPolygon('go',GetClustCol(clustnum));
-	if (isempty(pvx) & replace == 1)
+	if (isempty(pvx) && replace == 1)
 		pvx = oldpolygon.x;
 		pvy = oldpolygon.y;
 	end
@@ -107,11 +107,11 @@ case 'DoBox'
 	% Make sure only one cluster is selected if replacing
 	selvec = getuprop(hfig,'selectflag');
 	selclust = find(selvec);
-	if (length(selclust) == 0 & replace == 1)
+	if (isempty(selclust) && replace == 1)
 		errordlg('Must select a cluster to replace it','SelectionError','modal');
 		return
 	end
-	if (length(selclust) > 1 & replace == 1)
+	if (length(selclust) > 1 && replace == 1)
 		errordlg('Can only replace 1 cluster','SelectionError','modal');
 		return;
 	end

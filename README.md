@@ -10,6 +10,16 @@ matlab
 Contains source for Matlab GUI sorting application, and C++ source for some
 compiled mex-functions used by the sorting application
 
+##### Compiling c++ soure
+Include all the names of the source codes in the list `compile_mex.m` matlab code:
+
+    source_codes = {'AutoCorr.cpp', 'CrossCorr.cpp'};
+  
+Run the following command in the `spike-sorting/matlab` folder to compile c++ source 
+codes into mex-functions in the command line:
+
+    ./installmexfiles
+
 extract
 -------
 

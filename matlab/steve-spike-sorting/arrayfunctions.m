@@ -5,6 +5,6 @@ function arrayfunctions (action,h)
 	hch = getuprop(h,'hch');
 	channels=getuprop(h,'channels');
 	% Now find the companion axis to the callback axis
-	[placeholder,chsel] = find(hch == gcbo);
+	[~,chsel] = find(hch == gcbo);
 	chsel
 	setuprop (h,'curchan',chsel);

@@ -1,6 +1,6 @@
 function pctr=bound (mat)
 	tic
-	imax=find(mat(1,:)==max(mat(1,:)));
+	imax= mat(1,:)==max(mat(1,:));
 	pmax=mat(:,imax);
 	dist=distance(mat,pmax);
 	binsize=(max(dist)-min(dist))/sqrt(size(mat,2));

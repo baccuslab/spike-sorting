@@ -33,7 +33,7 @@ ctsamp=0.5+str2num(get(findobj(handles.main,'Tag','cttime'),'String'))*g.scanrat
 for ch = 1:nchans
 	idxc{ch}=cell(1,4);
 	npbtemp = CrossCorrRecRow1(g.plottimes{chindx},g.plottimes{ch},tmax,nbins); %CrossCorrRecRow1 this file below
-	[placeholder,idxc{ch}] = CrossCorrRecRow1(g.plottimes{chindx},g.plottimes{ch},ctsamp); %coincident spikes
+	[~,idxc{ch}] = CrossCorrRecRow1(g.plottimes{chindx},g.plottimes{ch},ctsamp); %coincident spikes
 	%Keep only the 2nd channel
 	for fnum=1:length(g.spikefiles)
 		if (size(idxc{ch}{fnum},2)>0)

@@ -3,7 +3,7 @@ function [header,headersize] = ReadFileType(file)
 % If "file" is a string, it's treated as a filename
 % If "file" is numeric, it's treated as a file identifier
 if (ischar(file))
-	[fid,message] = fopen(file,'r');
+	[fid,message] = fopen(file,'r','ieee-be');
 	if (fid < 1)
 		error(message);
 	end

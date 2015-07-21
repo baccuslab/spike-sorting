@@ -26,7 +26,13 @@
 # mex codes dir, and compile matlab code, and matlab executable.
 MEXCODESDIR="mexcodes"
 COMPILE="compile_mex.m"
-MATLAB="/Applications/MATLAB_R2014a.app/bin/matlab"
+if [ "$(hostname)" == 'sni-vcs-baccus.stanford.edu' ]; then
+  MATLAB="/share/software/MATLAB-R2014b/bin/matlab"
+elif [ "$(hostname)" == 'lane.local' ]; then
+  MATLAB="/Applications/MATLAB_R2012a_Student.app/bin/matlab"
+else
+  MATLAB="/Applications/MATLAB_R2014a.app/bin/matlab"
+fi
 # ************************************ #
 
 if [ ! -f "$COMPILE" ]; then

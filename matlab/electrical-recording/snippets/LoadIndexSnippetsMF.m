@@ -7,13 +7,11 @@ function [snips,filenum,t,header] = LoadIndexSnippetsMF(filenames,chan,indx)
 % subset of snippets
 for i = 1:length(filenames)
 	cindx = indx{i};
-	if (length(cindx) > 0)
-		[sniptemp,ttemp,h] = LoadSnip(filenames{i},chan,max(cindx));
-		snipc{i} = sniptemp(:,cindx);
+	if (~isempty(cindx))
+		[snipc{i},tc{i}] = LoadIndexSnip(filenames{i},chan,cindx);
 		fc{i}(1,:) = i*ones(1,length(cindx));
 		fc{i}(2,:) = 1:length(cindx);
-		tc{i} = ttemp(cindx);
-		header{i} = h;
+		header{i} = ReadSnipHeader(filenames{i});
 	else
 		snipc{i} = [];
 		fc{i} = [];

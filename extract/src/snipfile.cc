@@ -58,6 +58,7 @@ void snipfile::SnipFile::writeAttributes()
 	writeFileAttr("offset", H5::PredType::IEEE_F32LE, &offset_);
 	writeFileAttr("nsamples-before", H5::PredType::STD_I32LE, &samplesBefore_);
 	writeFileAttr("nsamples-after", H5::PredType::STD_I32LE, &samplesAfter_);
+	writeFileAttr("sample-rate", H5::PredType::IEEE_F32LE, &sampleRate_);
 }
 
 void snipfile::SnipFile::readAttributes()
@@ -70,6 +71,7 @@ void snipfile::SnipFile::readAttributes()
 	readFileAttr("offset", &offset_);
 	readFileAttr("nsamples-before", &samplesBefore_);
 	readFileAttr("nsamples-after", &samplesAfter_);
+	readFileAttr("sample-rate", &sampleRate_);
 }
 
 void snipfile::SnipFile::getSourceInfo(const datafile::DataFile& source)

@@ -15,7 +15,7 @@ for chindx=1:numch
 	pos=GetPosition(channels(chindx));
 	axes('position',[pos 1/11 0.125]);
 	hax=gca;
-	setuprop(hax,'mode','density');
+	setappdata(hax,'mode','density');
 	
 	hch(chindx)=gca;
 	set(gca,'XTickLabel',{''},'xtick',[],'YTickLabel',{''},'Ytick',[],'XColor',[0.8 0.8 0.8],'YColor',[0.8 0.8 0.8]);
@@ -32,11 +32,11 @@ h1 = uicontrol('Parent',gcf, ...
 
 
 set(findobj(gcf,'Tag','cttime'),'String','0.3');
-setuprop (gcf,'SortEnable','on');
+setappdata (gcf,'SortEnable','on');
 
 %Handles for figure and all axes
 handles.main=gcf;
 handles.ch=hch;
-setuprop (handles.main,'handles',handles);
+setappdata (handles.main,'handles',handles);
 
 

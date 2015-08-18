@@ -33,6 +33,12 @@ else
 	maxsnip = min(maxsnip, getNumSnips(filename, sniptype, channel));
 end
 
+if maxsnip == 0
+    snip = [];
+    time = [];
+    return;
+end
+
 % Read the snippets and their indices
 channelString = '/channel-%03d';
 snipString = sprintf([channelString '/%s-snippets'], channel, sniptype);

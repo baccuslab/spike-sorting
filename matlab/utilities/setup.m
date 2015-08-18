@@ -51,7 +51,7 @@ if (~pwflag)
 			%writes coincident snippets, the peak may be elsewhere, or there may not even be a spike.
 			%spikes=spikes(:,find(max(spikes)==spikes(-ssniprange(1)+1,:)));
 			%take only the biggest 50% of the spikes
-			peakval=spikes(ssniprange(1)+1,:); 
+			peakval=spikes(-ssniprange(1)+1,:); 
 			peakval=[peakval;1:size(peakval,2)];
 			peakval=sortrows(peakval')';
 			peakval=peakval(:,floor(end-size(peakval,2)/2):end);
@@ -64,8 +64,8 @@ if (~pwflag)
 					fprintf('Operation cancelled by user\n');
 					return
 				end
-				choosespikes = getuprop(hfig,'GoodSpikes');
-				sniprange = getuprop(hfig,'NewRange');
+				choosespikes = getappdata(hfig,'GoodSpikes');
+				sniprange = getappdata(hfig,'NewRange');
 				if (length(choosespikes) <= sniprange(2)-sniprange(1))
 					errordlg('Do not have enough spikes on this channel to build filters! Select more, or cancel.','','modal');
 					set(hfig,'UserData','');
@@ -103,14 +103,9 @@ if (~pwflag)
 		ylabel('Filters');
 		set(gca,'XLim',[1 size(deffiltersall,1)]);
 		set(gca,'Tag','FiltAxes');
-		[fid,message] = fopen(spikefiles{1},'r'); %sorting continuous waveform data
-		if (fid < 1)
-			error(message)
-		end
-		header = ReadSnipHeader(fid);
-		scanrate=header.scanrate;
+        scanrate = h5readatt(snipfile, '/', 'sample-rate');
 		%Calculate default filter projections for all channels
-		calcproj (spikefiles,'proj.bin',channels,subrange,deffilters);
+        calcproj (snipfile,'proj.bin',channels,subrange,deffilters);
 	end %If proj.bin does not exist
 else
 	global proj;
@@ -126,6 +121,7 @@ end
 handles = makearraywindow (channels);
 
 %Definitions
+numfiles = 1;
 chanclust = cell(1,numch);			%Cell clusters, contains spike times
 removedCT=cell(numch,numfiles);	%Removed crosstalk, contains spike indexes
 xc=cell(1,numch);
@@ -138,7 +134,7 @@ pos=get(handles.ch(1),'Position');
 nx=floor(pos(3));ny=floor(pos(4));
 for ch=1:numch
 	if (~pwflag)
-		[placeholder,nsnips,placeholder] = GetSnipNums(spikefiles);
+        nsnips = getNumSnips(snipfile);
 		proj=loadproj('proj.bin',ch,numch,numfiles,nsnips(ch,:));
 		[xc(ch),yc(ch),nspikes(ch),rectx(ch,:),recty(ch,:)]=Hist2dcalc(proj(1,:),nx,ny); 
 	else
@@ -185,20 +181,22 @@ g.subsetnum=20000;
 setuprop (handles.main,'g',g);
 hmain=handles.main; %Return handle to main array figure
 
-function calcproj (files,outfile,channels,subrange,deffilters)
+function calcproj (file,outfile,channels,subrange,deffilters)
 numch=size(channels,2);
-projfp=zeros(numch,size(files,2));
-[placeholder,nsnips,sniprange] = GetSnipNums(files);
+projfp=zeros(numch,size(file,2));
+nsnips = getNumSnips(file);
+sniprange = getSnipRange(file);
 loadn=50000;
 fid=fopen(outfile,'w');
 fwrite(fid,projfp,'int32');
 for ch=1:numch
 	ch
-	for fnum=1:size(files,2)
+	for fnum=1:size(file,2)
 		startn=1;
 		endn=min(loadn,nsnips(ch,fnum));
 		while (startn<=nsnips(ch,fnum))
-			[snips,sptimes] = LoadIndexSnip(files{fnum},channels(ch),startn:endn);
+			%[snips,sptimes] = LoadIndexSnip(file{fnum},channels(ch),startn:endn);
+            [snips, sptimes] = loadSnip(file, 'spike', channels(ch), loadn);
 			proj(1:2,startn:endn)=deffilters{ch}'*snips(subrange(1):subrange(2),:);
 			proj(3,startn:endn)=max(snips(subrange(1):subrange(2),:))-min(snips(subrange(1):subrange(2),:));
 			startn=startn+loadn;

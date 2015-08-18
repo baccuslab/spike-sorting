@@ -1,4 +1,5 @@
-function groupcw(outfile,datafiles,spikefiles,noisefiles,channels)
+function groupcw(outfile,snipfile)
+%function groupcw(outfile,datafiles,snipfile,channels)
 % groupcw: shape sorting of snippet waveforms
 % written by Tim Holy and Stephen Baccus 1999-2004
 %
@@ -31,13 +32,13 @@ if (exist(outfile, 'file'))		% If file already exists
 	%Setup array window
 	handles = makearraywindow(g.channels);
 	arrayplot(g.channels, handles.ch, g.xc, g.yc, g.nspikes);
-	setuprop(handles.main, 'g', g);		
+	setappdata(handles.main, 'g', g);		
 
 else % File does not yet exist
 
 	pwflag = 0;
 	hmain = setup(outfile, snipfile);
-	g = getuprop(hmain, 'g');
+	g = getappdata(hmain, 'g');
 	save(outfile, 'g');
 
 end 

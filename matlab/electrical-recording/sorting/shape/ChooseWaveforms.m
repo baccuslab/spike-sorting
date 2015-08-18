@@ -1,7 +1,7 @@
 function fig = ChooseWaveforms(spikes,sniprange,thresh)
 if (nargin == 2)
 	%Average peak value of spike
-	thresh =mean(spikes(sniprange(1)+1,:));
+	thresh =mean(spikes(-sniprange(1)+1,:));
 end
 % emode: controls the erase mode for the waveforms
 % The two real choices are: 'xor' and 'normal'
@@ -49,7 +49,7 @@ htext = uicontrol('Parent',h0, ...
 if nargout > 0, fig = h0; end
 % Histogram the peak values for threshold setting
 axes(hthresh)
-offset = sniprange(1)+1;
+offset = -(sniprange(1)+1);
 [n,x] = hist(spikes(offset,:),round(nspikes^(1/3)));
 bar(x,n+1);
 set(gca,'YScale','log');
@@ -63,7 +63,7 @@ ylabel('#/bin');
 set(hthresh,'Tag','ThreshAxes');
 % Now plot all the spike waveforms
 axes(hwf)
-TAxis = -sniprange(1) + 1 : sniprange(2);
+TAxis = sniprange(1) + 1 : sniprange(2);
 LineH = plot(TAxis,spikes,'SelectionHighlight','off','Tag','wfm',...
 	'ButtonDownFcn','ChooseWfmsCallback SelectLine','Visible','off');
 set(gca,'XLim',sniprange);
@@ -72,9 +72,9 @@ onindx = find(spikes(-sniprange(1)+1,:) >= thresh);
 set(LineH(onindx),'Visible','on');
 % Plot width-selection lines
 yrange = get(gca,'YLim');
-line([-sniprange(1)+1 sniprange(1)+1],yrange,'Color','k','LineStyle',':',...
+line([sniprange(1)+1 sniprange(1)+1],yrange,'Color','k','LineStyle',':',...
 	'ButtonDownFcn','ChooseWfmsCallback WidthStart','Tag','WidthLine');
-line([-sniprange(2)-1 sniprange(2)-1],yrange,'Color','k','LineStyle',':',...
+line([sniprange(2)-1 sniprange(2)-1],yrange,'Color','k','LineStyle',':',...
 	'ButtonDownFcn','ChooseWfmsCallback WidthStart','Tag','WidthLine');
 % Give the waveforms an index#, in case we want to refer to them that way
 indxnv = 1:length(LineH);
@@ -92,6 +92,6 @@ set(hwf,'Tag','WaveformsAxes', ...
 %set(LineH,'SelectionHighlight','off','EraseMode',emode,'Tag','wfm',...
 %	'ButtonDownFcn','ChooseWfmsCallback SelectLine');
 % Remember some useful #s
-setuprop(hwf,'PeakPos',sniprange(1)+1);
-setuprop(hwf,'oldthresh',thresh);
+setappdata(hwf,'PeakPos',sniprange(1)+1);
+setappdata(hwf,'oldthresh',thresh);
 

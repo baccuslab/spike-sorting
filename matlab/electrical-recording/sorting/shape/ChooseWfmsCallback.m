@@ -97,13 +97,13 @@ case 'Done'
 	hlines = findobj(hfig,'Tag','wfm','Visible','on');
 	indx = get(hlines,'UserData');
 	indx = cat(1,indx{:});
-	setuprop(hfig,'GoodSpikes',indx);
+	setappdata(hfig,'GoodSpikes',indx);
 	% Find out the width coordinates
 	hwidth = findobj(hfig,'Tag','WidthLine');
 	xd = get(hwidth,'XData');
 	xloc = [xd{1}(1),xd{2}(1)];
 	xloc = round(sort(xloc));
-	setuprop(hfig,'NewRange',xloc);
+	setappdata(hfig,'NewRange',xloc);
 	set(hfig,'UserData','done');	% Let other programs know we're done (through waitfor)
 otherwise
 	error(['Do not know about action ',action]);

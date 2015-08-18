@@ -75,7 +75,7 @@ class SnipFile {
 		float offset_;
 		size_t nchannels_;
 		size_t nsamples_;
-		size_t samplesBefore_ = NUM_SAMPLES_BEFORE;
+		size_t samplesBefore_ = -NUM_SAMPLES_BEFORE;
 		size_t samplesAfter_ = NUM_SAMPLES_AFTER;
 		arma::uvec channels_;
 		arma::vec thresholds_;

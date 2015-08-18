@@ -56,8 +56,8 @@ void snipfile::SnipFile::writeAttributes()
 	writeFileAttr("nsamples", H5::PredType::STD_U64LE, &nsamples_);
 	writeFileAttr("gain", H5::PredType::IEEE_F32LE, &gain_);
 	writeFileAttr("offset", H5::PredType::IEEE_F32LE, &offset_);
-	writeFileAttr("nsamples-before", H5::PredType::STD_U64LE, &samplesBefore_);
-	writeFileAttr("nsamples-after", H5::PredType::STD_U64LE, &samplesAfter_);
+	writeFileAttr("nsamples-before", H5::PredType::STD_I32LE, &samplesBefore_);
+	writeFileAttr("nsamples-after", H5::PredType::STD_I32LE, &samplesAfter_);
 }
 
 void snipfile::SnipFile::readAttributes()

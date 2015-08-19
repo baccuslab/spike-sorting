@@ -1,4 +1,4 @@
-function hmain = setup(outfile, snipfile)
+function hmain = setup(outfile, snipfile, datafile)
 % Setup the main spike sorting interface
 %
 % (C) 2015 The Baccus Lab
@@ -121,7 +121,7 @@ end
 handles = makearraywindow (channels);
 
 %Definitions
-numfiles = 1;
+numfiles = 1; %added this, but could be removed altogether for cleaner code
 chanclust = cell(1,numch);			%Cell clusters, contains spike times
 removedCT=cell(numch,numfiles);	%Removed crosstalk, contains spike indexes
 xc=cell(1,numch);
@@ -158,16 +158,18 @@ else
 end
 g.channels=channels;
 g.ctchannels=[];
-g.spikefiles=spikefiles;
-g.ctfiles=datafiles;
+%g.spikefiles=spikefiles;
+g.snipfile = snipfile;
+g.ctfiles=datafile;
 g.xc=xc; g.yc=yc; g.nspikes=nspikes;g.rectx=rectx;g.recty=recty;
 g.sniprange=sniprange;
 g.nsnips=nsnips;
 if  (pwflag) 
-	setuprop (handles.main,'proj',proj);
-	setuprop(handles.main,'nfiles',1);
+	setappdata(handles.main,'proj',proj);
+	setappdata(handles.main,'nfiles',1);
 else
-	g.noisefiles=noisefiles;
+	%g.noisefiles=noisefiles;
+    g.snipfile=snipfile;
 	g.deffilters=deffilters;
 	g.subrange=subrange;
 end
@@ -178,12 +180,12 @@ g.allchannels=channels;
 g.pwflag=pwflag;
 g.scanrate=scanrate(1);
 g.subsetnum=20000;
-setuprop (handles.main,'g',g);
+setappdata (handles.main,'g',g);
 hmain=handles.main; %Return handle to main array figure
 
 function calcproj (file,outfile,channels,subrange,deffilters)
-numch=size(channels,2);
-projfp=zeros(numch,size(file,2));
+numch=size(channels,1);
+projfp=zeros(numch,1);
 nsnips = getNumSnips(file);
 sniprange = getSnipRange(file);
 loadn=50000;
@@ -191,23 +193,21 @@ fid=fopen(outfile,'w');
 fwrite(fid,projfp,'int32');
 for ch=1:numch
 	ch
-	for fnum=1:size(file,2)
-		startn=1;
-		endn=min(loadn,nsnips(ch,fnum));
-		while (startn<=nsnips(ch,fnum))
-			%[snips,sptimes] = LoadIndexSnip(file{fnum},channels(ch),startn:endn);
-            [snips, sptimes] = loadSnip(file, 'spike', channels(ch), loadn);
-			proj(1:2,startn:endn)=deffilters{ch}'*snips(subrange(1):subrange(2),:);
-			proj(3,startn:endn)=max(snips(subrange(1):subrange(2),:))-min(snips(subrange(1):subrange(2),:));
-			startn=startn+loadn;
-			endn=min(endn+loadn,nsnips(ch,fnum));
-		end
-		projfp(ch,fnum)=ftell(fid);
-		if (exist('proj'))
-			fwrite(fid,proj,'float32');
-		end
-		clear proj
+% 	for fnum=1:size(file,2) since we have 1 file
+    startn=1;
+	endn=min(loadn,nsnips(ch,1));
+    while (startn<=nsnips(ch,1))
+        [snips, sptimes] = loadSnip(file, 'spike', channels(ch), loadn);
+	    proj(1:2,startn:endn)=deffilters{ch}'*snips(subrange(1):subrange(2),:);
+	    proj(3,startn:endn)=max(snips(subrange(1):subrange(2),:))-min(snips(subrange(1):subrange(2),:));
+		startn = startn + size(snips, 2); %startn+loadn;
+		endn = endn + size(snips, 2); %min(endn+loadn,nsnips(ch,1));
+    end
+	projfp(ch,1)=ftell(fid);
+	if (exist('proj'))
+		fwrite(fid,proj,'float32');
 	end
+	clear proj
 end
 fseek(fid,0,'bof');
 fwrite(fid,projfp,'int32');

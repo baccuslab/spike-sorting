@@ -4,7 +4,7 @@ numch=size(channels,2);
 figure ('Name','Array','Position', [150 50 1050 750],'NumberTitle','off');%,'doublebuffer','on');
 set (gcf,'CloseRequestFcn','')
 %Plot box for all channels
-for chan=0:63	
+for chan=0:63
 	pos=GetPosition(chan);
 	axes('position',[pos 1/11 0.125]);
 	set(gca,'XTickLabel',{''},'xtick',[],'YTickLabel',{''},'Ytick',[],...

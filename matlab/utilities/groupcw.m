@@ -1,4 +1,4 @@
-function groupcw(outfile,snipfile)
+function groupcw(outfile,snipfile,datafile)
 %function groupcw(outfile,datafiles,snipfile,channels)
 % groupcw: shape sorting of snippet waveforms
 % written by Tim Holy and Stephen Baccus 1999-2004
@@ -10,7 +10,7 @@ function groupcw(outfile,snipfile)
 %	- Removing support for peak-width data
 %
 % Three calling modes:
-%	groupcw(outfilename, snipfile)
+%	groupcw(outfilename, snipfile, datafile)
 %		outfilename: name of sorted output .mat file
 %		snipfile: Name of HDF snippet file, output from extract
 %	groupcw(outfilename) 
@@ -23,7 +23,7 @@ if (exist(outfile, 'file'))		% If file already exists
 
 	fprintf(sprintf('Continuing to sort file %s...\n', outfile));
 	load(outfile)
-	nfiles = size(g.spikefiles, 2);
+	nfiles = size(g.snipfile, 2);
 	nchans = size(g.channels, 2);
 	g.ctchannels = [];
 	if (~exist('removedCT', 'var'))
@@ -31,13 +31,13 @@ if (exist(outfile, 'file'))		% If file already exists
 	end
 	%Setup array window
 	handles = makearraywindow(g.channels);
-	arrayplot(g.channels, handles.ch, g.xc, g.yc, g.nspikes);
+    Arrayplot(g.channels, handles.ch, g.xc, g.yc, g.nspikes);
 	setappdata(handles.main, 'g', g);		
 
 else % File does not yet exist
 
 	pwflag = 0;
-	hmain = setup(outfile, snipfile);
+	hmain = setup(outfile, snipfile, datafile);
 	g = getappdata(hmain, 'g');
 	save(outfile, 'g');
 

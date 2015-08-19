@@ -25,8 +25,8 @@ end
 
 % Check that the file exists
 if ~exist(filename, 'file')
-	error('hdfio:snips:getSnipDims', ...
-		'The snippet file does not exist: %s\n', filename);
+ 	error('hdfio:snips:getSnipDims', ...
+ 		'The snippet file does not exist: %s\n', filename);
 end
 
 % Open the snippet file and verify that channel information exists

@@ -40,7 +40,7 @@ if (~pwflag)
 			noise = readFromAllChannels(snipfile, 'noise', numNoiseSnips, channels(channels ~= 2));
 
 			% Step 3: let user set sniprange
-			deffilters=cell(1,numch);
+ 			deffilters=cell(1,numch);
 			sv=cell(1,numch);
 			wave=cell(1,numch);
 			%Preprocess the spikes for building default filters
@@ -106,15 +106,18 @@ if (~pwflag)
         scanrate = h5readatt(snipfile, '/', 'sample-rate');
 		%Calculate default filter projections for all channels
         calcproj (snipfile,'proj.bin',channels,subrange,deffilters);
+    else
+        subsetbutton = 'no'; %added, check this
 	end %If proj.bin does not exist
 else
 	global proj;
-	channels=1:63;
+	channels=1:size(channels,1);
 	numfiles=1;
 	numch=size(channels,2);
 	chanclust = cell(1,numch);			%Cell clusters, contains spike times
  	removedCT=cell(numch,numfiles);	%Removed crosstalk, contains spike indices
 	scanrate=20000;
+    subsetbutton = 'no'; %added, check this
 end
 
 %Create array plot
@@ -136,9 +139,9 @@ for ch=1:numch
 	if (~pwflag)
         nsnips = getNumSnips(snipfile);
 		proj=loadproj('proj.bin',ch,numch,numfiles,nsnips(ch,:));
-		[xc(ch),yc(ch),nspikes(ch),rectx(ch,:),recty(ch,:)]=Hist2dcalc(proj(1,:),nx,ny); 
+		[xc(ch),yc(ch),nspikes(ch)]=Hist2dcalc(proj(1,:),nx,ny); 
 	else
-		[xc(ch),yc(ch),nspikes(ch),rectx(ch,:),recty(ch,:)]=Hist2dcalc(proj(ch),nx,ny); 
+		[xc(ch),yc(ch),nspikes(ch)]=Hist2dcalc(proj(ch),nx,ny); 
 	end
 end
 Arrayplot (channels,handles.ch,xc,yc,nspikes);
@@ -158,17 +161,15 @@ else
 end
 g.channels=channels;
 g.ctchannels=[];
-%g.spikefiles=spikefiles;
 g.snipfile = snipfile;
 g.ctfiles=datafile;
 g.xc=xc; g.yc=yc; g.nspikes=nspikes;g.rectx=rectx;g.recty=recty;
-g.sniprange=sniprange;
+g.sniprange=getSnipRange(snipfile);
 g.nsnips=nsnips;
 if  (pwflag) 
 	setappdata(handles.main,'proj',proj);
 	setappdata(handles.main,'nfiles',1);
 else
-	%g.noisefiles=noisefiles;
     g.snipfile=snipfile;
 	g.deffilters=deffilters;
 	g.subrange=subrange;
@@ -200,8 +201,8 @@ for ch=1:numch
         [snips, sptimes] = loadSnip(file, 'spike', channels(ch), loadn);
 	    proj(1:2,startn:endn)=deffilters{ch}'*snips(subrange(1):subrange(2),:);
 	    proj(3,startn:endn)=max(snips(subrange(1):subrange(2),:))-min(snips(subrange(1):subrange(2),:));
-		startn = startn + size(snips, 2); %startn+loadn;
-		endn = endn + size(snips, 2); %min(endn+loadn,nsnips(ch,1));
+		startn = startn + size(snips, 2);
+		endn = endn + size(snips, 2);
     end
 	projfp(ch,1)=ftell(fid);
 	if (exist('proj'))

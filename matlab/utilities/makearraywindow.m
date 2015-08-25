@@ -1,21 +1,13 @@
 function handles = makearraywindow (channels);
-numch=size(channels,2);
+numch=size(channels,1);
 %SETUP ARRAY CHANNEL PLOT
 figure ('Name','Array','Position', [150 50 1050 750],'NumberTitle','off');%,'doublebuffer','on');
 set (gcf,'CloseRequestFcn','')
-%Plot box for all channels
-for chan=0:63
-	pos=GetPosition(chan);
-	axes('position',[pos 1/11 0.125]);
-	set(gca,'XTickLabel',{''},'xtick',[],'YTickLabel',{''},'Ytick',[],...
-	'XColor',[0.8 0.8 0.8],'YColor',[0.8 0.8 0.8]);
-end
 %Plot each recorded channel
 for chindx=1:numch
-	pos=GetPosition(channels(chindx));
-	axes('position',[pos 1/11 0.125]);
-	hax=gca;
-	setappdata(hax,'mode','density');
+    subplot(ceil(sqrt(numch)), ceil(sqrt(numch)), chindx);
+    title(sprintf('Ch %d', channels(chindx)));
+	setappdata(gca,'mode','density');
 	
 	hch(chindx)=gca;
 	set(gca,'XTickLabel',{''},'xtick',[],'YTickLabel',{''},'Ytick',[],'XColor',[0.8 0.8 0.8],'YColor',[0.8 0.8 0.8]);

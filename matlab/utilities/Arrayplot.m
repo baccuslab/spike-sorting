@@ -1,15 +1,17 @@
 function Arrayplot(channels,hch,xc,yc,nspikes) 
-	maxx=0;minx=0;maxy=0;miny=0;
-	for chindx=1:size(channels,2)
-		maxx=max([maxx xc{chindx}]);
-		minx=min([minx xc{chindx}]);
-		maxy=max([maxy yc{chindx}]);
-		miny=min([miny yc{chindx}]);
-	end
-	for chindx=1:size(channels,2)
+    tmp = [xc{:}];
+    maxx = max(tmp(:));
+    minx = min(tmp(:));
+    tmp = [yc{:}];
+    maxy = max(tmp(:));
+    miny = min(tmp(:));
+	for chindx=1:size(channels,1)
 		axes(hch(chindx));
 		hold off
-		h=imagesc(yc{chindx},xc{chindx},log(nspikes{chindx}+1));
+        yc_arr = [yc{chindx}]
+        xc_arr = [xc{chindx}]
+        sp_arr = [log(nspikes{chindx}+1)]
+		h=imagesc(yc_arr(:),xc_arr(:),sp_arr(:));
 		set(h,'UserData',chindx,'ButtonDownFcn','startsort');
 		colormap(1-gray);
 		set(gca,'XTickLabel',{''},'xtick',[],'YTickLabel',{''},'Ytick',[],'XColor',[0.8 0.8 0.8],'YColor',[0.8 0.8 0.8])

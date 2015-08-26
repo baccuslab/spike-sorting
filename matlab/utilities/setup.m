@@ -164,7 +164,7 @@ g.ctchannels=[];
 g.snipfile = snipfile;
 g.ctfiles=datafile;
 g.xc=xc; g.yc=yc; g.nspikes=nspikes;g.rectx=rectx;g.recty=recty;
-g.sniprange=getSnipRange(snipfile);
+g.sniprange=sniprange;
 g.nsnips=nsnips;
 if  (pwflag) 
 	setappdata(handles.main,'proj',proj);
@@ -194,7 +194,6 @@ fid=fopen(outfile,'w');
 fwrite(fid,projfp,'int32');
 for ch=1:numch
 	ch
-% 	for fnum=1:size(file,2) since we have 1 file
     startn=1;
 	endn=min(loadn,nsnips(ch,1));
     while (startn<=nsnips(ch,1))

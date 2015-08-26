@@ -709,14 +709,14 @@ case 'Done'
 	t = getappdata(h,'t');
 	sortchidx=getappdata(h,'chindices');sortchidx=sortchidx(1);
 	outfile=getappdata (handles.main,'outfile');
-	nchans=size(g.channels,2);
+	nchans=size(g.channels,1);
 	nnewclusts = size(newclindx,1)-1;
 	if (nnewclusts == 0 ) return ; end
 	nfiles = size(newclindx,2);
 	nprevclusts=size(g.chanclust{sortchidx},1);
 	sortchannels=getappdata(h,'sortchannels');
 	if (g.samplesorting)
-		ctchannels=setdiff(3:63,sortchannels(1));
+		ctchannels=setdiff(3:nchans,sortchannels(1));
 	else
 		ctchannels=getappdata(h,'ctchannels');
 	end

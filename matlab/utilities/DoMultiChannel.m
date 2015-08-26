@@ -4,10 +4,10 @@ function fig = DoMultiChannel(hmain,g,sortchannels)
 
 if (g.pwflag)
 	nfiles=1;
-	nchans=63;
+	nchans=size(nsnips,1);
 	global sptimes
 	chindices=sortchannels;
-	for ch=1:63
+	for ch=1:nchans
 		nsnips(ch,1)=length(sptimes{ch}{1});
 	end
 	rectime(1)=max(sptimes{ch}{1}(1,:)');
@@ -19,16 +19,19 @@ else
 		return;
 	end
 	nchans=length(sortchannels);
-	nfiles=length(g.spikefiles);
+	nfiles=1;
 	for ch=1:nchans
 		chindices(ch)=find(sortchannels(ch)==g.channels);
-	end
-	for fnum= 1:nfiles
-		[fid,message] = fopen(g.spikefiles{fnum},'r');
-		header{fnum} = ReadSnipHeader(fid);
-		scanrate(fnum) = header{fnum}.scanrate;
-		rectime(fnum) = header{fnum}.nscans/header{fnum}.scanrate;
-	end
+    end
+    range = g.sniprange;
+    nscans = -1 * range(1) + range(2); %since 0 > range(1) = numsamples before
+    rectime = g.scanrate/nscans;
+% 	for fnum= 1:nfiles
+% 		[fid,message] = fopen(g.spikefiles{fnum},'r');
+% 		header{fnum} = ReadSnipHeader(fid);
+% 		scanrate(fnum) = header{fnum}.scanrate;
+% 		rectime(fnum) = header{fnum}.nscans/header{fnum}.scanrate;
+% 	end
 end
 %Get times of spikes on first channel and coincident spikes on other channels
 [sptimes,spindx]= Multiindex (hmain,g,sortchannels,chindices);
@@ -369,37 +372,37 @@ ylabel('# spikes/file');
 % Set the data that the callbacks will need
 if (~g.pwflag)
 	set(hdeffltbox,'Enable','on');
-	setuprop(hfig,'snipsize',g.sniprange(2)-g.sniprange(1)+1);
-	setuprop(hfig,'nfiles',size(g.spikefiles,2));
+	setappdata(hfig,'snipsize',g.sniprange(2)-g.sniprange(1)+1);
+	setappdata(hfig,'nfiles',1);
 else
-	setuprop (hfig,'snipsize',30);
-	setuprop (hfig,'nfiles',1);
+	setappdata (hfig,'snipsize',30);
+	setappdata (hfig,'nfiles',1);
 end
-setuprop(hfig,'params',params);
-setuprop(hfig,'sortchannels',sortchannels);
-setuprop(hfig,'chindices',chindices);
-setuprop(hfig,'haxc',haxc);
-setuprop(hfig,'hctext',hctext);
-setuprop(hfig,'hctlist',hctlist);
-setuprop(hfig,'nsnips',g.nsnips(chindices,:));
-handles=getuprop(hmain,'handles');
+setappdata(hfig,'params',params);
+setappdata(hfig,'sortchannels',sortchannels);
+setappdata(hfig,'chindices',chindices);
+setappdata(hfig,'haxc',haxc);
+setappdata(hfig,'hctext',hctext);
+setappdata(hfig,'hctlist',hctlist);
+setappdata(hfig,'nsnips',g.nsnips(chindices,:));
+handles=getappdata(hmain,'handles');
 handles.ctwin=-1;
-setuprop(hfig,'handles',handles);
-setuprop(hfig,'t',sptimes);
+setappdata(hfig,'handles',handles);
+setappdata(hfig,'t',sptimes);
 for fnum= 1:nfiles
 	clflindxall{fnum} =1:size(sptimes{fnum},2);
 end
-setuprop(hfig,'clflindxall',clflindxall);
+setappdata(hfig,'clflindxall',clflindxall);
 clflindxsub=getsubset(clflindxall,g.subsetnum);
-setuprop(hfig,'clflindxsub',clflindxsub);
-setuprop(hfig,'Sortstatus',1);
+setappdata(hfig,'clflindxsub',clflindxsub);
+setappdata(hfig,'Sortstatus',1);
 clflindx=clflindxall;
-setuprop(hfig,'clflindx',clflindx);
-setuprop(hfig,'Storestatus',0);
-setuprop(hfig,'spindx',spindx);
-setuprop(hfig,'updatevector',1);
-setuprop(hfig,'clustmode',0);
-setuprop(hfig,'rectime',rectime);
+setappdata(hfig,'clflindx',clflindx);
+setappdata(hfig,'Storestatus',0);
+setappdata(hfig,'spindx',spindx);
+setappdata(hfig,'updatevector',1);
+setappdata(hfig,'clustmode',0);
+setappdata(hfig,'rectime',rectime);
 set (hfig,'CloseRequestFcn','') %Can't close with top-left window button
 display.snips=cell(3,7);
 display.corr.n=cell(3,7);
@@ -408,9 +411,9 @@ display.hist.n=cell(3,7);
 display.hist.x=cell(3,7);
 updatearr(1:3,2:7)=-1;
 updatearr(1:3,1)=0;
-setuprop (hfig,'updatearr',updatearr);
-setuprop(hfig,'dispsnipsallfiles',0)
-setuprop (hfig,'display',display);
+setappdata (hfig,'updatearr',updatearr);
+setappdata(hfig,'dispsnipsallfiles',0)
+setappdata (hfig,'display',display);
 DoMultiChanFunctions('DefFiltBox',hfig);
 set(haxc(:,1),'Selected','on');	% Start with the unassigned cluster selected
 DoMultiChanFunctions('UpdateDisplay',hfig);

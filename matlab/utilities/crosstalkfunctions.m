@@ -35,10 +35,12 @@ case 'calculate'
 			nspikes(f)=size(sptimes{cl,f},2);
 		end
 		lf=find(nspikes==max(nspikes));lf=lf(1);
-        % loadaibdata({'file1' 'file2' ... 'filen'},[ch1 ch2 ... chm],{[times1 times2 ... timesn]},[datastartoffset dataendoffset])
-		% snips.data(cl,:)=loadaibdata(g.ctfiles(lf),g.allchannels,sptimes(cl,lf),snips.size);	
+
+        % new loadRawData command takes the beginning of the snip and the length
+        snip_start_offset = snips.size(1);
+        snip_length = abs(snips.size(2) - snips.size(1)) + 1;
         % call loadRawData(filename, channels, idx, len)
-        snips.data(cl,:)=loadRawData(g.ctfiles(lf), g.allchannels, sptimes(cl,lf), snips.size);
+        snips.data(cl,:)=loadRawData(g.ctfiles(lf), g.allchannels, sptimes(cl,lf)+snip_start_offset, snip_length);
 	end
 	for chindx=1:size(g.channels,2)
 		snipmax=max(max(max(snips.data{chindx})),snipmax);

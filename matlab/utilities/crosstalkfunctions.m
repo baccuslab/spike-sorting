@@ -1,4 +1,20 @@
 function crosstalkfunctions (action,sptimes,h)
+% crosstalkfunctions: function to calculate, show, and sort crosstalk.
+%
+% INPUT:
+%   action      - ?
+%   sptimes     - array of spike times
+%   h           - ?
+%
+% (C) 2015 The Baccus Lab
+%
+% History:
+% ?? - Steve Baccus
+%   - wrote it
+%
+% 2015-08-26 - Lane McIntosh
+%   - updating to use HDFIO functions instead of loadaibdata
+%
 if (nargin < 1)
 	action='CTselect';
 end
@@ -19,7 +35,10 @@ case 'calculate'
 			nspikes(f)=size(sptimes{cl,f},2);
 		end
 		lf=find(nspikes==max(nspikes));lf=lf(1);
-		snips.data(cl,:)=loadaibdata(g.ctfiles(lf),g.allchannels,sptimes(cl,lf),snips.size);	
+        % loadaibdata({'file1' 'file2' ... 'filen'},[ch1 ch2 ... chm],{[times1 times2 ... timesn]},[datastartoffset dataendoffset])
+		% snips.data(cl,:)=loadaibdata(g.ctfiles(lf),g.allchannels,sptimes(cl,lf),snips.size);	
+        % call loadRawData(filename, channels, idx, len)
+        snips.data(cl,:)=loadRawData(g.ctfiles(lf), g.allchannels, sptimes(cl,lf), snips.size);
 	end
 	for chindx=1:size(g.channels,2)
 		snipmax=max(max(max(snips.data{chindx})),snipmax);

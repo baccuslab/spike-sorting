@@ -48,19 +48,19 @@ if max(diff(channels) == 1)
 	if (max(diff(idx) == 1) && len == 1)
 		% Reading a contiguous block of channels and samples. One read 
 		% and then redistribute, rather than many reads
-		tmp = h5read(filename, '/data', [min(idx), min(channels)], ...
-			[nidx, nchannels]);
+		tmp = h5read(filename, '/data', [min(idx) min(channels)], ...
+			[nidx nchannels]);
 		for c = 1:nchannels
-			d{c}(:, 1) = tmp(:, c);
+			d{c}(:, 1) = tmp(c, :);
 		end
 	else
 		% Reading a contiguous block of channels, so read larger chunks
 		% and then redistribute rather than many reads
 		for i = 1:nidx
-			tmp = h5read(filename, '/data', [idx(i) min(channels)], ...
-				[len, nchannels]);
 			for c = 1:nchannels
-				d{c}(i, :) = tmp(:, c);
+				tmp = h5read(filename, '/data', [idx(i) channels(c)], ...
+				[len 1]);
+                 d{c}(i, :) = tmp;
 			end
 		end
 	end
@@ -72,4 +72,4 @@ else
 		end
 	end
 end
-
+d = cellfun(@double, d, 'UniformOutput', false);

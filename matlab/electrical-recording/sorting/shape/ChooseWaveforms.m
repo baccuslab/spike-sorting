@@ -63,7 +63,7 @@ ylabel('#/bin');
 set(hthresh,'Tag','ThreshAxes');
 % Now plot all the spike waveforms
 axes(hwf)
-TAxis = sniprange(1) + 1 : sniprange(2);
+TAxis = sniprange(1) : sniprange(2);
 LineH = plot(TAxis,spikes,'SelectionHighlight','off','Tag','wfm',...
 	'ButtonDownFcn','ChooseWfmsCallback SelectLine','Visible','off');
 set(gca,'XLim',sniprange);

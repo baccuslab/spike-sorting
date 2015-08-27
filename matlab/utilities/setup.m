@@ -9,7 +9,7 @@ function hmain = setup(outfile, snipfile, datafile)
 %	- A bit of miscellaneous formatting
 
 % Read channels to be sorted from the file
-channels = h5read(snipfile, '/channels');
+channels = double(h5read(snipfile, '/channels'));
 numch = length(channels);
 
 pwflag = 0; % BN - temporary, removing support in the future

@@ -19,13 +19,13 @@ else
 		return;
 	end
 	nchans=length(sortchannels);
-	nfiles=1;
+	nfiles=1; %should be updated to handle multiple files
 	for ch=1:nchans
 		chindices(ch)=find(sortchannels(ch)==g.channels);
     end
     range = g.sniprange;
-    nscans = -1 * range(1) + range(2); %since 0 > range(1) = numsamples before
-    rectime = g.scanrate/nscans;
+    nscans = -1 * range(1) + range(2) + 1; %since 0 > range(1) = numsamples before
+    rectime = g.scanrate/nscans; %scanrate and nscans should be read from multiple files
 % 	for fnum= 1:nfiles
 % 		[fid,message] = fopen(g.spikefiles{fnum},'r');
 % 		header{fnum} = ReadSnipHeader(fid);

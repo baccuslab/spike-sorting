@@ -77,7 +77,7 @@ case 'SortSubset'
 		clflindxnew(2:end,:)=clflindx(selclust,:);
 		setappdata (h,'clflindx',clflindxnew);
 		clflindxsub=cell(1,size(g.spikefiles,2));
-		for fnum = 1:size(g.spikefiles,2)
+		for fnum = 1:size(g.snipfile,1)
 			clflindxsub{fnum} = sort(cat(2,clflindxnew{2:end,fnum}));
 		end
 		setappdata(h,'clflindxsub',clflindxsub);
@@ -579,9 +579,9 @@ case 'CrossCorr'
 
 case 'Clear'
 	% Delete current clusters and make all spikes unassigned
-	newclflindx=cell(size(g.spikefiles,2));
+	newclflindx=cell(size(g.snipfile,1));
 	clflindx=getappdata (h,'clflindx');
-	for fnum = 1:size(g.spikefiles,2)
+	for fnum = 1:size(g.snipfile,1)
 		newclflindx{fnum} = sort(cat(2,clflindx{1:end,fnum}));
 	end
 	setappdata (gcf,'clflindx',newclflindx);
@@ -661,7 +661,7 @@ case 'Recon'
 	ViewReconstruction([1 50000],g.ctfiles(flindx),sortchannels,sptimes,hdr);
 case 'Crosstalk'
 	t = getappdata(h,'t');
-	nfiles=size(g.spikefiles,2);
+	nfiles=size(g.snipfile,1);
 	[selclust,wvindx] = GetSelClust(h); 	%indices in the selected clusters
 	clflindx=getappdata (h,'clflindx');
 	%Get times for subset
@@ -669,7 +669,7 @@ case 'Crosstalk'
 	tsel=cell(nclust,nfiles);				
 	for cl=1:nclust
 		subindx=getsubset (clflindx(selclust(cl),:),30*nfiles);	%Changed  SAB 10/13/08, Change to smaller  number if too slow
-		for fnum = 1:size(g.spikefiles,2)
+		for fnum = 1:size(g.snipfile,1)
 			tsel{cl,fnum} = t{fnum}(subindx{fnum});
 		end
 	end
@@ -771,7 +771,9 @@ case 'Done'
 			for fnum = 1:nfiles
 				if (size(tmpremCT{c}{fnum},2)>0)
 					ch=ctindices(c);
-					[alltimes{fnum},hdr]=loadsniptimes(g.spikefiles{fnum},ch);
+                    snipfiles = {g.snipfile}; %can be removed when we support multiple files
+					[snip, time]=loadSnip(snipfiles{fnum},'spike',ch);
+                    alltimes = {time}; %can be removed when we support multiple files
 					alltimes{fnum}=[alltimes{fnum}';1:length(alltimes{fnum})];
 					remidx{c+1,fnum}=tmpremidx{c}{fnum};
 				end

@@ -43,8 +43,8 @@ end
 channelString = '/channel-%03d';
 snipString = sprintf([channelString '/%s-snippets'], channel, sniptype);
 idxString = sprintf([channelString '/%s-idx'], channel, sniptype);
-snip = h5read(filename, snipString, [1 1], [Inf, maxsnip]);
-time = h5read(filename, idxString, [1], [maxsnip]);
+snip = double(h5read(filename, snipString, [1 1], [Inf, maxsnip]));
+time = double(h5read(filename, idxString, [1], [maxsnip]));
 
 % Return snippets in actual voltage values
 gain = h5readatt(filename, '/', 'gain');

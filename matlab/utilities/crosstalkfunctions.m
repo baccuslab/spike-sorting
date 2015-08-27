@@ -22,11 +22,11 @@ if (nargin < 3)
 	h = gcbf;
 end
 g=getappdata (h,'g');
-hdr=readsnipheader(g.spikefiles{1});
+% hdr=readsnipheader(g.spikefiles{1});
 handles = getappdata(h,'handles');
 switch(action)
 case 'calculate'
-	snips.size=hdr.sniprange;
+	snips.size=g.sniprange;
 	snips.data=cell(size(sptimes,1),size(g.allchannels,2));
 	snipmax=0;snipmin=0;
 	for cl=1:size(sptimes,1)
@@ -40,7 +40,12 @@ case 'calculate'
         snip_start_offset = snips.size(1);
         snip_length = abs(snips.size(2) - snips.size(1)) + 1;
         % call loadRawData(filename, channels, idx, len)
-        snips.data(cl,:)=loadRawData(g.ctfiles(lf), g.allchannels, sptimes(cl,lf)+snip_start_offset, snip_length);
+        % turn sptimes to be a vector so you can add the offset to it
+        sptimes_tmp = sptimes(cl,lf);
+        sptimes_vec = [sptimes_tmp{:}];
+%       ctfiles = g.ctfiles(lf) %add this line once multiple files can be handled
+        ctfiles = g.ctfiles;
+        snips.data(cl,:)=loadRawData(ctfiles, g.allchannels, sptimes_vec+snip_start_offset, snip_length);
 	end
 	for chindx=1:size(g.channels,1)
 		snipmax=max(max(max(snips.data{chindx})),snipmax);

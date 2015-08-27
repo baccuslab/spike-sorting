@@ -1,4 +1,20 @@
 function mgroup(hsort,g,sortchannels,selindx)
+% crosstalkfunctions: function to calculate, show, and sort crosstalk.
+%
+% INPUT:
+%   hsort               - ?
+%   g.sortchannels      - ?
+%   selindx             - ?
+%
+% (C) 2015 The Baccus Lab
+%
+% History:
+% ?? - Steve Baccus
+%   - wrote it
+%
+% 2015-08-26 - Lane McIntosh
+%   - updating to use HDFIO functions instead of loadaibdata
+%
 if (size(sortchannels,2)<2) 
 	return
 end
@@ -32,7 +48,10 @@ else
 	if (getuprop(hsort,'Storestatus'))
 		snipsct=getsnipsfrommem(selindx,hsort,g.sniprange); %crosstalk is the previously loaded snippets
 	else
-		snipsct=loadaibdata (g.ctfiles,sortchannels(2:end),tsel,g.sniprange); %crosstalk is a list of files
+        % loadRawData takes snip start and length
+        snip_start_offset = g.sniprange(1);
+        snip_length = abs(g.sniprange(2)-snip_start_offset) + 1;
+		snipsct=loadRawData(g.ctfiles, sortchannels(2:end), tsel+snip_start_offset, snip_length); %crosstalk is a list of files
 	end
 	projct=cell(size(sortchannels,2)-1,size(g.ctfiles,2));
 	for f=1:size(g.ctfiles,2)

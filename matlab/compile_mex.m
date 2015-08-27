@@ -6,7 +6,7 @@
 
 % sourse codes to compile to mex files
 %source_codes = {'AutoCorr.cpp', 'CrossCorr.cpp', 'FileHeaders.cpp', 'LoadIndexSnip.cpp'};
-source_codes = {'AutoCorr.cpp', 'CrossCorr.cpp'};
+source_codes = {'AutoCorr.cpp', 'CrossCorr.cpp', 'polygon.cpp'};
 
 for ii = 1:length(source_codes)
     if ~exist(source_codes{ii})

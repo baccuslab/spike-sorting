@@ -11,8 +11,8 @@ function CrossCorrone(tmax)
 %			cell array of related spike times, i.e. same channel or same cell.
 % 		hcc:array of axis handles to the main cross-correlation plots
 h=gcbf;
-handles=getuprop (h,'handles');
-g=getuprop(handles.main,'g');
+handles=getappdata (h,'handles');
+g=getappdata(handles.main,'g');
 if (g.pwflag)
 	%Fix this to be g.times
 	global times;
@@ -62,10 +62,10 @@ for chindx = 1:nchans
 	xax = linspace(-tmax+binwidth/2,tmax-binwidth/2,nbins);
 	bar(xax,npb{chindx},1,'k')
 	set(hax,'Color',[0.8 1 1])
-	setuprop(hax,'CTselected',0);
+	setappdata(hax,'CTselected',0);
 	ylim([0 ymax])
-	setuprop(hax,'cc',npb{chindx});
-	setuprop(hax,'xax',xax);
+	setappdata(hax,'cc',npb{chindx});
+	setappdata(hax,'xax',xax);
 	set(hax,'XTickLabel',{''},'xtick',[],'YTickLabel',{''},'Ytick',[])
 	set(hax,'box','off')
 	set(hax,'XColor',[0.8 0.8 0.8])
@@ -79,7 +79,7 @@ for chindx = 1:nchans
 end
 ctchannels=setdiff(ctchannels,ch1);
 g.ctchannels=ctchannels;
-setuprop(h,'g',g)
+setappdata(h,'g',g)
 
 
 function [tccout,indxout] = CrossCorrRecRow1(t1,allt,tmax,nbins)

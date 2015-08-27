@@ -121,9 +121,9 @@ case 'Storeinmem'
 	else
 		setappdata (h,'Storestatus',0);
 		set(findobj(h,'Tag','Storeinmem'),'BackgroundColor',[0.8 0.8 0.8]);
-		clruprop (h,'storedsnips');
-		clruprop (h,'storedindx');
-		clruprop (h,'storedsniprange');
+		rmappdata (h,'storedsnips');
+		rmappdata (h,'storedindx');
+		rmappdata (h,'storedsniprange');
 	end
 
 case 'BuildFilters'
@@ -367,7 +367,7 @@ case 'UpdateDisplay'
 					subindx=cell(1,nfiles);
 					subindx(flist)=getsubset (clflindx(c,flist),loadnsnips);		
 				end
-				display.snips{c} = MultiLoadIndexSnippetsMF(g.spikefiles,g.ctfiles,sortchannels,subindx,spindx,h);
+				display.snips{c} = MultiLoadIndexSnippetsMF(g.snipfile,g.ctfiles,sortchannels,subindx,spindx,h);
 				%subindx=getsubset (clflindx(c,:),loadnsnips);
 				% display.snips{c} = MultiLoadIndexSnippetsMF(g.spikefiles,g.ctfiles,sortchannels,subindx,spindx,h);
 			else %Updatearr(1,c)>0 ,transfer clusters to different number,
@@ -393,7 +393,7 @@ case 'UpdateDisplay'
 				for j = 1:nfiles
 					tsecs{j}=[];
 					if (~isempty(t{j}(clflindx{c,j})))
-						tsecs{j} = t{j}(clflindx{c,j})/g.scanrate;
+						tsecs{j} = double(t{j}(clflindx{c,j}))/g.scanrate;
 					end
 				end
 				if (or(and(g.pwflag ,length(tsecs{1})>0) , size(display.snips{c},2)>0)) 

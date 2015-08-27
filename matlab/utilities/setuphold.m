@@ -51,8 +51,8 @@ if (~pwflag)
 					fprintf('Operation cancelled by user\n');
 					return
 				end
-				choosespikes = getuprop(hfig,'GoodSpikes');
-				sniprange = getuprop(hfig,'NewRange');
+				choosespikes = getappdata(hfig,'GoodSpikes');
+				sniprange = getappdata(hfig,'NewRange');
 				if (length(choosespikes) <= sniprange(2)-sniprange(1))
 					errordlg('Do not have enough spikes on this channel to build filters! Select more, or cancel.','','modal');
 					set(hfig,'UserData','');
@@ -136,7 +136,7 @@ else
 	scanrate=20000;
 end
 if (pwflag)
-	proj=getuprop(handles.main,'proj');
+	proj=getappdata(handles.main,'proj');
 	global sptimes
 end
 %Create array plot
@@ -190,8 +190,8 @@ g.plottimes=plottimes;
 g.sniprange=sniprange;
 g.nsnips=nsnips;
 if  (pwflag) 
-	setuprop (handles.main,'proj',proj);
-	setuprop(handles.main,'nfiles',1);
+	setappdata (handles.main,'proj',proj);
+	setappdata(handles.main,'nfiles',1);
 else
 	g.noisefiles=noisefiles;
 	g.deffilters=deffilters;
@@ -203,6 +203,6 @@ g.removedCT=removedCT;
 g.allchannels=channels;
 g.pwflag=pwflag;
 g.scanrate=scanrate(1);
-setuprop (handles.main,'g',g);
+setappdata (handles.main,'g',g);
 hmain=handles.main; %Return handle to main array figure
 

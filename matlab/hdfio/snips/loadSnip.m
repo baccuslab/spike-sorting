@@ -1,4 +1,4 @@
-function [snip, time] = LoadSnip(filename, sniptype, channel, maxsnip)
+function [snip, time] = loadSnip(filename, sniptype, channel, maxsnip)
 % LoadSnip: load the snippets from a given channel in one file
 %
 % [snip, time ] = LoadSnip(filename,channel,maxsnip)

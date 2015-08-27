@@ -14,19 +14,19 @@ function MultiCluster(hax,polygons,clustnums)
 %	are assigned. The "Clear" button is replaced by a "Revert" button,
 %	restoring the original state.
 hfig=gcf;
-xall=getuprop(hfig,'xall');
-yall=getuprop(hfig,'yall');
-axh=getuprop(hfig,'axh');
-rectx=getuprop(hfig,'rectx');
-recty=getuprop(hfig,'recty');
+xall=getappdata(hfig,'xall');
+yall=getappdata(hfig,'yall');
+axh=getappdata(hfig,'axh');
+rectx=getappdata(hfig,'rectx');
+recty=getappdata(hfig,'recty');
 ax=find(gca==axh);
 size(xall)
 x=xall{ax};y=yall{ax};
 hfig=gcf;
 set(hax,'Tag','ClustAx');
-setuprop(hfig,'ax',ax)
-setuprop(hfig,'x',x);
-setuprop(hfig,'y',y);
+setappdata(hfig,'ax',ax)
+setappdata(hfig,'x',x);
+setappdata(hfig,'y',y);
 
 if (nargin < 2)
 	polygons = {};
@@ -38,8 +38,8 @@ end
 
 if (nargin == 3)
 	set(h1,'String','Revert','Callback','MultiClusterFunctions Revert');
-	setuprop(hfig,'clustnums0',clustnums);
-	setuprop(hfig,'polygons0',polygons);
+	setappdata(hfig,'clustnums0',clustnums);
+	setappdata(hfig,'polygons0',polygons);
 end
 
 
@@ -57,14 +57,14 @@ h1 = uicontrol('Parent',hfig, ...
 	'Style','text', ...
 	'Tag','BinWidthText');
 
-setuprop(hfig,'x',x);
-setuprop(hfig,'y',y);
-setuprop(hfig,'clustnums',clustnums);
-setuprop(hfig,'polygons',polygons);
-setuprop(hfig,'hpolygons',[]);
-setuprop(hfig,'hclustpts',[]);
-setuprop(hfig,'selectflag',[]);
-setuprop(hfig,'membership',zeros(size(x)));
-setuprop(hfig,'SelCb','MultiClusterFunctions SelectCluster');
+setappdata(hfig,'x',x);
+setappdata(hfig,'y',y);
+setappdata(hfig,'clustnums',clustnums);
+setappdata(hfig,'polygons',polygons);
+setappdata(hfig,'hpolygons',[]);
+setappdata(hfig,'hclustpts',[]);
+setappdata(hfig,'selectflag',[]);
+setappdata(hfig,'membership',zeros(size(x)));
+setappdata(hfig,'SelCb','MultiClusterFunctions SelectCluster');
 MultiClusterFunctions('ScatterPlot',hfig);
 	

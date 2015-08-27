@@ -1,13 +1,13 @@
 %STEVE TEMP PROC
 case 'Sep'
-	t = getuprop(h,'t');
-	scanrate = getuprop(h,'scanrate');
-	clflindx = getuprop(h,'clflindx');
+	t = getappdata(h,'t');
+	scanrate = getappdata(h,'scanrate');
+	clflindx = getappdata(h,'clflindx');
 	[selindx,wvindx] = GetSelClust(h);
 	nclust = size(clflindx,1);
 	nfiles = size(clflindx,2);
-	spikefiles = getuprop(h,'spikefiles');
-	channel = getuprop(h,'channel');
+	spikefiles = getappdata(h,'spikefiles');
+	channel = getappdata(h,'channel');
 	dispnsnips = str2num(get(findobj(h,'Tag','DispNumSnips'),'String'));
 	actime = str2num(get(findobj(h,'Tag','ACTime'),'String'));
 	%   Get the spike times, in units of seconds
@@ -70,10 +70,10 @@ case 'Sep'
 			elim = replclust(size(newindx,1)+1:end-1); % eliminate if selected more than returned
 			newclflindx(elim,:) = [];
 		end
-		nsnips = getuprop(h,'nsnips');
+		nsnips = getappdata(h,'nsnips');
 		newclflindx(1,:) = RebuildUnassigned(newclflindx,nsnips,h);
 		% Store the new assignments
-		setuprop(h,'clflindx',newclflindx);
+		setappdata(h,'clflindx',newclflindx);
 		DoChanFunctions('Unselect',h);
 		DoChanFunctions('UpdateDisplay',h);
 	

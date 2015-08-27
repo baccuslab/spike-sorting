@@ -29,7 +29,7 @@ if (nchans>1)
 	stored=0;%Done this cumbersome way because Matlab evaluates all parts of a boolean, 
 			%even if its not necessary
 	if (exist ('hsort'))
-		if (getuprop(hsort,'Storestatus'))
+		if (getappdata(hsort,'Storestatus'))
 			stored=1;
 		end
 	end

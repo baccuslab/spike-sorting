@@ -21,7 +21,7 @@ if (binning)
 	tacout = zeros(1,nbins);
 	numspikes=0;
 	for i = 1:length(t)
-		tacout = tacout + AutoCorr(t{i},tmax,nbins);
+		tacout = tacout + AutoCorr(double(t{i}),tmax,nbins);
 		numspikes=numspikes+size(t{i},2);
 	end
 	tacout=tacout/numspikes/(tmax/nbins);

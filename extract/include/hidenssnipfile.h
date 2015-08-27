@@ -1,4 +1,4 @@
-/* hidenssnipfile.h
+/*! \file hidenssnipfile.h
  *
  * Header describing subclass of SnipFile which provides accesss to metadata
  * specific to the Hidens array, specifically, the configuration.
@@ -14,18 +14,50 @@
 #include "snipfile.h"
 #include "hidensfile.h"
 
+/*! Create and write snippet files for data from HiDens arrays */
 namespace hidenssnipfile {
+
+/*! The HidensSnipFile class subclasses SnipFile, extending it with
+ * functionality specific to data recorded on the HiDens array.
+ *
+ * The majority of this functionality is related to reading and 
+ * writing the electrode array configuration of the HiDens chip during
+ * the original recording.
+ */
 class HidensSnipFile : public snipfile::SnipFile {
 
 	public:
+		/*! Construct a new snippet file.
+		 * \param name The name of the newly constructed file
+		 * \param source The raw data file from which snippets will be extracted.
+		 */
 		HidensSnipFile(const std::string& name, const hidensfile::HidensFile& source);
+
+		/*! Open an existing snippet file */
 		HidensSnipFile(const std::string& name); // existing file
 		HidensSnipFile(const HidensSnipFile& other) = delete;
+
+		/*! Destroy a snippet file */
 		virtual ~HidensSnipFile();
 
+		/*! Return the x- or y-positions of each connected electrode 
+		 * in the recording. These are the true values, in microns, of 
+		 * each electrode.
+		 */
 		arma::Col<uint32_t> xpos() const, ypos() const;
+
+		/*! Return the x- or y-indices of each connected electrode. */
 		arma::Col<uint16_t> x() const, y() const;
+
+		/*! Return a string index associated with each electrode */
 		arma::Col<uint8_t> label() const;
+
+		/*! Return the list of channels that are wired to actual electrodes.
+		 * This list always has 126 elements. Element `i` is the linear 
+		 * index of the electrode from which channel `i` collected data
+		 * in the configuration used during the recording. If the channel 
+		 * was not connected to an electrode, the element is set to -1.
+		 */
 		arma::Col<int32_t> connectedChannels() const;
 
 	private:

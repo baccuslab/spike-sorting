@@ -38,6 +38,21 @@ intervals are half-open.
 	- A base name for the output file. Snippets will be saved to
 `<basename>.snip`.
 
+Requirements and building
+-------------------------
+
+- C++11 or later
+- [HDF5](http://www.hdfgroup.org) version 1.15 or higher
+- The standard autotools suite
+- [Doxygen](http://www.doxygen.org) for making documentation
+
+The project comes with a custom Makefile that should work on Ubuntu Linux and OS X.
+To build it, do this:
+
+	$ cd /path/to/extract
+	$ make # Makes the library and executable
+	$ doxygen Doxyfile # Builds the HTML documentation
+
 Library
 -------
 
@@ -60,7 +75,4 @@ File format
 
 For details of the raw data file, [see this link](https://github.com/baccuslab/spike-sorting/wiki/data-file-format).
 For details about the snippet file, [see here](https://github.com/baccuslab/spike-sorting/wiki/snippet-file-format).
-Check out the header files [`./include/datafile.h`](https://github.com/baccuslab/spike-sorting/tree/master/extract/include/datafile.h), [`./include/snipfile.h`](https://github.com/baccuslab/spike-sorting/extract/tree/master/include/snipfile.h), and [`./include/extract.h`](https://github.com/baccuslab/spike-sorting/tree/master/include/extract.h) for a description
-of the public API for the library used to access and manipulate these files. 
-Real documentation for the API is forthcoming...
 

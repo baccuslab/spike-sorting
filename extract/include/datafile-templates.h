@@ -1,3 +1,7 @@
+/*! \file datafile-templates.h
+ * Includes template function definitions used in the DataFile class.
+ */
+
 template<class T>
 void datafile::DataFile::_read_data(
 		const size_t startChan, const size_t endChan, 

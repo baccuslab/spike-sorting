@@ -68,7 +68,7 @@ void extract::extractNoise(const sampleMat& data, const size_t& nrandom_snippets
 {
 	/* Create random indices into each channel */
 	auto nsamples_per_snip = snipfile::NUM_SAMPLES_BEFORE + 
-		snipfile::NUM_SAMPLES_AFTER;
+		snipfile::NUM_SAMPLES_AFTER + 1;
 	auto nsamples = data.n_rows, nchannels = data.n_cols;
 	for (auto& each : idx)
 		each.set_size(nrandom_snippets);
@@ -93,7 +93,7 @@ void extract::extractNoise(const sampleMat& data, const size_t& nrandom_snippets
 			auto& start = ix.at(s);
 			snip_mat(arma::span::all, s) = data(
 					arma::span(start - snipfile::NUM_SAMPLES_BEFORE,
-					start + snipfile::NUM_SAMPLES_AFTER - 1), c);
+					start + snipfile::NUM_SAMPLES_AFTER), c);
 		}
 	}
 }
@@ -102,7 +102,7 @@ void extract::extractSpikes(const sampleMat& data, const arma::vec& thresholds,
 		std::vector<arma::uvec>& idx, std::vector<sampleMat>& snips)
 {
 	auto nsamples_per_snip = snipfile::NUM_SAMPLES_BEFORE + 
-		snipfile::NUM_SAMPLES_AFTER;
+		snipfile::NUM_SAMPLES_AFTER + 1;
 	auto nsamples = data.n_rows, nchannels = data.n_cols;
 
 #ifdef DEBUG
@@ -119,7 +119,7 @@ void extract::extractSpikes(const sampleMat& data, const arma::vec& thresholds,
 
 		/* Find snippets */
 		arma::uword i = snipfile::NUM_SAMPLES_BEFORE;
-		while (i < nsamples - snipfile::NUM_SAMPLES_AFTER) {
+		while (i < nsamples - snipfile::NUM_SAMPLES_AFTER + 1) {
 			if (data(i, c) > thresh) {
 				if (isLocalMax(data, c, i, snipfile::WINDOW_SIZE)) {
 					if (snip_num >= snip_mat.n_cols) {
@@ -129,7 +129,7 @@ void extract::extractSpikes(const sampleMat& data, const arma::vec& thresholds,
 					idx_vec(snip_num) = i;
 					snip_mat(arma::span::all, snip_num) = data(
 							arma::span(i - snipfile::NUM_SAMPLES_BEFORE,
-							i + snipfile::NUM_SAMPLES_AFTER - 1), c);
+							i + snipfile::NUM_SAMPLES_AFTER), c);
 					snip_num++;
 					i += snipfile::WINDOW_SIZE;
 				} else

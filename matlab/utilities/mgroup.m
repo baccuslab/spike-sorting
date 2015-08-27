@@ -19,10 +19,10 @@ if (size(sortchannels,2)<2)
 	return
 end
 figure ('Position',[20 120 1000 680],'doublebuffer','on');
-setuprop (hsort,'selindx',selindx);	
-handles=getuprop(hsort,'handles');
-chindices=getuprop(hsort,'chindices');
-spindx=getuprop(hsort,'spindx');
+setappdata (hsort,'selindx',selindx);	
+handles=getappdata(hsort,'handles');
+chindices=getappdata(hsort,'chindices');
+spindx=getappdata(hsort,'spindx');
 nfiles=size(g.spikefiles,2); 
 hdr=readsnipheader (g.spikefiles{1});
 nch=length(chindices);
@@ -39,13 +39,13 @@ else
 	projsp=loadprojindexed('proj.bin',chindices(1),size(g.channels,2),size(g.ctfiles,2),spindxsel);
 	%Load crosstalk projections
 	%Get times
-	t = getuprop(hsort,'t');
+	t = getappdata(hsort,'t');
 	tsel=cell(1,nfiles);				
 	for fnum = 1:size(g.spikefiles,2)
 		tsel{1,fnum} = t{fnum}(selindx{fnum});
 	end
 	%Load ct snippets and calculate projections
-	if (getuprop(hsort,'Storestatus'))
+	if (getappdata(hsort,'Storestatus'))
 		snipsct=getsnipsfrommem(selindx,hsort,g.sniprange); %crosstalk is the previously loaded snippets
 	else
         % loadRawData takes snip start and length
@@ -63,7 +63,7 @@ else
 	end
 	projch=cat(1,projsp,projct);
 end
-t=getuprop(hsort,'t');
+t=getappdata(hsort,'t');
 if (g.pwflag)
 	p1=1;p2=2;p3=2;
 else
@@ -187,28 +187,28 @@ for ch1=1:nch
 	end
 end
 axes ('Position',[0.03 0.8 0.11 0.11]);
-setuprop (gcf,'acaxis1',gca);
+setappdata (gcf,'acaxis1',gca);
 axes ('Position',[0.03 0.65 0.11 0.11]);
-setuprop (gcf,'acaxis2',gca);
+setappdata (gcf,'acaxis2',gca);
 axes ('Position',[0.03 0.5 0.11 0.11]);
-setuprop (gcf,'acaxis3',gca);
-setuprop (gcf,'xall',x);
-setuprop (gcf,'yall',y);
-setuprop (gcf,'axh',axh);
-setuprop (gcf,'rectx',rectx);
-setuprop (gcf,'recty',recty);
-setuprop (gcf,'n',n);
-setuprop (gcf,'ix',ix);
-setuprop (gcf,'xc',xc);
-setuprop (gcf,'yc',yc);
-setuprop (gcf,'xchs',xchs);
-setuprop (gcf,'ychs',ychs);
-setuprop (gcf,'hsort',hsort);
-setuprop (gcf,'displaymode',1);
-setuprop (gcf,'nfiles',nfiles);
+setappdata (gcf,'acaxis3',gca);
+setappdata (gcf,'xall',x);
+setappdata (gcf,'yall',y);
+setappdata (gcf,'axh',axh);
+setappdata (gcf,'rectx',rectx);
+setappdata (gcf,'recty',recty);
+setappdata (gcf,'n',n);
+setappdata (gcf,'ix',ix);
+setappdata (gcf,'xc',xc);
+setappdata (gcf,'yc',yc);
+setappdata (gcf,'xchs',xchs);
+setappdata (gcf,'ychs',ychs);
+setappdata (gcf,'hsort',hsort);
+setappdata (gcf,'displaymode',1);
+setappdata (gcf,'nfiles',nfiles);
 nsel=cell(length(axh),nfiles);
 hfig=gcf;
-setuprop (gcf,'handles',handles);
+setappdata (gcf,'handles',handles);
 MultiClusterFunctions ('displayall',hfig);
 %MultiClusterFunctions ('grayscale',hfig);
 

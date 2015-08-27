@@ -4,12 +4,12 @@ if (nargin == 1)
 end
 switch(action)
 case 'AutoCorr'
-	selvec = getuprop(hfig,'selectflag');
+	selvec = getappdata(hfig,'selectflag');
 	selclust = find(selvec);
-	polygons = getuprop(hfig,'polygons');
-	x = getuprop(hfig,'x');
-	y = getuprop(hfig,'y');
-	t = getuprop(hfig,'t');
+	polygons = getappdata(hfig,'polygons');
+	x = getappdata(hfig,'x');
+	y = getappdata(hfig,'y');
+	t = getappdata(hfig,'t');
 	membership = ComputeMembership(x,y,polygons(selclust));
 	indx = find(membership);
 	AutoCorrFig(t(indx),0.05,'s');
@@ -18,12 +18,12 @@ case 'Revert'
 	%axes(hax);
 	%cla
 	%set(gca,'Tag','ClustAx');
-	setuprop(hfig,'polygons',getuprop(hfig,'polygons0'));
-	clustnums = getuprop(hfig,'clustnums0');
-	setuprop(hfig,'clustnums',clustnums);
-	%setuprop(hfig,'hlines',[]);
-	setuprop(hfig,'selectflag',zeros(size(clustnums)));
-	if (strcmp(getuprop(hfig,'mode'),'density'))
+	setappdata(hfig,'polygons',getappdata(hfig,'polygons0'));
+	clustnums = getappdata(hfig,'clustnums0');
+	setappdata(hfig,'clustnums',clustnums);
+	%setappdata(hfig,'hlines',[]);
+	setappdata(hfig,'selectflag',zeros(size(clustnums)));
+	if (strcmp(getappdata(hfig,'mode'),'density'))
 		ClusterFunctions('DensityPlot',hfig);
 	else
 		ClusterFunctions('ScatterPlot',hfig);

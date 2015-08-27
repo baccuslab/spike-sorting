@@ -28,7 +28,7 @@ if (~pwflag) %Continuous waveform data
 	% If it does, load it in and start appending	
  	if (isempty(dir(outfile)))		% If file doesn't already exist		
 		hmain=setup(outfile,spikefiles,noisefiles,channels,pwflag);		
-		g=getuprop(hmain,'g');
+		g=getappdata(hmain,'g');
 		save (outfile,'g');
 	else	% Output file already exists, new results will be appended
 		fprintf(sprintf('Continuing to sort file %s...\n',outfile));
@@ -42,7 +42,7 @@ if (~pwflag) %Continuous waveform data
 		%Setup array window
 		handles = makearraywindow (g.channels);
 		arrayplot (g.channels,handles.ch,g.xc,g.yc,g.nspikes) ;
-		setuprop (handles.main,'g',g);		
+		setappdata (handles.main,'g',g);		
 	end %end continuous waveform case
 else %peak-width
 	nfiles=1;

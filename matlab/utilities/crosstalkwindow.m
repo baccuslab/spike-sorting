@@ -40,11 +40,11 @@ h1 = uicontrol('Parent',gcf, ...
 'Tag','');
 
 %Handles for figure and all axes
-handles=getuprop (hsort,'handles');
+handles=getappdata (hsort,'handles');
 handles.cc=hcc;
 handles.sort=hsort;
-setuprop (gcf,'g',g);
-setuprop (gcf,'handles',handles);
+setappdata (gcf,'g',g);
+setappdata (gcf,'handles',handles);
 cthandle=gcf;
 
 

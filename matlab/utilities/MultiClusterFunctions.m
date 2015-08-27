@@ -1,7 +1,7 @@
 function MultiClusterFunctions(action,hfig)
 global selWidth unselWidth
-handles=getuprop(gcf,'handles');
-g=getuprop(handles.main,'g');
+handles=getappdata(gcf,'handles');
+g=getappdata(handles.main,'g');
 selWidth = 2;
 unselWidth = 0.5;
 mstyle = 's';
@@ -24,7 +24,7 @@ delete(hmembership);
 switch(action)
 case 'DoPolygon'
 	hax = gcbo;
-	%mode = getuprop(hfig,'mode');
+	%mode = getappdata(hfig,'mode');
 	% Prevent resizing of plot during polygon drawing
 	xlm = get(hax,'XLimMode'); ylm = get(hax,'YLimMode');
 	set(hax,'XLimMode','manual'); set(hax,'YLimMode','manual');
@@ -42,7 +42,7 @@ case 'DoPolygon'
 		mode='delete';
 		color='k';
 	end
-	setuprop (gcf,'selectmode',mode);
+	setappdata (gcf,'selectmode',mode);
 	% Get necessary data
 	% Reset all selections 
 	%if (~replace)
@@ -59,7 +59,7 @@ case 'DoPolygon'
 		%   record polygon information and clustered pts
 		polygons{1}.x = pvx;
 		polygons{1}.y = pvy;
-		setuprop(hfig,'polygons',polygons);
+		setappdata(hfig,'polygons',polygons);
 		Multiclusterfunctions ('showselected');
 	end
 	if (ishandle(hfig))	% User might have hit cancel during polygon drawing
@@ -77,21 +77,21 @@ case 'SelectCluster'
 	end
 	% If not appending, de-select old selected cluster(s)
 	if (~append)
-		selvec = getuprop(hfig,'selectflag');
+		selvec = getappdata(hfig,'selectflag');
 		selclust = find(selvec);
 		Unselect(hfig,selclust);
 	end
 	% Select new cluster
-	hlines = getuprop(hfig,'hlines');
+	hlines = getappdata(hfig,'hlines');
 	clustnum = find(hlines == hclustline);	% Figure out the corresponding cluster number
 	Select(hfig,clustnum);
 case 'ScatterPlot'
 	hax = gca;
 	axes(hax);
-	setuprop(hfig,'mode','scatter');
+	setappdata(hfig,'mode','scatter');
 	% First plot all the points
-	x = getuprop(hfig,'x');
-	y = getuprop(hfig,'y');
+	x = getappdata(hfig,'x');
+	y = getappdata(hfig,'y');
 	h=hax;
 	%h = plot(x,y,'Color','k','LineStyle','none','Marker','.','MarkerSize',6,'HitTest','off');
 	%set(h,'Color','k','LineStyle','none','Marker','.','MarkerSize',6,'HitTest','off');
@@ -110,7 +110,7 @@ case 'ScatterPlot'
 case 'DensityPlot'
 	hax = gca;
 	axes(hax);
-	setuprop(hfig,'mode','density');
+	setappdata(hfig,'mode','density');
 	% Determine bin sizes
 	hslider = findobj(hfig,'Tag','Slider');
 	%STEVE 01/19/01 Added /10 because the bins were too big
@@ -119,8 +119,8 @@ case 'DensityPlot'
 	nx = max(2,round((rectx(2)-rectx(1))/binsize));
 	ny = max(2,round((recty(2)-recty(1))/binsize));
 	% Generate & plot histogram
-	x = getuprop(hfig,'x');
-	y = getuprop(hfig,'y');
+	x = getappdata(hfig,'x');
+	y = getappdata(hfig,'y');
 	[n,xc,yc] = hist2d(x,y,[rectx recty],nx,ny);
 	himage = imagesc(xc,yc,log(n+1)');
 	set(gca,'YDir','normal');
@@ -140,32 +140,32 @@ case 'DensityPlot'
 	hbutton = findobj(hfig,'Tag','ShowClustsButton');
 	set(hbutton,'Visible','off');
 case 'Replot'
-	mode = getuprop(hfig,'mode');
+	mode = getappdata(hfig,'mode');
 	if (strcmp(mode,'scatter'))
 		MultiClusterFunctions('ScatterPlot',hfig);
 	else
 		MultiClusterFunctions('DensityPlot',hfig);
 	end
 case 'ShowMembership'
-	mode = getuprop(hfig,'mode');
+	mode = getappdata(hfig,'mode');
 	hax = gca;
 	if (strcmp(mode,'density'))
 		MultiClusterFunctions('ScatterPlot',hfig);
 	end
-	x = getuprop(hfig,'x');
-	y = getuprop(hfig,'y');
-	polygons = getuprop(hfig,'polygons');
+	x = getappdata(hfig,'x');
+	y = getappdata(hfig,'y');
+	polygons = getappdata(hfig,'polygons');
 	indxs = ClusterMembers(ComputeMembership(x,y,polygons));
 	for i = 1:length(indxs)
 		clustcol = GetClustCol(i);
 		line(x(indxs{i}),y(indxs{i}),'Marker','.','LineStyle','none','MarkerSize',12,'Color',clustcol,'Tag','memberline');
 	end
 case 'Clear'
-	setuprop(hfig,'polygons',{});
-	setuprop(hfig,'clustnums',[]);
-	setuprop(hfig,'hlines',[]);
-	setuprop(hfig,'selectflag',[]);
-	if (strcmp(getuprop(hfig,'mode'),'density'))
+	setappdata(hfig,'polygons',{});
+	setappdata(hfig,'clustnums',[]);
+	setappdata(hfig,'hlines',[]);
+	setappdata(hfig,'selectflag',[]);
+	if (strcmp(getappdata(hfig,'mode'),'density'))
 		MultiClusterFunctions('DensityPlot',hfig);
 	else
 		MultiClusterFunctions('ScatterPlot',hfig);
@@ -176,15 +176,15 @@ case 'grayscale'
 	colormap(clr);
 	drawnow
 case 'displayselected'
-	if (getuprop(hfig,'displaymode'))
-		nsel=getuprop(hfig,'nsel');
-		xc=getuprop(hfig,'xc');
-		yc=getuprop(hfig,'yc');
-		axh=getuprop(hfig,'axh');
-		xchs=getuprop(hfig,'xchs');
-		ychs=getuprop(hfig,'ychs');
-		numall=getuprop(hfig,'numall');
-		numsel=getuprop(hfig,'numsel');
+	if (getappdata(hfig,'displaymode'))
+		nsel=getappdata(hfig,'nsel');
+		xc=getappdata(hfig,'xc');
+		yc=getappdata(hfig,'yc');
+		axh=getappdata(hfig,'axh');
+		xchs=getappdata(hfig,'xchs');
+		ychs=getappdata(hfig,'ychs');
+		numall=getappdata(hfig,'numall');
+		numsel=getappdata(hfig,'numsel');
 		
 		for ax=1:length(axh)
 			axes (axh(ax))
@@ -195,12 +195,12 @@ case 'displayselected'
 		colormap(clr);
 		drawnow
 	else
-		x=getuprop(hfig,'xall');
-		y=getuprop(hfig,'yall');
-		selected=getuprop(hfig,'selected');
-		axh=getuprop(hfig,'axh');
-		rectx=getuprop(hfig,'rectx');
-		recty=getuprop(hfig,'recty');
+		x=getappdata(hfig,'xall');
+		y=getappdata(hfig,'yall');
+		selected=getappdata(hfig,'selected');
+		axh=getappdata(hfig,'axh');
+		rectx=getappdata(hfig,'rectx');
+		recty=getappdata(hfig,'recty');
 		
 		for ax=1:length(axh)
 			axes (axh(ax))
@@ -217,17 +217,17 @@ case 'displayselected'
 		end
 	end
 case 'displayall'
-	if (getuprop(hfig,'displaymode'))
-		n=getuprop(hfig,'n');
-		x=getuprop(hfig,'xall');
-		y=getuprop(hfig,'yall');		
-		xc=getuprop(hfig,'xc');
-		yc=getuprop(hfig,'yc');
-		axh=getuprop(hfig,'axh');
-		xchs=getuprop(hfig,'xchs');
-		ychs=getuprop(hfig,'ychs');
-		numall=getuprop(hfig,'numall');
-		numsel=getuprop(hfig,'numsel');
+	if (getappdata(hfig,'displaymode'))
+		n=getappdata(hfig,'n');
+		x=getappdata(hfig,'xall');
+		y=getappdata(hfig,'yall');		
+		xc=getappdata(hfig,'xc');
+		yc=getappdata(hfig,'yc');
+		axh=getappdata(hfig,'axh');
+		xchs=getappdata(hfig,'xchs');
+		ychs=getappdata(hfig,'ychs');
+		numall=getappdata(hfig,'numall');
+		numsel=getappdata(hfig,'numsel');
 		
 		for ax=1:length(axh)
 			axes (axh(ax))
@@ -242,9 +242,9 @@ case 'displayall'
 		colormap(clr);
 		drawnow
 	else
-		axh=getuprop(hfig,'axh');
-		rectx=getuprop(hfig,'rectx');
-		recty=getuprop(hfig,'recty');
+		axh=getappdata(hfig,'axh');
+		rectx=getappdata(hfig,'rectx');
+		recty=getappdata(hfig,'recty');
 		
 		for ax=1:length(axh)
 			axes (axh(ax))
@@ -272,35 +272,35 @@ case 'displayall'
 		end
 	end
 case 'displayboth'
-	xc=getuprop(hfig,'xc');
-	yc=getuprop(hfig,'yc');
-	n=getuprop(hfig,'n');
-	nsel=getuprop(hfig,'nsel');
-	axh=getuprop(hfig,'axh');
+	xc=getappdata(hfig,'xc');
+	yc=getappdata(hfig,'yc');
+	n=getappdata(hfig,'n');
+	nsel=getappdata(hfig,'nsel');
+	axh=getappdata(hfig,'axh');
 	for ax=1:length(axh)
 		axes(axh(ax))
 		plotselected (n{ax},nsel{ax},1,0.6,xc{ax},yc{ax});
 	end
 case 'displaymode'
-	setuprop(hfig,'displaymode',1-getuprop(hfig,'displaymode'));
+	setappdata(hfig,'displaymode',1-getappdata(hfig,'displaymode'));
 	
 case 'showselected'
-	polygons = getuprop(hfig,'polygons');
-	xall = getuprop(hfig,'xall');
-	yall = getuprop(hfig,'yall');
-	curax=getuprop(hfig,'ax');
-	axh=getuprop(hfig,'axh');
-	rectx=getuprop(hfig,'rectx');
-	recty=getuprop(hfig,'recty');
-	xc=getuprop(hfig,'xc');
-	yc=getuprop(hfig,'yc');
-	ix=getuprop(hfig,'ix');
-	n=getuprop(hfig,'n');
-	xchs=getuprop(hfig,'xchs');
-	ychs=getuprop(hfig,'ychs');
-	hsort=getuprop(hfig,'hsort');
-	mode=getuprop(gcf,'selectmode');
-	selected=getuprop(gcf,'selected');
+	polygons = getappdata(hfig,'polygons');
+	xall = getappdata(hfig,'xall');
+	yall = getappdata(hfig,'yall');
+	curax=getappdata(hfig,'ax');
+	axh=getappdata(hfig,'axh');
+	rectx=getappdata(hfig,'rectx');
+	recty=getappdata(hfig,'recty');
+	xc=getappdata(hfig,'xc');
+	yc=getappdata(hfig,'yc');
+	ix=getappdata(hfig,'ix');
+	n=getappdata(hfig,'n');
+	xchs=getappdata(hfig,'xchs');
+	ychs=getappdata(hfig,'ychs');
+	hsort=getappdata(hfig,'hsort');
+	mode=getappdata(gcf,'selectmode');
+	selected=getappdata(gcf,'selected');
 	if (size(selected,1)==0)
 		selected=cell(size(xall,1),size(xall,2));
 	end
@@ -353,13 +353,13 @@ case 'showselected'
 			ylabel(num2str(ychs(ax)),'Rotation',0);
 		end
 	end
-	setuprop (hfig,'numall',numall);
-	setuprop (hfig,'numsel',numsel);
-	setuprop (hfig,'nsel',nsel);
-	setuprop (hfig,'selected',selected);
+	setappdata (hfig,'numall',numall);
+	setappdata (hfig,'numsel',numsel);
+	setappdata (hfig,'nsel',nsel);
+	setappdata (hfig,'selected',selected);
 	%Autocorrelation
-	t=getuprop (hsort,'t');
-	selindx=getuprop(hsort,'selindx');
+	t=getappdata (hsort,'t');
+	selindx=getappdata(hsort,'selindx');
 	if g.pwflag
 		nfiles=1;
 	else
@@ -371,7 +371,7 @@ case 'showselected'
 			tsecs{fn} = t{fn}(selindx{fn}(selected{1,fn}))/g.scanrate;
 		end
 	end
-	acaxis=getuprop (hfig,'acaxis1');
+	acaxis=getappdata (hfig,'acaxis1');
 	set(gca,'Units','pixels');
 	pos = get(gca,'Position');
 	npix = pos(3);
@@ -381,21 +381,21 @@ case 'showselected'
 	if (averagerate(tsecs)>0)
 		set(gca,'Ylim',[0 averagerate(tsecs)/2]);
 	end
-	acaxis=getuprop (hfig,'acaxis2');
+	acaxis=getappdata (hfig,'acaxis2');
 	actime=0.01;
 	plotac (acaxis,tsecs,actime,nbins);
-	acaxis=getuprop (hfig,'acaxis3');
+	acaxis=getappdata (hfig,'acaxis3');
 	actime=1;
 	plotac (acaxis,tsecs,actime,nbins);
 	
 	
 	
 case 'Revert'
-	setuprop(hfig,'polygons',getuprop(hfig,'polygons0'));
-	clustnums = getuprop(hfig,'clustnums0');
-	setuprop(hfig,'clustnums',clustnums);
-	setuprop(hfig,'selectflag',zeros(size(clustnums)));
-	if (strcmp(getuprop(hfig,'mode'),'density'))
+	setappdata(hfig,'polygons',getappdata(hfig,'polygons0'));
+	clustnums = getappdata(hfig,'clustnums0');
+	setappdata(hfig,'clustnums',clustnums);
+	setappdata(hfig,'selectflag',zeros(size(clustnums)));
+	if (strcmp(getappdata(hfig,'mode'),'density'))
 		MultiClusterFunctions('DensityPlot',hfig);
 	else
 		MultiClusterFunctions('ScatterPlot',hfig);
@@ -403,14 +403,14 @@ case 'Revert'
 case 'Cancel'
 	delete(hfig);
 case 'Done'
-	selected=getuprop(hfig,'selected');
-	h=getuprop (hfig,'hsort')
-	nfiles=getuprop (hfig,'nfiles');
+	selected=getappdata(hfig,'selected');
+	h=getappdata (hfig,'hsort')
+	nfiles=getappdata (hfig,'nfiles');
 	close (hfig);
-	clflindx = getuprop(h,'clflindx');
-	channels=getuprop(h,'channels');
-	selindx=getuprop (h,'selindx');
-	selclust=getuprop (h,'selclust');
+	clflindx = getappdata(h,'clflindx');
+	channels=getappdata(h,'channels');
+	selindx=getappdata (h,'selindx');
+	selclust=getappdata (h,'selclust');
 	indxnew=cell(2,nfiles);
 	for fn=1:nfiles
 		if (size (selected,2)>0)
@@ -444,16 +444,16 @@ case 'Done'
 		elim = replclust(size(indxnew,1)+1:end-1); % eliminate if selected more than returned
 		newclflindx(elim,:) = [];
 	end
-	if (getuprop(h,'Sortstatus'))
-		newclflindx(1,:) = RebuildUnassigned(getuprop(h,'clflindxall'),newclflindx);
+	if (getappdata(h,'Sortstatus'))
+		newclflindx(1,:) = RebuildUnassigned(getappdata(h,'clflindxall'),newclflindx);
 	else
-		newclflindx(1,:) = RebuildUnassigned(getuprop(h,'clflindxsub'),newclflindx);
+		newclflindx(1,:) = RebuildUnassigned(getappdata(h,'clflindxsub'),newclflindx);
 	end
 	% Store the new assignments
-	setuprop(h,'clflindx',newclflindx);
+	setappdata(h,'clflindx',newclflindx);
 	%Set updatelist to update all clusters
 	updatearr(1:3,1:7)=0;
-	setuprop (h,'updatearr',updatearr);
+	setappdata (h,'updatearr',updatearr);
 	DoMultiChanFunctions('Unselect',h);
 	DoMultiChanFunctions('UpdateDisplay',h);
 	DoMultiChanFunctions('SetCAxProp',h);
@@ -472,59 +472,59 @@ return
 
 function Select(hfig,clustnum)
 global selWidth
-selvec = getuprop(hfig,'selectflag');
+selvec = getappdata(hfig,'selectflag');
 if (nargin < 2)
 	clustnum = find(selvec);	% Will update graphical display for selected clusters
 end
 selvec(clustnum) = 1;
-setuprop(hfig,'selectflag',selvec);
-hlines = getuprop(hfig,'hlines');
+setappdata(hfig,'selectflag',selvec);
+hlines = getappdata(hfig,'hlines');
 hlines = hlines(clustnum);
 set(hlines,'LineWidth',selWidth);
 return
 
 function Unselect(hfig,clustnum)
 global unselWidth
-selvec = getuprop(hfig,'selectflag');
+selvec = getappdata(hfig,'selectflag');
 if (nargin < 2)
 	clustnum = find(selvec);	% Will unselect all clusters
 end
 selvec(clustnum) = 0;
-setuprop(hfig,'selectflag',selvec);
-hlines = getuprop(hfig,'hlines');
+setappdata(hfig,'selectflag',selvec);
+hlines = getappdata(hfig,'hlines');
 hlines = hlines(clustnum);
 set(hlines,'LineWidth',unselWidth);
 return
 
 function DisableClusterSelCb(hfig)
-hlines = getuprop(hfig,'hlines');
+hlines = getappdata(hfig,'hlines');
 indx = ishandle(hlines);
 set(hlines(indx),'ButtonDownFcn','');
 set(hlines(indx),'HitTest','off');
 return
 
 function EnableClusterSelCb(hfig)
-hlines = getuprop(hfig,'hlines');
-SelCb = getuprop(hfig,'SelCb');
+hlines = getappdata(hfig,'hlines');
+SelCb = getappdata(hfig,'SelCb');
 indx = ishandle(hlines);
 set(hlines(indx),'ButtonDownFcn',SelCb);
 set(hlines(indx),'HitTest','on');
 return
 
 function DeleteClusts(hfig)
-selvec = getuprop(hfig,'selectflag');
+selvec = getappdata(hfig,'selectflag');
 selclust = find(selvec);
 selvec(selclust) = 0;
-setuprop(hfig,'selectflag',selvec);
-clustnums = getuprop(hfig,'clustnums');
+setappdata(hfig,'selectflag',selvec);
+clustnums = getappdata(hfig,'clustnums');
 clustnums(selclust) = 0;
-setuprop(hfig,'clustnums',clustnums);
-polygons = getuprop(hfig,'polygons');
+setappdata(hfig,'clustnums',clustnums);
+polygons = getappdata(hfig,'polygons');
 for i = 1:length(selclust)
 	polygons{selclust(i)} = [];
 end
-setuprop(hfig,'polygons',polygons);
-%hlines = getuprop(hfig,'hlines');
+setappdata(hfig,'polygons',polygons);
+%hlines = getappdata(hfig,'hlines');
 %delete(hlines(selclust));
 PlotPolygons(hfig);
 return
@@ -545,7 +545,7 @@ return
 %return
 
 %function clustnum = GetNextClust(clustnums)
-%firstclnum = getuprop(gcf,'firstclnum');
+%firstclnum = getappdata(gcf,'firstclnum');
 %if (isempty(firstclnum))
 %	firstclnum = 1;
 %end
@@ -556,11 +556,11 @@ clustnum = length(clustnums)+1;
 return
 
 function PlotPolygons(hfig)
-clustnums = getuprop(hfig,'clustnums');
-clustlabels = getuprop(hfig,'ClusterLabels');
-polygons = getuprop(hfig,'polygons');
-SelCb = getuprop(hfig,'SelCb');
-hlines = getuprop(hfig,'hlines');
+clustnums = getappdata(hfig,'clustnums');
+clustlabels = getappdata(hfig,'ClusterLabels');
+polygons = getappdata(hfig,'polygons');
+SelCb = getappdata(hfig,'SelCb');
+hlines = getappdata(hfig,'hlines');
 isnr = find(hlines);
 ish = ishandle(hlines(isnr));
 delete(hlines(isnr(ish)));
@@ -573,7 +573,7 @@ for i = 1:length(clustnums)
 		text(polygons{i}.x(1),polygons{i}.y(1),num2str(GetClustLabel(clustnums(i),clustlabels)));
 	end
 end
-setuprop(hfig,'hlines',hlines);
+setappdata(hfig,'hlines',hlines);
 Select(hfig)
 
 function clustcol = GetClustCol(clustnum)

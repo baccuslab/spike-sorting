@@ -21,9 +21,9 @@ end
 if (nargin < 3)
 	h = gcbf;
 end
-g=getuprop (h,'g');
+g=getappdata (h,'g');
 hdr=readsnipheader(g.spikefiles{1});
-handles = getuprop(h,'handles');
+handles = getappdata(h,'handles');
 switch(action)
 case 'calculate'
 	snips.size=hdr.sniprange;
@@ -42,36 +42,36 @@ case 'calculate'
         % call loadRawData(filename, channels, idx, len)
         snips.data(cl,:)=loadRawData(g.ctfiles(lf), g.allchannels, sptimes(cl,lf)+snip_start_offset, snip_length);
 	end
-	for chindx=1:size(g.channels,2)
+	for chindx=1:size(g.channels,1)
 		snipmax=max(max(max(snips.data{chindx})),snipmax);
 		snipmin=min(min(min(snips.data{chindx})),snipmin);
 	end
 	snips.lim=[snipmin snipmax];
-	setuprop (h,'snips',snips);
+	setappdata (h,'snips',snips);
 	crosstalkfunctions ('showmean',sptimes,h);
 case 'CTselect'
 	[placeholder,chsel] = find(handles.cc == gcbo);
-	selected=getuprop(handles.cc(chsel),'CTselected');
+	selected=getappdata(handles.cc(chsel),'CTselected');
 	selected=~selected;
 	if (selected)
 		set(handles.cc(chsel),'Color',[1 0.8 0.8])
 	else
 		set(handles.cc(chsel),'Color',[1 1 1])
 	end
-	setuprop(handles.cc(chsel),'CTselected',selected);
+	setappdata(handles.cc(chsel),'CTselected',selected);
 	selarr=zeros(1,length(g.channels));
 	for ch=1:length(g.channels)
-		if (getuprop(handles.cc(ch),'CTselected'))
+		if (getappdata(handles.cc(ch),'CTselected'))
 			selarr(ch)=1;
 		end
 	end
 	sellist=g.channels(find(selarr));
-	setuprop (gcf,'sellist',sellist);
+	setappdata (gcf,'sellist',sellist);
 case 'showall'
-	sortchannels=getuprop(handles.sort,'sortchannels');
-	snips=getuprop (gcf,'snips');
-	sellist=getuprop (gcf,'sellist');
-	for chindx=2:size(g.channels,2)
+	sortchannels=getappdata(handles.sort,'sortchannels');
+	snips=getappdata (gcf,'snips');
+	sellist=getappdata (gcf,'sellist');
+	for chindx=2:size(g.channels,1)
 		for cl=1:size(snips.data,1);	
 			axes(handles.cc(chindx));
 			if (size(snips.data{cl,chindx},2)>0)
@@ -84,15 +84,15 @@ case 'showall'
 			if (sortchannels(1)~=g.channels(chindx))
 				set(gca,'ButtonDownFcn','crosstalkfunctions');
 				if (isempty(sellist))
-					setuprop(gca,'CTselected',0);
+					setappdata(gca,'CTselected',0);
 				elseif (isempty(find(sellist==g.channels(chindx))))
-					setuprop(gca,'CTselected',0);
+					setappdata(gca,'CTselected',0);
 				else
 					set(gca,'Color',[1 0.8 0.8])
-					setuprop(gca,'CTselected',1);
+					setappdata(gca,'CTselected',1);
 				end
 			else
-				setuprop(gca,'CTselected',0);
+				setappdata(gca,'CTselected',0);
 				set(gca,'Color',[0.8 0.8 1])
 			end
 		end
@@ -104,10 +104,10 @@ case 'showall'
 		hold off
 	end
 case 'showmean'	
-	sortchannels=getuprop(handles.sort,'sortchannels');
-	snips=getuprop (gcf,'snips');
-	sellist=getuprop (gcf,'sellist');
-	for chindx=2:size(g.channels,2)
+	sortchannels=getappdata(handles.sort,'sortchannels');
+	snips=getappdata (gcf,'snips');
+	sellist=getappdata (gcf,'sellist');
+	for chindx=2:size(g.channels,1)
 		for cl=1:size(snips.data,1);	
 			axes(handles.cc(chindx));
 			if (size(snips.data{cl,chindx},2)>0)
@@ -120,15 +120,15 @@ case 'showmean'
 			if (sortchannels(1)~=g.channels(chindx))
 				set(gca,'ButtonDownFcn','crosstalkfunctions');
 				if (isempty(sellist))
-					setuprop(gca,'CTselected',0);
+					setappdata(gca,'CTselected',0);
 				elseif (isempty(find(sellist==g.channels(chindx))))
-					setuprop(gca,'CTselected',0);
+					setappdata(gca,'CTselected',0);
 				else
 					set(gca,'Color',[1 0.8 0.8])
-					setuprop(gca,'CTselected',1);
+					setappdata(gca,'CTselected',1);
 				end
 			else
-				setuprop(gca,'CTselected',0);
+				setappdata(gca,'CTselected',0);
 				set(gca,'Color',[0.8 0.8 1])
 			end
 		end
@@ -140,8 +140,8 @@ case 'showmean'
 		hold off
 	end
 case 'sortcrosstalk'
-	sellist=getuprop(h,'sellist');
-	sortchannels=getuprop(handles.sort,'sortchannels');
+	sellist=getappdata(h,'sellist');
+	sortchannels=getappdata(handles.sort,'sortchannels');
 	sortchannels=[sortchannels(1) sellist];
 	h1 = uicontrol('Parent',handles.sort, ...
 	'Units','points', ...
@@ -152,12 +152,12 @@ case 'sortcrosstalk'
 	for ch=1:size(sortchannels,2)
 		chindices(ch)=find(sortchannels(ch)==g.channels);
 	end
-	setuprop(handles.sort,'sortchannels',sortchannels);
-	setuprop(handles.sort,'chindices',chindices);
+	setappdata(handles.sort,'sortchannels',sortchannels);
+	setappdata(handles.sort,'chindices',chindices);
 	updatearr(1,1:7)=0;
 	updatearr(2:3,1:7)=-1;
-	setuprop (handles.sort,'updatearr',updatearr);
-	storestatus=getuprop (handles.sort,'Storestatus');
+	setappdata (handles.sort,'updatearr',updatearr);
+	storestatus=getappdata (handles.sort,'Storestatus');
 	if (storestatus==1)
 		DoMultiChanFunctions('Storeinmem',handles.sort);
 	end
@@ -165,9 +165,9 @@ case 'sortcrosstalk'
 	DoMultiChanFunctions('UpdateDisplay',handles.sort);
 	
 case 'remove'
-	sellist=getuprop(h,'sellist');
-	setuprop (handles.sort,'ctchannels',sellist);
-	hctlist=getuprop(handles.sort,'hctlist');
+	sellist=getappdata(h,'sellist');
+	setappdata (handles.sort,'ctchannels',sellist);
+	hctlist=getappdata(handles.sort,'hctlist');
 	if (ishandle(hctlist))
 		set(hctlist,'String',sprintf('Remove cross talk on: %s',num2str(sellist)));
 	end

@@ -8,9 +8,9 @@ function Arrayplot(channels,hch,xc,yc,nspikes)
 	for chindx=1:size(channels,1)
 		axes(hch(chindx));
 		hold off
-        yc_arr = [yc{chindx}]
-        xc_arr = [xc{chindx}]
-        sp_arr = [log(nspikes{chindx}+1)]
+        yc_arr = [yc{chindx}];
+        xc_arr = [xc{chindx}];
+        sp_arr = [log(nspikes{chindx}+1)];
 		h=imagesc(yc_arr(:),xc_arr(:),sp_arr(:));
 		set(h,'UserData',chindx,'ButtonDownFcn','startsort');
 		colormap(1-gray);

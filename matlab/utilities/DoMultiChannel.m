@@ -19,7 +19,7 @@ else
 		return;
 	end
 	nchans=length(sortchannels);
-	nfiles=1; %should be updated to handle multiple files
+	nfiles=length(g.snipfiles);
 	for ch=1:nchans
 		chindices(ch)=find(sortchannels(ch)==g.channels);
     end

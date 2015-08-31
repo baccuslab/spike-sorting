@@ -4,7 +4,7 @@ function newclust=selectspikes(chanclust,fnum,current,offset,lev1,lev2)
 %fnum:filenum
 %current:array containing current trace from file fnum
 %		 To get the current trace array, use the following command
-%		 current=loadaibdata({'rawdatafilename'},1,{[0]},[0 length]);
+%		 current=loadaibdata({'rawdatafilesname'},1,{[0]},[0 length]);
 %		     {usage is data=loadaibdata({'file1' 'file2' ... 'filen'},[ch1 ch2 ... chm],{[times1 times2 ... timesn]},[datastartoffset dataendoffset]) }
 %		 where 'length' is the number of sample points in the recording
 %offset:accounts for expected latency between current onset (or offset) and effect of current pulse

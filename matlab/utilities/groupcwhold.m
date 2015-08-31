@@ -33,7 +33,7 @@ if (~pwflag) %Continuous waveform data
 	else	% Output file already exists, new results will be appended
 		fprintf(sprintf('Continuing to sort file %s...\n',outfile));
 		load (outfile)
-		nfiles=size(g.spikefiles,2);
+		nfiles=size(g.snipfiles,2);
 		nchans=size(g.channels,2);
 		g.ctchannels=[];
 		if (~exist('removedCT'))

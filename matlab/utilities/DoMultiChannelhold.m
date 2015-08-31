@@ -4,10 +4,10 @@ function fig = DoMultiChannel(hmain,g,sortchannels)
 
 if (g.pwflag)
 	nfiles=1;
-	nchans=63;
+	nchans=size(nsnips,1); %check this
 	global sptimes
 	chindices=sortchannels;
-	for ch=1:63
+	for ch=1:nchans
 		nsnips(ch,1)=length(sptimes{ch}{1});
 	end
 	rectime(1)=max(sptimes{ch}{1}(1,:)');
@@ -19,7 +19,7 @@ else
 		return;
 	end
 	nchans=length(sortchannels);
-	nfiles=length(g.spikefiles);
+	nfiles=length(g.snipfiles);
 	for ch=1:nchans
 		chindices(ch)=find(sortchannels(ch)==g.channels);
 	end

@@ -363,7 +363,7 @@ case 'showselected'
 	if g.pwflag
 		nfiles=1;
 	else
-		nfiles=size(g.spikefiles,2);
+		nfiles=size(g.snipfiles,2); %check this
 	end
 	tsecs=cell(1,nfiles);
 	for fn = 1:nfiles

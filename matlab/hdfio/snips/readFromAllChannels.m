@@ -1,13 +1,14 @@
-function [snips, range] = readFromAllChannels(snipfile, sniptype, num, channels)
-% FUNCTION [nsnips, range] = readFromAllChannels(snipfile, sniptype, num, channels)
+function [snips, range] = readFromAllChannels(snipfiles, sniptype, num, channels)
+% FUNCTION [nsnips, range] = readFromAllChannels(snipfiles, sniptype, num, channels)
 %
 % Read and return snippets of the given type from the given file, and the range
 % of the snippets before and after the spike's peak
 %
 % INPUT:
-% 	snipfile	- HDF snippet file from which snippets are read
+% 	snipfiles	- Cell array of HDF snippet files from which snippets are
+% 	read or single file
 % 	sniptype	- Read 'spike' or 'noise' snippets
-%	num			- Maximum number of snippets to read, defaults to all
+%	num			- Maximum number of snippets to read per channel, defaults to all
 %	channels	- Channels from which data is to be read
 %
 % (C) 2015 The Baccus Lab
@@ -16,15 +17,32 @@ function [snips, range] = readFromAllChannels(snipfile, sniptype, num, channels)
 % 2015-07-20 - Benjamin Naecker
 %	- wrote it
 
-% Check inputs
-if ~exist(snipfile, 'file')
-	error('hdfio:snips:readFromAllChannels:FileNotFound', ...
-		'The snippet file does not exist: %s', snipfile);
+% Updates:
+% 2015-08-31 - Aran Nayebi and Pablo Jadzinsky
+%   - added multiple file functionality
+
+if ischar(snipfiles)
+    snipfiles = {snipfiles};
 end
-fileChannels = h5read(snipfile, '/channels');
+
+% Check inputs
+for fnum = 1:length(snipfiles)
+    if ~exist(snipfiles{fnum}, 'file')
+        error('hdfio:snips:readFromAllChannels:FileNotFound', ...
+            'The snippet file does not exist: %s', snipfiles);
+    end
+    if fnum==1
+        fileChannels = h5read(snipfiles{fnum}, '/channels');
+    else
+        if fileChannels ~= h5read(snipfiles{fnum}, '/channels')
+            error('All snipfiles should have data for the same channels')
+        end
+    end
+end
+
 if nargin == 2
-	chans = fileChannels;
 	num = Inf;
+	chans = fileChannels;
 elseif nargin == 3
 	chans = fileChannels;
 else
@@ -34,8 +52,8 @@ end
 % Read snippets from each file
 snips = cell(length(chans), 1);
 for i = 1:length(chans)
-	snips{i} = loadSnip(snipfile, sniptype, chans(i), num);
+	snips{i} = loadSnip(snipfiles, sniptype, chans(i), num);
 end
 snips = cat(2, snips{:});
-range = getSnipRange(snipfile);
+range = getSnipRange(snipfiles);
 

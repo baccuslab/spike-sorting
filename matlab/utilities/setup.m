@@ -1,4 +1,4 @@
-function hmain = setup(outfile, snipfile, datafile)
+function hmain = setup(outfile, snipfiles, datafiles)
 % Setup the main spike sorting interface
 %
 % (C) 2015 The Baccus Lab
@@ -9,9 +9,18 @@ function hmain = setup(outfile, snipfile, datafile)
 %	- A bit of miscellaneous formatting
 
 % Read channels to be sorted from the file
-channels = double(h5read(snipfile, '/channels'));
+numfiles = size(snipfiles, 2);
+for fnum=1:numfiles
+    if fnum == 1
+        channels = double(h5read(snipfiles{fnum}, '/channels'));
+    else
+        channels_other = double(h5read(snipfiles{fnum}, '/channels'));
+        if channels ~= channels_other
+            error('Channels should be the same across snipfiles!')
+        end
+    end
+end
 numch = length(channels);
-
 pwflag = 0; % BN - temporary, removing support in the future
 
 if (~pwflag)
@@ -32,12 +41,14 @@ if (~pwflag)
 			% Step 1: load in representatives of all channels
 			fprintf('Building default filters:\n  Reading sample spike snippets from all channels...\n');
 			numSpikeSnips = 5000;
-			[spikes, ssniprange] = readFromAllChannels(snipfile, 'spike', numSpikeSnips, channels(channels ~= 2));
+            numperfile = round(numSpikeSnips/numfiles);
+			[spikes, ssniprange] = readFromAllChannels(snipfiles, 'spike', numperfile, channels(channels ~= 2));
 
 			% Step 2: do the same for noise
 			fprintf('  Reading noise snippets from all channels...\n');
 			numNoiseSnips = 1000;
-			noise = readFromAllChannels(snipfile, 'noise', numNoiseSnips, channels(channels ~= 2));
+            numnoiseperfile = round(numNoiseSnips/numfiles);
+			noise = readFromAllChannels(snipfiles, 'noise', numnoiseperfile, channels(channels ~= 2));
 
 			% Step 3: let user set sniprange
  			deffilters=cell(1,numch);
@@ -103,9 +114,9 @@ if (~pwflag)
 		ylabel('Filters');
 		set(gca,'XLim',[1 size(deffiltersall,1)]);
 		set(gca,'Tag','FiltAxes');
-        scanrate = h5readatt(snipfile, '/', 'sample-rate');
+        scanrate = h5readatt(snipfiles{1}, '/', 'sample-rate');
 		%Calculate default filter projections for all channels
-        calcproj (snipfile,'proj.bin',channels,subrange,deffilters);
+        calcproj (snipfiles,'proj.bin',channels,subrange,deffilters);
     else
         subsetbutton = 'no'; %added, check this
 	end %If proj.bin does not exist
@@ -124,7 +135,6 @@ end
 handles = makearraywindow (channels);
 
 %Definitions
-numfiles = 1; %added this, but could be removed altogether for cleaner code
 chanclust = cell(1,numch);			%Cell clusters, contains spike times
 removedCT=cell(numch,numfiles);	%Removed crosstalk, contains spike indexes
 xc=cell(1,numch);
@@ -137,7 +147,7 @@ pos=get(handles.ch(1),'Position');
 nx=floor(pos(3));ny=floor(pos(4));
 for ch=1:numch
 	if (~pwflag)
-        nsnips = getNumSnips(snipfile);
+        nsnips = getNumSnips(snipfiles);
 		proj=loadproj('proj.bin',ch,numch,numfiles,nsnips(ch,:));
 		[xc(ch),yc(ch),nspikes(ch)]=Hist2dcalc(proj(1,:),nx,ny); 
 	else
@@ -161,8 +171,8 @@ else
 end
 g.channels=channels;
 g.ctchannels=[];
-g.snipfile = snipfile;
-g.ctfiles=datafile;
+g.snipfiles = snipfiles;
+g.ctfiles=datafiles;
 g.xc=xc; g.yc=yc; g.nspikes=nspikes;g.rectx=rectx;g.recty=recty;
 g.sniprange=sniprange;
 g.nsnips=nsnips;
@@ -170,7 +180,7 @@ if  (pwflag)
 	setappdata(handles.main,'proj',proj);
 	setappdata(handles.main,'nfiles',1);
 else
-    g.snipfile=snipfile;
+    g.snipfiles=snipfiles;
 	g.deffilters=deffilters;
 	g.subrange=subrange;
 end

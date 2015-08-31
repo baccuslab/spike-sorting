@@ -1,17 +1,18 @@
-function [snip, time] = loadSnip(filename, sniptype, channel, maxsnip)
+function [snip, time] = loadSnip(filenames, sniptype, channel, maxsnip)
 % LoadSnip: load the snippets from a given channel in one file
 %
-% [snip, time ] = LoadSnip(filename,channel,maxsnip)
-% The third argument (maxsnip) is optional; at most maxsnip snippets
+% [snip, time ] = LoadSnip(filename, sniptype, channel,maxsnip)
+% The fourth argument (maxsnip) is optional; at most maxsnip snippets
 %	will be read, with the default behavior to read all the snippets
 % snip is returned in units of volts. This is the only reliable choice for sorting, as
 %	the user might change the A/D scaling between files.
 %
 % INPUT:
-%	filename	- The snippet file from which to load data
+%	filenames	- Cell array of the snippet files from which to load data
+%	or single file
 %	sniptype	- Load either 'spike' or 'noise' snippets
 %	channel		- Channel from which to load data
-%	maxsnip		- Maximum number of snippets to load, defaults to all
+%	maxsnip		- Maximum number of snippets to load across all files, defaults to all
 %
 % (C) 2015 The Baccus Lab
 %
@@ -22,15 +23,18 @@ function [snip, time] = loadSnip(filename, sniptype, channel, maxsnip)
 % 2015-07-20 - Benjamin Naecker
 % 	- updating to use HDF snippet file format
 
-% Check file exists and read number of total snippets and their size
-if ~exist(filename, 'file')
-	error('hdfio:loadSnip:FileNotFound', ...
-		'The snippet file does not exist: %s', filename);
+% Updates:
+% 2015-08-31 - Aran Nayebi and Pablo Jadzinsky
+%   - added multiple file functionality
+
+if ischar(filenames)
+    filenames = {filenames};
 end
+
 if nargin < 4
-	maxsnip = Inf;
+    maxsnip = Inf;
 else
-	maxsnip = min(maxsnip, getNumSnips(filename, sniptype, channel));
+    maxsnip = min(maxsnip, getNumSnips(filenames, sniptype, channel));
 end
 
 if maxsnip == 0
@@ -39,15 +43,38 @@ if maxsnip == 0
     return;
 end
 
-% Read the snippets and their indices
-channelString = '/channel-%03d';
-snipString = sprintf([channelString '/%s-snippets'], channel, sniptype);
-idxString = sprintf([channelString '/%s-idx'], channel, sniptype);
-snip = double(h5read(filename, snipString, [1 1], [Inf, maxsnip]));
-time = double(h5read(filename, idxString, [1], [maxsnip]));
+snip_needed = maxsnip;
 
-% Return snippets in actual voltage values
-gain = h5readatt(filename, '/', 'gain');
-offset = h5readatt(filename, '/', 'offset');
-snip = single(snip) * gain + offset;
+snip = [];
+time = [];
+for fnum=1:length(filenames)
+    % Check file exists and read number of total snippets and their size
+    if ~exist(filenames{fnum}, 'file')
+        error('hdfio:loadSnip:FileNotFound', ...
+            'The snippet file does not exist: %s', filenames{fnum});
+    end
 
+    % Read the snippets and their indices
+    channelString = '/channel-%03d';
+    snipString = sprintf([channelString '/%s-snippets'], channel, sniptype);
+    idxString = sprintf([channelString '/%s-idx'], channel, sniptype);
+    temp_snip = double(h5read(filenames{fnum}, snipString, [1 1], [Inf, Inf]));
+    temp_time = double(h5read(filenames{fnum}, idxString, [1], [Inf]));
+
+    if size(temp_snip, 2) > snip_needed
+        temp_snip = temp_snip(:,1:snip_needed);
+        temp_time = temp_time(1:snip_needed,:);
+    end
+    snip = [snip temp_snip];
+    time = [time; temp_time];
+    
+    % Return snippets in actual voltage values
+    gain = h5readatt(filenames{fnum}, '/', 'gain');
+    offset = h5readatt(filenames{fnum}, '/', 'offset');
+    snip = single(snip) * gain + offset;
+    
+    snip_needed = maxsnip - size(snip,2);
+    if snip_needed <= 0
+        break
+    end
+end

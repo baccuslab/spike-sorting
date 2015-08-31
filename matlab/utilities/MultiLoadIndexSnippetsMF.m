@@ -5,10 +5,9 @@ function [snips,filenum]  = MultiLoadIndexSnippetsMF(spfiles,ctfiles,channels,in
 %it is constructed from the spike times of the group of channels
 % subset of snippets
 % h = ReadSnipHeader(spfiles{1});
-spfiles = {spfiles}; %make it a cell array of 1, when we add multiple file functionality, remove this
-range=getSnipRange(spfiles{1}); %when we add mult file functionality, change this arg to spfiles
+range=getSnipRange(spfiles{1}); %range is same across all files, so we can just read it off one of them
 snipsize=range(2)-range(1)+1;
-nfiles=1; %when add mult file functionality, change nfiles to length(spfiles)
+nfiles=length(spfiles); %check this
 nchans=length(channels);
 t=cell(1,nfiles);
 snipspcell=cell(1,nfiles);

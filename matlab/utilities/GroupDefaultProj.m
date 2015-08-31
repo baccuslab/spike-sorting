@@ -70,7 +70,7 @@ while (outrange == 0)
 	%f
 	fc=cell(1,fnum);
 	for fnum = 1:nfiles
-		if (length(blkindx{fnum}>0))
+		if (~isempty(blkindx{fnum}>0))
 			fc{fnum}(1,:) = fnum*ones(1,length(blkindx{fnum}));
 			fc{fnum}(2,:) = 1:length(blkindx{fnum});
 		else

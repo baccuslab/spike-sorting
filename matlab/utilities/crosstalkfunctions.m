@@ -43,8 +43,7 @@ case 'calculate'
         % turn sptimes to be a vector so you can add the offset to it
         sptimes_tmp = sptimes(cl,lf);
         sptimes_vec = [sptimes_tmp{:}];
-%       ctfiles = g.ctfiles(lf) %add this line once multiple files can be handled
-        ctfiles = g.ctfiles;
+        ctfiles = g.ctfiles(lf);
         snips.data(cl,:)=loadRawData(ctfiles, g.allchannels, sptimes_vec+snip_start_offset, snip_length);
 	end
 	for chindx=1:size(g.channels,1)

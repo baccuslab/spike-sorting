@@ -27,7 +27,7 @@ handles = getappdata(h,'handles');
 switch(action)
 case 'calculate'
 	snips.size=g.sniprange;
-	snips.data=cell(size(sptimes,1),size(g.allchannels,2));
+	snips.data=cell(size(sptimes,1),size(g.allchannels,1));
 	snipmax=0;snipmin=0;
 	for cl=1:size(sptimes,1)
 		%Get file with most spikes
@@ -48,8 +48,11 @@ case 'calculate'
         snips.data(cl,:)=loadRawData(ctfiles, g.allchannels, sptimes_vec+snip_start_offset, snip_length);
 	end
 	for chindx=1:size(g.channels,1)
-		snipmax=max(max(max(snips.data{chindx})),snipmax);
-		snipmin=min(min(min(snips.data{chindx})),snipmin);
+        %snipdata = cell2mat(snips.data{chindx});
+        snipmax = max(max(snips.data{chindx}(:), snipmax));
+        snipmin = min(min(snips.data{chindx}(:), snipmin));
+		%snipmax=max(max(max(snips.data{chindx})),snipmax);
+		%snipmin=min(min(min(snips.data{chindx})),snipmin);
 	end
 	snips.lim=[snipmin snipmax];
 	setappdata (h,'snips',snips);

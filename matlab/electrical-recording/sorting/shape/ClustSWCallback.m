@@ -89,8 +89,8 @@ case 'Clustmodebox'
 	else
 		set(gca,'Tag','ClustAx','ButtonDownFcn','ClusterFunctions DoBox');
 	end
-	getappdata(hfig,'hsort')
-	get(findobj(hfig,'Tag','clustmode'),'Value')
+	getappdata(hfig,'hsort');
+	get(findobj(hfig,'Tag','clustmode'),'Value');
 	setappdata (getappdata(hfig,'hsort'),'clustmode',get(findobj(hfig,'Tag','clustmode'),'Value'));
 otherwise
 	error(['Do not recognize action ',action]);

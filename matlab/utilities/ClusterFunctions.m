@@ -67,7 +67,12 @@ case 'DoPolygon'
 		clustnum = GetNextClust(clustnums);
 	end
 	%   Get selection polygon
-	[pvx,pvy] = GetSelPolygon('go',GetClustCol(clustnum));
+    hpoly = impoly(hax);
+    % save vertices
+    vertices = hpoly.getPosition;
+    pvx = vertices(:,1);
+    pvy = vertices(:,2);
+	%[pvx,pvy] = GetSelPolygon('go',GetClustCol(clustnum));
 	if (isempty(pvx) && replace == 1)
 		pvx = oldpolygon.x;
 		pvy = oldpolygon.y;

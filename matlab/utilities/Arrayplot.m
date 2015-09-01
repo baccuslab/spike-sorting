@@ -10,9 +10,11 @@ function Arrayplot(channels,hch,xc,yc,nspikes)
 		hold off
         yc_arr = [yc{chindx}];
         xc_arr = [xc{chindx}];
-        sp_arr = [log(nspikes{chindx}+1)];
-		h=imagesc(yc_arr(:),xc_arr(:),sp_arr(:));
-		set(h,'UserData',chindx,'ButtonDownFcn','startsort');
+        if(~(isempty(xc_arr) && isempty(yc_arr)))
+            sp_arr = nspikes{chindx};
+            h=imagesc(xc_arr(1,:), yc_arr(:,1),sp_arr);
+            set(h,'UserData',chindx,'ButtonDownFcn','startsort');
+        end
 		colormap(1-gray);
 		set(gca,'XTickLabel',{''},'xtick',[],'YTickLabel',{''},'Ytick',[],'XColor',[0.8 0.8 0.8],'YColor',[0.8 0.8 0.8])
 		set(gca,'Ydir','normal')
@@ -21,5 +23,4 @@ function Arrayplot(channels,hch,xc,yc,nspikes)
 		vx=xlim; %vx used because xlim(1) tries to set the xlim instead of returning a value
 		vy=ylim;
 		text(vx(2)-(vx(2)-vx(1))/4,vy(2)-(vy(2)-vy(1))/8,num2str(channels(chindx)));	
-	end
-
+    end

@@ -14,6 +14,10 @@ function Arrayplot(channels,hch,xc,yc,nspikes)
             sp_arr = nspikes{chindx};
             h=imagesc(xc_arr(1,:), yc_arr(:,1),sp_arr);
             set(h,'UserData',chindx,'ButtonDownFcn','startsort');
+        else
+            % empty (no spikes recorded)
+            empty_size = 100;
+            h=imagesc(1:empty_size, 1:empty_size, zeros(empty_size,empty_size));
         end
 		colormap(1-gray);
 		set(gca,'XTickLabel',{''},'xtick',[],'YTickLabel',{''},'Ytick',[],'XColor',[0.8 0.8 0.8],'YColor',[0.8 0.8 0.8])

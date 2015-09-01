@@ -25,7 +25,7 @@ else
     end
     range = g.sniprange;
     nscans = -1 * range(1) + range(2) + 1; %since 0 > range(1) = numsamples before
-    rectime = g.scanrate/nscans; %scanrate and nscans should be read from multiple files
+    rectime = g.scanrate/nscans; %scanrate and nscans are read from multiple files
 % 	for fnum= 1:nfiles
 % 		[fid,message] = fopen(g.spikefiles{fnum},'r');
 % 		header{fnum} = ReadSnipHeader(fid);

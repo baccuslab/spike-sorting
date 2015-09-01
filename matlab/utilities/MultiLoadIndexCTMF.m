@@ -4,8 +4,8 @@ function [snipsct]  = MultiLoadIndexCTMF(spfiles,ctfiles,channels,indxsel,fullmu
 %multiindx is a cell array with a nchannels row array that specifies what snippets are to be chosen
 %it is constructed from the spike times of the group of channels
 % subset of snippets
-nfiles=length(spfiles); %check this
-range=getSnipRange(spfiles{1}); %range should be the same for each file, so just read it from one of the files
+nfiles=length(spfiles);
+range=getSnipRange(spfiles);
 nchans=length(channels);
 hwait=waitbar (0,'Loading');
 % h = ReadSnipHeader(spfiles{1});

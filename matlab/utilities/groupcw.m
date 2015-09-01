@@ -19,13 +19,16 @@ function groupcw(outfile,snipfiles,datafiles)
 
 % Check if snipfiles and datafiles is a single string
 if ischar(snipfiles)
-    snipfiles={snipfiles};
+    snipfiles = {snipfiles};
 end
 
 if ischar(datafiles)
     datafiles = {datafiles};
 end
 
+if length(snipfiles) ~= length(datafiles)
+    error('Need to have the same number of snipfiles as datafiles!')
+end
 % Find out if output file already exists.
 % If it does, load it in and start appending	
 if (exist(outfile, 'file'))		% If file already exists

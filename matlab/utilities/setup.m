@@ -41,14 +41,18 @@ if (~pwflag)
 			% Step 1: load in representatives of all channels
 			fprintf('Building default filters:\n  Reading sample spike snippets from all channels...\n');
 			numSpikeSnips = 5000;
-            numperfile = round(numSpikeSnips/numfiles);
-			[spikes, ssniprange] = readFromAllChannels(snipfiles, 'spike', numperfile, channels(channels ~= 2));
+            %numperfile = round(numSpikeSnips/numfiles);
+			%[spikes, ssniprange] = readFromAllChannels(snipfiles, 'spike', numperfile, channels(channels ~= 2));
+			
+            [spikes, ssniprange] = readFromAllChannels(snipfiles, 'spike', numSpikeSnips, channels(channels ~= 2));
 
 			% Step 2: do the same for noise
 			fprintf('  Reading noise snippets from all channels...\n');
 			numNoiseSnips = 1000;
-            numnoiseperfile = round(numNoiseSnips/numfiles);
-			noise = readFromAllChannels(snipfiles, 'noise', numnoiseperfile, channels(channels ~= 2));
+            %numnoiseperfile = round(numNoiseSnips/numfiles);
+			%noise = readFromAllChannels(snipfiles, 'noise', numnoiseperfile, channels(channels ~= 2));
+
+            noise = readFromAllChannels(snipfiles, 'noise', numNoiseSnips, channels(channels ~= 2));
 
 			% Step 3: let user set sniprange
  			deffilters=cell(1,numch);

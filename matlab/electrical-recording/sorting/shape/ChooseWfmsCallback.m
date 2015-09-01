@@ -56,10 +56,10 @@ case 'ThreshStop'
 	set(gcbf,'WindowButtonUpFcn','');
 	currPt = get(gca,'CurrentPoint');
 	thresh = currPt(1,1);	% Determine new thresh
-	oldthresh = getuprop(hfig,'oldthresh');		% Look up old threshold
-	clruprop(hfig,'oldthresh');				% It's not clear why this is nec., but it seems to be
-	setuprop(hfig,'oldthresh',thresh);			% Record for next time
-	x0 = getuprop(hfig,'PeakPos');
+	oldthresh = getappdata(hfig,'oldthresh');		% Look up old threshold
+	%rmappdata(hfig,'oldthresh');				% It's not clear why this is nec., but it seems to be
+	setappdata(hfig,'oldthresh',thresh);			% Record for next time
+	x0 = getappdata(hfig,'PeakPos');
 	% If the threshold increases, lines below thresh need to be turned off
 	if (thresh > oldthresh)
 		hlines = findobj(hfig,'Tag','wfm','Visible','on');

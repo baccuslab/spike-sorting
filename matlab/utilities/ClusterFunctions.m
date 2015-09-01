@@ -67,7 +67,11 @@ case 'DoPolygon'
 		clustnum = GetNextClust(clustnums);
 	end
 	%   Get selection polygon
-	[pvx,pvy] = GetSelPolygon('go',GetClustCol(clustnum));
+    hpoly = impoly(hax);
+    % save vertices
+    vertices = hpoly.getPosition;
+    pvx = vertices(:,1);
+    pvy = vertices(:,2);
 	if (isempty(pvx) && replace == 1)
 		pvx = oldpolygon.x;
 		pvy = oldpolygon.y;
@@ -233,9 +237,9 @@ case 'DensityPlot'
 	x = getappdata(hfig,'x');
 	y = getappdata(hfig,'y');
 	[n,xc,yc] = hist2d(x,y,nx,ny);
-	himage = imagesc(xc,yc,log(n+1)');
+	himage = imagesc(xc(1,:),yc(:,1),log(n+1)');
 	set(gca,'YDir','normal');
-	colormap(1-gray);
+	%colormap(1-gray);
 	axis([rectx recty]);
 	set(himage,'HitTest','off');
 	if (get(findobj(hfig,'Tag','clustmode'),'Value') == 1)

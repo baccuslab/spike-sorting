@@ -37,16 +37,15 @@ else
     maxsnip = min(maxsnip, getNumSnips(filenames, sniptype, channel));
 end
 
+snip = [];%cell(1, length(filenames));
+time = [];%cell(1, length(filenames));
+
 if maxsnip == 0
-    snip = [];
-    time = [];
     return;
 end
 
 snip_needed = maxsnip;
 
-snip = [];
-time = [];
 for fnum=1:length(filenames)
     % Check file exists and read number of total snippets and their size
     if ~exist(filenames{fnum}, 'file')
@@ -60,20 +59,22 @@ for fnum=1:length(filenames)
     idxString = sprintf([channelString '/%s-idx'], channel, sniptype);
     temp_snip = double(h5read(filenames{fnum}, snipString, [1 1], [Inf, Inf]));
     temp_time = double(h5read(filenames{fnum}, idxString, [1], [Inf]));
-
     if size(temp_snip, 2) > snip_needed
         temp_snip = temp_snip(:,1:snip_needed);
         temp_time = temp_time(1:snip_needed,:);
     end
-    snip = [snip temp_snip];
-    time = [time; temp_time];
     
     % Return snippets in actual voltage values
     gain = h5readatt(filenames{fnum}, '/', 'gain');
     offset = h5readatt(filenames{fnum}, '/', 'offset');
-    snip = single(snip) * gain + offset;
-    
-    snip_needed = maxsnip - size(snip,2);
+    temp_snip = single(temp_snip) * gain + offset;
+
+%    snip{fnum} = temp_snip;
+%    time{fnum} = temp_time;
+    snip = [snip temp_snip];
+    time = [time; temp_time];
+
+    snip_needed = snip_needed - size(temp_snip,2);
     if snip_needed <= 0
         break
     end

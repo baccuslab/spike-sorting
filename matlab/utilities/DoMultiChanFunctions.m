@@ -740,7 +740,7 @@ case 'Done'
 		g.chanclust{sortchidx} = newclusts;
 	end
 	if (length (ctchannels)>0)
-		[tmpremCT,tmpremidx] = removecrosstalk(g,newclusts,ctchannels,h);
+		[tmpremCT,tmpremidx] = RemoveCrosstalk(g,newclusts,ctchannels,h);
 	else
 		tmpremCT=[];
 	end

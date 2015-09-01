@@ -236,10 +236,10 @@ case 'DensityPlot'
 	% Generate & plot histogram
 	x = getappdata(hfig,'x');
 	y = getappdata(hfig,'y');
-	[n,xc,yc] = hist2d(x,y,[rectx recty],nx,ny);
-	himage = imagesc(xc,yc,log(n+1)');
+	[n,xc,yc] = hist2d(x,y,nx,ny);
+	himage = imagesc(xc(1,:),yc(:,1),log(n+1)');
 	set(gca,'YDir','normal');
-	colormap(1-gray);
+	%colormap(1-gray);
 	axis([rectx recty]);
 	set(himage,'HitTest','off');
 	if (get(findobj(hfig,'Tag','clustmode'),'Value') == 1)

@@ -51,8 +51,15 @@ case 'DoPolygon'
 	%   Disable cluster selection callbacks, so don't select while
 	%   in the middle of forming a polygon
 	DisableClusterSelCb(hfig);
+    
+    % [pvx,pvy] = GetSelPolygon('go',color);
 	%   Get selection polygon
-	[pvx,pvy] = GetSelPolygon('go',color);
+    hpoly = impoly(hax);
+    setColor(hpoly, color);
+    % save vertices
+    vertices = hpoly.getPosition;
+    pvx = vertices(:,1);
+    pvy = vertices(:,2);
 	
 	if (~isempty(pvx))
 		%   Assign cluster number to selected points, and

@@ -232,7 +232,7 @@ case 'DensityPlot'
 	% Generate & plot histogram
 	x = getappdata(hfig,'x');
 	y = getappdata(hfig,'y');
-	[n,xc,yc] = hist2d(x,y,[rectx recty],nx,ny);
+	[n,xc,yc] = hist2d(x,y,nx,ny);
 	himage = imagesc(xc,yc,log(n+1)');
 	set(gca,'YDir','normal');
 	colormap(1-gray);

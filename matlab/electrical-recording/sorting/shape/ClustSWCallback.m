@@ -81,7 +81,7 @@ case 'ShowWaveform'
 	snipindx=getappdata(gcbf,'snipindx');
 	multiindx=getappdata(gcbf,'multiindx');
 	fnum=snidx(1);
-	snip = MultiLoadIndexSnippetsMF(spikefiles(fnum),ctfiles(fnum),channels,{snipindx{fnum}(snidx(2))},multiindx(fnum));
+	snip = MultiLoadIndexSnippetsMF(spikefiles(fnum),'spike',ctfiles(fnum),channels,{snipindx{fnum}(snidx(2))},multiindx(fnum));
 	plot(snip);
 case 'Clustmodebox'
 	if (get(findobj(hfig,'Tag','clustmode'),'Value') == 1)

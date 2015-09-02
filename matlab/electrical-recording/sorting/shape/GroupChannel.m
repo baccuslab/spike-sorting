@@ -1,4 +1,4 @@
-function [tout,indexout] = GroupChannel(spikefiles,channel,filters,subrange,blocksize,useclnums,snipindx)
+function [tout,indexout] = GroupChannel(spikefiles,channel,filters,subrange,blocksize,useclnums,snipindx,g)
 % tout{clustnum,filenum} = Times of spikes of cell # clustnum, in the file spikefiles{filenum}
 % indexout: same as tout except it's the index # of the snippet rather than the time
 subset = 0;
@@ -32,11 +32,11 @@ while (outrange == 0)
 		blkindx = BuildIndexMF(range);
 	end
 	% Load in the snippets
-	[snips,f,t,header] = LoadIndexSnippetsMF(spikefiles,channel,blkindx);
+	[snips,f,t] = LoadIndexSnippetsMF(spikefiles,'spike',channel,blkindx);
 	% Convert the times to seconds
 	for i = 1:length(header)
 		if (~isempty(t{i}))
-			tsecs{i} = t{i}/header{i}.scanrate;
+			tsecs{i} = t{i}/g.scanrate;
 		end
 	end
 	%t = cat(1,t{:});

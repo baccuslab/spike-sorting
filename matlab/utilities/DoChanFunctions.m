@@ -118,7 +118,7 @@ case 'DiscrimFilters'
 	sfiles = getappdata(h,'spikefiles');
 	spikes = cell(nsel,1);
 	for i = 1:nsel
-		spikes{i} = LoadIndexSnippetsMF(sfiles,channel,wvindx(i,:));
+		spikes{i} = LoadIndexSnippetsMF(sfiles,'spike',channel,wvindx(i,:));
 	end
 	[filt,lambda] = MaxSep(spikes);
 	sv = sqrt(lambda);
@@ -171,9 +171,11 @@ case 'Cluster'
 	params = getappdata(h,'params');
 	clustnumoffset = params.ClustNumOffset;
 	% Group the channel
+    handles=getappdata (h,'handles');
+    g=getappdata(handles.main,'g');
 	spikefiles = getappdata(h,'spikefiles');
 	[tnew,indxnew] = GroupChannel(spikefiles,channel,...
-		filters,subrange,blocksize,replclust+clustnumoffset-1,wvindx);
+		filters,subrange,blocksize,replclust+clustnumoffset-1,wvindx,g);
 	if (~isempty(tnew))	% If the user didn't hit cancel...
 		% Determine the cluster #s of the newly-created clusters
 		% Make replclust at least as long as # of new clusters

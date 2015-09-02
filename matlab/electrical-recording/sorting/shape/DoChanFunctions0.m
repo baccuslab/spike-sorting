@@ -105,7 +105,7 @@ case 'DiscrimFilters'
 	sfiles = getuprop(h,'spikefiles');
 	spikes = cell(nsel,1);
 	for i = 1:nsel
-		spikes{i} = LoadIndexSnippetsMF(sfiles,channel,wvindx(i,:));
+		spikes{i} = LoadIndexSnippetsMF(sfiles,'spike',channel,wvindx(i,:));
 	end
 	[filt,lambda] = MaxSep(spikes);
 	sv = sqrt(lambda);
@@ -210,7 +210,7 @@ case 'UpdateDisplay'
 		end
 		range = BuildRangeMF(nsubsnips,[1 dispnsnips]);	% Load first n snippets
 		viewindx = BuildIndexMF(range,clflindx(i,:));
-		snips = LoadIndexSnippetsMF(spikefiles,channel,viewindx);
+		snips = LoadIndexSnippetsMF(spikefiles,'spike',channel,viewindx);
 		%fprintf('i = %d, size(snips) = %d, %d\n',i,size(snips,1),size(snips,2));
 		%viewindx{1}
 		%viewindx{2}

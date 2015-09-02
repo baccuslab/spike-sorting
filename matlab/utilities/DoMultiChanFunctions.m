@@ -656,7 +656,8 @@ case 'Recon'
 			[snips{c},sptimes{c}] = LoadIndexSnip(g.spikefiles{flindx},sortchannels(1),spindx{flindx}(clflindx{c,flindx}));
 		end
 	end
-	[time,hdr]=LoadSnipTimes(g.spikefiles{flindx},sortchannels(1),1);
+	%[time,hdr]=LoadSnipTimes(g.spikefiles{flindx},sortchannels(1),1);
+    [~,time] = loadSnip(g.snipfiles{flindx},'spike',sortchannels(1),1);
 	%ViewReconstruction(sortchannels,snip,tsnip,clflindx(:,flindx),h.sniprange,[1 h.nscans]);
 	ViewReconstruction([1 50000],g.ctfiles(flindx),sortchannels,sptimes,hdr);
 case 'Crosstalk'

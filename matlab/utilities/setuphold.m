@@ -176,7 +176,8 @@ loadn=100000/numch/numfiles;
 for ch=1:numch
 	plottimes{ch}=cell(1,numfiles);
 	for fnum=1:numfiles	
-		[plottimes{ch}{fnum},header]=LoadSnipTimes(spikefiles{fnum},channels(ch),loadn);
+		%[plottimes{ch}{fnum},header]=LoadSnipTimes(spikefiles{fnum},channels(ch),loadn);
+        [~,plottimes{ch}{fnum}] = loadSnip(spikefiles{fnum},'spike',channels(ch),loadn);
 		plottimes{ch}{fnum}=[plottimes{ch}{fnum}'; 1:size(plottimes{ch}{fnum},1)]; %2nd row is spike index number
 	end
 end
@@ -184,7 +185,7 @@ end
 %Define parameters to be 'globally' available
 g.channels=channels;
 g.ctchannels=[];
-g.spikefiles=spikefiles;
+g.snipfiles=spikefiles;
 g.xc=xc; g.yc=yc; g.nspikes=nspikes;g.rectx=rectx;g.recty=recty;
 g.plottimes=plottimes;
 g.sniprange=sniprange;

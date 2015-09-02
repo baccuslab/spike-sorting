@@ -1,22 +1,30 @@
-function [snips,filenum,t,header] = LoadIndexSnippetsMF(filenames,chan,indx)
+function [snips,filenum,t] = LoadIndexSnippetsMF(filenames,sniptype,chan,indx)
 % LoadIndexSnippetsMF: concatenates indexed snippets from sequential files
 % [snips,filenum,t,headers] = LoadIndexSnippetsMF(filenames,chan,indx)
 % Much like LoadSnippetsMF, except that only a subset of the total snippets is
 % returned.
 % indx is a cell array with one vector/file, where the vector specifies the chosen
 % subset of snippets
+%
+% (C) 2015 The Baccus Lab
+%
+% History:
+% ?? - Tim Holy
+%   - wrote it
+%
+% 2015-09-02 - Lane McIntosh
+%   - using new hdfio functions
+
 for i = 1:length(filenames)
 	cindx = indx{i};
 	if (~isempty(cindx))
-		[snipc{i},tc{i}] = loadSnipIndex(filenames{i},chan,cindx);
+		[snipc{i},tc{i}] = loadSnipIndex(filenames{i},sniptype,chan,cindx);
 		fc{i}(1,:) = i*ones(1,length(cindx));
 		fc{i}(2,:) = 1:length(cindx);
-		header{i} = ReadSnipHeader(filenames{i});
 	else
 		snipc{i} = [];
 		fc{i} = [];
 		tc{i} = [];
-		header{i} = [];
 	end
 end
 snips = cat(2,snipc{:});

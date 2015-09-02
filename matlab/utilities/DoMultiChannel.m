@@ -26,12 +26,6 @@ else
     range = g.sniprange;
     nscans = -1 * range(1) + range(2) + 1; %since 0 > range(1) = numsamples before
     rectime = g.scanrate/nscans; %scanrate and nscans are read from multiple files
-% 	for fnum= 1:nfiles
-% 		[fid,message] = fopen(g.spikefiles{fnum},'r');
-% 		header{fnum} = ReadSnipHeader(fid);
-% 		scanrate(fnum) = header{fnum}.scanrate;
-% 		rectime(fnum) = header{fnum}.nscans/header{fnum}.scanrate;
-% 	end
 end
 %Get times of spikes on first channel and coincident spikes on other channels
 [sptimes,spindx]= Multiindex (hmain,g,sortchannels,chindices);

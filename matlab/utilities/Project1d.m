@@ -1,5 +1,5 @@
 function proj =Project1d(g,channels,filters,snipindx,spindx,hsort)
-spikefiles=g.spikefiles;
+spikefiles=g.snipfiles;
 ctfiles=g.ctfiles;
 for i = 1:length(snipindx)
 	nsnips(i) = length(snipindx{i});

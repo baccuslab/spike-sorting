@@ -23,10 +23,10 @@ setappdata (hsort,'selindx',selindx);
 handles=getappdata(hsort,'handles');
 chindices=getappdata(hsort,'chindices');
 spindx=getappdata(hsort,'spindx');
-nfiles=size(g.spikefiles,2); 
-hdr=readsnipheader (g.spikefiles{1});
+nfiles=size(g.snipfiles,2); 
+hdr=readsnipheader (g.snipfiles{1});
 nch=length(chindices);
-[chans,numproj,sniprange] = GetSnipNums(g.spikefiles);
+[chans,numproj,sniprange] = GetSnipNums(g.snipfiles);
 if g.pwflag
 	global proj
 	projch=proj(chindices);
@@ -41,7 +41,7 @@ else
 	%Get times
 	t = getappdata(hsort,'t');
 	tsel=cell(1,nfiles);				
-	for fnum = 1:size(g.spikefiles,2)
+	for fnum = 1:size(g.snipfiles,2)
 		tsel{1,fnum} = t{fnum}(selindx{fnum});
 	end
 	%Load ct snippets and calculate projections

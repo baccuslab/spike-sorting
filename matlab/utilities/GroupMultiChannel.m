@@ -1,7 +1,7 @@
 function [tout,indexout] = GroupMultiChannel(g,channels,filters,subrange,blocksize,useclnums,snipindx,spindx,sptimes,hsort)
 % tout{clustnum,filenum} = Times of spikes of cell # clustnum, in the file spikefiles{filenum}
 % indexout: same as tout except it's the index # of the snippet rather than the time
-spikefiles=g.spikefiles;
+spikefiles=g.snipfiles;
 ctfiles=g.ctfiles;
 for i = 1:length(snipindx)
 	nsnips(i) = length(snipindx{i});
@@ -36,7 +36,7 @@ while (outrange == 0)
 			for i = 1:length(spikefiles)
 				if (~isempty(t1{i}))
 					t{i} = [t{i} t1{i}];
-					tsecs{i} = [tsecs{i} t{i}/header{i}.scanrate];
+					tsecs{i} = [tsecs{i} t{i}/g.scanrate];
 				end
 			end
 			proj1 = filters'*snips(subrange(1):subrange(2),:);

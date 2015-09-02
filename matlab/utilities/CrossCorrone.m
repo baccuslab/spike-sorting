@@ -35,7 +35,7 @@ for ch = 1:nchans
 	npbtemp = CrossCorrRecRow1(g.plottimes{chindx},g.plottimes{ch},tmax,nbins); %CrossCorrRecRow1 this file below
 	[~,idxc{ch}] = CrossCorrRecRow1(g.plottimes{chindx},g.plottimes{ch},ctsamp); %coincident spikes
 	%Keep only the 2nd channel
-	for fnum=1:length(g.spikefiles)
+	for fnum=1:length(g.snipfiles)
 		if (size(idxc{ch}{fnum},2)>0)
 			idxc{ch}{fnum}=idxc{ch}{fnum}(2,:);%keep only the 2nd channel
 		end

@@ -1,9 +1,9 @@
 function [multitimes,multiindx]= Multiindex (hmain,g,sortchannels,mchidx,cttime);
-nfiles=size(g.spikefiles,2);
+nfiles=size(g.snipfiles,2);
 %Load in spike times
 for ch=1:size(mchidx,2)
 	for fnum=1:nfiles;
-		[sptimes{ch}{fnum},hdr]=loadsniptimes(g.spikefiles{fnum},sortchannels(ch));
+        [~, sptimes{ch}{fnum}] = loadSnip(g.snipfiles{fnum}, 'spike', sortchannels(ch));
 		sptimes{ch}{fnum}=[sptimes{ch}{fnum}';1:length(sptimes{ch}{fnum})];
 	end
 end

@@ -40,8 +40,7 @@ end
 % Get spike times
 for fnum= 1:length(spikefiles)
     [~, t{fnum}] = loadSnip(spikefiles{fnum},'spike',channel);
-    sprintf('Warning: Scanrate is hard-coded')
-    scanrate(fnum) = 0.05;
+    scanrate(fnum) = g.scanrate;
 	%[t{fnum},header{fnum}] = LoadSnipTimes(spikefiles{fnum},channel);
 	%scanrate(fnum) = header{fnum}.scanrate;
 	%rectime(fnum) = header{fnum}.nscans/header{fnum}.scanrate;

@@ -76,8 +76,8 @@ case 'SortSubset'
 		clflindxnew(1,:)={[]};
 		clflindxnew(2:end,:)=clflindx(selclust,:);
 		setappdata (h,'clflindx',clflindxnew);
-		clflindxsub=cell(1,size(g.spikefiles,2));
-		for fnum = 1:size(g.spikefiles,2)
+		clflindxsub=cell(1,size(g.snipfiles,2));
+		for fnum = 1:size(g.snipfiles,2)
 			clflindxsub{fnum} = sort(cat(2,clflindxnew{2:end,fnum}));
 		end
 		setappdata(h,'clflindxsub',clflindxsub);
@@ -113,10 +113,10 @@ case 'Storeinmem'
 		else
 			wvindx=getappdata (h,'clflindxsub');
 		end
-		[storedsnips,header]  = MultiLoadIndexCTMF(g.spikefiles,g.ctfiles,sortchannels,wvindx,spindx);
+		[storedsnips,header]  = MultiLoadIndexCTMF(g.snipfiles,g.ctfiles,sortchannels,wvindx,spindx);
 		setappdata (h,'storedsnips',storedsnips); clear storedsnips
 		setappdata (h,'storedindx',wvindx); clear wvindx
-		hdr = ReadSnipHeader(g.spikefiles{1});
+		hdr = ReadSnipHeader(g.snipfiles{1});
 		setappdata (h,'storedsniprange',hdr.sniprange);
 	else
 		setappdata (h,'Storestatus',0);
@@ -135,7 +135,7 @@ case 'BuildFilters'
 	hmain=getappdata(h,'hmain');
 	sortchannels = getappdata(h,'sortchannels');
 	spindx=getappdata(h,'spindx');
-	[filters,subrange,sv,wave] = multiBFI(g.spikefiles,g.ctfiles,g.noisefiles,...
+	[filters,subrange,sv,wave] = multiBFI(g.snipfiles,g.ctfiles,g.noisefiles,...
 	nspikes,nnoise,sortchannels,wvindx,spindx,h); 
 	setappdata (gcf,'wavehold',wave);
 	if (length(filters) == 0)
@@ -192,7 +192,7 @@ case 'DiscrimFilters'
 	spindx=getappdata(h,'spindx');
 	spikes = cell(nsel,1);
 	for i = 1:nsel
-		spikes{i} = MultiLoadIndexSnippetsMF(g.spikefiles,g.ctfiles,sortchannels,wvindx(i,:),spindx,h);
+		spikes{i} = MultiLoadIndexSnippetsMF(g.snipfiles,g.ctfiles,sortchannels,wvindx(i,:),spindx,h);
 	end
 	[filt,lambda] = MaxSep(spikes);
 	sv = sqrt(lambda);
@@ -367,9 +367,9 @@ case 'UpdateDisplay'
 					subindx=cell(1,nfiles);
 					subindx(flist)=getsubset (clflindx(c,flist),loadnsnips);		
 				end
-				display.snips{c} = MultiLoadIndexSnippetsMF(g.spikefiles,g.ctfiles,sortchannels,subindx,spindx,h);
+				display.snips{c} = MultiLoadIndexSnippetsMF(g.snipfiles,g.ctfiles,sortchannels,subindx,spindx,h);
 				%subindx=getsubset (clflindx(c,:),loadnsnips);
-				% display.snips{c} = MultiLoadIndexSnippetsMF(g.spikefiles,g.ctfiles,sortchannels,subindx,spindx,h);
+				% display.snips{c} = MultiLoadIndexSnippetsMF(g.snipfiles,g.ctfiles,sortchannels,subindx,spindx,h);
 			else %Updatearr(1,c)>0 ,transfer clusters to different number,
 				%as occurs during cluster deletion
 				display.snips{c}=display.snips{updatearr(1,c)};
@@ -579,9 +579,9 @@ case 'CrossCorr'
 
 case 'Clear'
 	% Delete current clusters and make all spikes unassigned
-	newclflindx=cell(size(g.spikefiles,2));
+	newclflindx=cell(size(g.snipfiles,2));
 	clflindx=getappdata (h,'clflindx');
-	for fnum = 1:size(g.spikefiles,2)
+	for fnum = 1:size(g.snipfiles,2)
 		newclflindx{fnum} = sort(cat(2,clflindx{1:end,fnum}));
 	end
 	setappdata (gcf,'clflindx',newclflindx);
@@ -645,7 +645,7 @@ case 'Recon'
 	spindx=getappdata (h,'spindx');
 	clflindx = getappdata(h,'clflindx');
 	sortchannels = getappdata(h,'sortchannels');
-	[flindx,v] = listdlg('ListString',g.spikefiles,'SelectionMode','single','PromptString','Select a file:');
+	[flindx,v] = listdlg('ListString',g.snipfiles,'SelectionMode','single','PromptString','Select a file:');
 	if (~v)
 		return;
 	end
@@ -653,16 +653,16 @@ case 'Recon'
 	sptimes=cell(size(clflindx,1),1);
 	for c=1:size(clflindx,1)
 		if (size(clflindx{c,flindx},2)>0)
-			[snips{c},sptimes{c}] = LoadIndexSnip(g.spikefiles{flindx},sortchannels(1),spindx{flindx}(clflindx{c,flindx}));
+			[snips{c},sptimes{c}] = loadSnip(g.snipfiles{flindx},'spike',sortchannels(1),spindx{flindx}(clflindx{c,flindx}));
 		end
 	end
-    %[time,hdr]=LoadSnipTimes(g.spikefiles{flindx},sortchannels(1),1);
+    %[time,hdr]=LoadSnipTimes(g.snipfiles{flindx},sortchannels(1),1);
     [~,time] = loadSnip(g.snipfiles{flindx},sortchannels(1),1);
 	%ViewReconstruction(sortchannels,snip,tsnip,clflindx(:,flindx),h.sniprange,[1 h.nscans]);
 	ViewReconstruction([1 50000],g.ctfiles(flindx),sortchannels,sptimes,hdr);
 case 'Crosstalk'
 	t = getappdata(h,'t');
-	nfiles=size(g.spikefiles,2);
+	nfiles=size(g.snipfiles,2);
 	[selclust,wvindx] = GetSelClust(h); 	%indices in the selected clusters
 	clflindx=getappdata (h,'clflindx');
 	%Get times for subset
@@ -670,7 +670,7 @@ case 'Crosstalk'
 	tsel=cell(nclust,nfiles);				
 	for cl=1:nclust
 		subindx=getsubset (clflindx(selclust(cl),:),50);	%subset of spikes
-		for fnum = 1:size(g.spikefiles,2)
+		for fnum = 1:size(g.snipfiles,2)
 			tsel{cl,fnum} = t{fnum}(subindx{fnum});
 		end
 	end
@@ -772,7 +772,7 @@ case 'Done'
 			for fnum = 1:nfiles
 				if (size(tmpremCT{c}{fnum},2)>0)
 					ch=ctindices(c);
-					[alltimes{fnum},hdr]=loadsniptimes(g.spikefiles{fnum},ch);
+                    [~,alltimes{fnum}] = loadSnip(g.snipfiles{fnum},'spike',ch);
 					alltimes{fnum}=[alltimes{fnum}';1:length(alltimes{fnum})];
 					remidx{c+1,fnum}=tmpremidx{c}{fnum};
 				end
@@ -878,7 +878,7 @@ case 'DoneUnassigned'
 			for fnum = 1:nfiles
 				if (size(tmpremCT{c}{fnum},2)>0)
 					ch=ctindices(c);
-					[alltimes{fnum},hdr]=loadsniptimes(g.spikefiles{fnum},ch);
+                    [~,alltimes{fnum}] = loadSnip(g.snipfiles{fnum},'spike',ch);
 					alltimes{fnum}=[alltimes{fnum}';1:length(alltimes{fnum})];
 					remidx{c+1,fnum}=tmpremidx{c}{fnum};
 				end

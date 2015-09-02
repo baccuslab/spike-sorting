@@ -13,7 +13,7 @@ chindices=getappdata(h,'chindices');
 handles = getappdata(h,'handles');
 sortchannels =getappdata (h,'sortchannels');
 allchannels = g.channels;
-nfiles=size(g.spikefiles,2);
+nfiles=size(g.snipfiles,2);
 if g.pwflag
 	global proj sptimes
 else

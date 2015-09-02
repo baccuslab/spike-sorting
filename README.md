@@ -10,7 +10,7 @@ matlab
 Contains source for Matlab GUI sorting application, and C++ source for some
 compiled mex-functions used by the sorting application
 
-##### Compiling c++ soure
+##### Compiling c++ source
 Include all the names of the source codes in the list `compile_mex.m` matlab code:
 
     source_codes = {'AutoCorr.cpp', 'CrossCorr.cpp'};

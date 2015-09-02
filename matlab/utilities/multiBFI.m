@@ -1,9 +1,9 @@
-function [filters,subrange,sv,wave] = multiBFI(spikefiles,ctfiles,noisefiles,nspikes,nnoise,channels,snipindx,spindx,h)
+function [filters,subrange,sv,wave] = multiBFI(snipfiles,ctfiles,nspikes,nnoise,channels,snipindx,spindx,h)
 % tout{clustnum,filenum} = Times of spikes of cell # clustnum, in the file spikefiles{filenum}
 % indexout: same as tout except it's the index # of the snippet rather than the time
 % First figure out how many snippets we have/channel in each file
 nchans=size(channels,2);
-[chans,mnsnips,ssniprange] = GetSnipNums(spikefiles);		%This is here solely to set ssniprange
+[chans,mnsnips,ssniprange] = GetSnipNums(snipfiles);		%This is here solely to set ssniprange
 for i = 1:length(snipindx)
 	nsnips(i) = length(snipindx{i});
 end
@@ -13,7 +13,7 @@ totsnips = sum(nsnips);
 fracspike = min(nspikes/totsnips,1);
 rangespike = BuildRangeMF(nsnips,fracspike);
 indexspike = BuildIndexMF(rangespike,snipindx);
-spikes=MultiLoadIndexSnippetsMF(spikefiles,ctfiles,channels,indexspike,spindx,h);
+spikes=MultiLoadIndexSnippetsMF(snipfiles,'spike',ctfiles,channels,indexspike,spindx,h);
 msnipsize=size(spikes,1);
 onesnipsize=msnipsize/nchans;
 multisniprange=ssniprange;
@@ -47,9 +47,9 @@ close(hfig);
 
 for ch=1:size(channels,2)
 	if (ch==1)
-		noise =MultiLoadIndexSnippetsMF(noisefiles,{},channels(ch),{1:nnoise},{1:nnoise},h);
+		noise =MultiLoadIndexSnippetsMF(snipfiles,'noise',{},channels(ch),{1:nnoise},{1:nnoise},h);
 	else
-		noiseone =MultiLoadIndexSnippetsMF(noisefiles,{},channels(ch),{1:nnoise},{1:nnoise},h);
+		noiseone =MultiLoadIndexSnippetsMF(snipfiles,'noise',{},channels(ch),{1:nnoise},{1:nnoise},h);
 		noise=[noise;noiseone];
 	end
 end

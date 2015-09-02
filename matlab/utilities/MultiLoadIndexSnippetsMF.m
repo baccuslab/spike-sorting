@@ -14,7 +14,7 @@ snipspcell=cell(1,nfiles);
 for fnum = 1:nfiles
 	multiindxsel=fullmultiindx{fnum}(:,indxsel{fnum});
 	if (length(multiindxsel)>0 )
-		[snipspcell{1,fnum},t{fnum}] = loadSnip(spfiles{fnum},'spike',channels(1),length(multiindxsel));
+		[snipspcell{1,fnum},t{fnum}] = loadSnipIndex(spfiles{fnum},'spike',channels(1),multiindxsel);
 	end
 	if (length(indxsel{fnum}>0))
 		fc{fnum}(1,:) = fnum*ones(1,length(indxsel{fnum}));

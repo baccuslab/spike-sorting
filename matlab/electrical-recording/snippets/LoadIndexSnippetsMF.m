@@ -1,6 +1,6 @@
 function [snips,filenum,t] = LoadIndexSnippetsMF(filenames,sniptype,chan,indx)
 % LoadIndexSnippetsMF: concatenates indexed snippets from sequential files
-% [snips,filenum,t,headers] = LoadIndexSnippetsMF(filenames,chan,indx)
+% [snips,filenum,t] = LoadIndexSnippetsMF(filenames,sniptype,chan,indx)
 % Much like LoadSnippetsMF, except that only a subset of the total snippets is
 % returned.
 % indx is a cell array with one vector/file, where the vector specifies the chosen

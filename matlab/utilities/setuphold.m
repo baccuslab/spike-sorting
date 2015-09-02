@@ -109,7 +109,7 @@ if (~pwflag)
 				startn=1;
 				endn=min(loadn,nsnips(ch,fnum));
 				while (startn<=nsnips(ch,fnum))
-					[snips,sptimes] = LoadIndexSnip(spikefiles{fnum},channels(ch),startn:endn);
+					[snips,sptimes] = loadSnipIndex(spikefiles{fnum},'spike',channels(ch),startn:endn);
 					proj(1:2,startn:endn)=deffilters{ch}'*snips(subrange(1):subrange(2),:);
 					proj(3,startn:endn)=max(snips(subrange(1):subrange(2),:))-min(snips(subrange(1):subrange(2),:));
 					startn=startn+loadn;

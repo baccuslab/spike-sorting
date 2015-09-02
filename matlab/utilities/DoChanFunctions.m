@@ -225,7 +225,7 @@ case 'UpdateDisplay'
 		end
 		range = BuildRangeMF(nsubsnips,[1 dispnsnips]);	% Load first n snippets
 		viewindx = BuildIndexMF(range,clflindx(i,:));
-		snips = LoadIndexSnippetsMF(spikefiles,channel,viewindx);
+		snips = LoadIndexSnippetsMF(spikefiles,'spike',channel,viewindx);
 		%fprintf('i = %d, size(snips) = %d, %d\n',i,size(snips,1),size(snips,2));
 		%viewindx{1}
 		%viewindx{2}

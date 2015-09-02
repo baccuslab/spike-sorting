@@ -16,6 +16,15 @@ function fig = DoChannel(spikefiles,noisefiles,channel,deffilters,subrange,param
 %	the spikes belonging to cluster clustnum in file spikefiles{filenum} are stored
 %	as clflindx{clustnum,filenum}. The times (in scan #) of all the spikes are
 %	in t{filenum}. The scanrate for each file is stored in the vector scanrate.
+% (C) 2015 The Baccus Lab
+%
+% History:
+% ?? - Tim Holy
+%   - wrote it
+%
+% 2015-09-02 - Lane McIntosh
+%   - updating to use HDF snippet file format
+%
 if (nargin < 6)
 	params = [];
 end
@@ -30,9 +39,12 @@ if (isempty(chindx))		% Was this channel recorded?
 end
 % Get spike times
 for fnum= 1:length(spikefiles)
-	[t{fnum},header{fnum}] = LoadSnipTimes(spikefiles{fnum},channel);
-	scanrate(fnum) = header{fnum}.scanrate;
-	rectime(fnum) = header{fnum}.nscans/header{fnum}.scanrate;
+    [~, t{fnum}] = loadSnip(spikefiles{fnum},'spike',channel);
+    sprintf('Warning: Scanrate is hard-coded')
+    scanrate(fnum) = 0.05;
+	%[t{fnum},header{fnum}] = LoadSnipTimes(spikefiles{fnum},channel);
+	%scanrate(fnum) = header{fnum}.scanrate;
+	%rectime(fnum) = header{fnum}.nscans/header{fnum}.scanrate;
 end
 hfig = figure('Units','points', ...
 	'Color',[0.8 0.8 0.8], ...
@@ -318,7 +330,7 @@ setappdata(hfig,'xc',g.xc);
 setappdata(hfig,'yc',g.yc);
 setappdata(hfig,'nspikes',g.nspikes);
 setappdata(hfig,'scanrate',scanrate);		% For converting times to seconds in autocorrelation
-setappdata(hfig,'rectime',rectime);
+%setappdata(hfig,'rectime',rectime);
 idxrem=cell(1,length(g.channels));					%For indexes of crosstalk
 for ch = 1:length(g.channels)
 	idxrem{ch}=cell(1,length(spikefiles));

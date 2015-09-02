@@ -16,7 +16,7 @@ function [snip, time] = loadSnipIndex(filenames, sniptype, channel, indices)
 %
 % History:
 % 2015-09-02 - Lane McIntosh
-%	- wrote it, copying largely from loadSnip()
+%	- wrote it, copying generously from loadSnip()
 
 if ischar(filenames)
     filenames = {filenames};

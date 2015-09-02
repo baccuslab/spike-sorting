@@ -1,28 +1,34 @@
-function [snips,filenum]  = MultiLoadIndexSnippetsMF(spfiles,ctfiles,channels,indxsel,fullmultiindx,hsort)
+function [snips,filenum]  = MultiLoadIndexSnippetsMF(snipfiles,sniptype,ctfiles,channels,indxsel,fullmultiindx,hsort)
 % MultiLoadIndexSnippetsMF: concatenates indexed snippets from sequential files for multiple channels
 % indx is a cell array with one vector/file, where the vector specifies the chosen
 %multiindx is a cell array with a nchannels row array that specifies what snippets are to be chosen
 %it is constructed from the spike times of the group of channels
-% subset of snippets
-% h = ReadSnipHeader(spfiles{1});
-range=getSnipRange(spfiles{1}); %range is same across all files, so we can just read it off one of them
+%
+% (C) 2015 The Baccus Lab
+%
+% History:
+% ?? - Tim Holy
+%   - wrote it
+%
+% 2015-09-02 - Lane McIntosh
+%   - modifications to use new snip format
+%
+range=getSnipRange(snipfiles{1}); %range is same across all files, so we can just read it off one of them
 snipsize=range(2)-range(1)+1;
-nfiles=length(spfiles); %check this
+nfiles=length(snipfiles); %check this
 nchans=length(channels);
 t=cell(1,nfiles);
 snipspcell=cell(1,nfiles);
 for fnum = 1:nfiles
 	multiindxsel=fullmultiindx{fnum}(:,indxsel{fnum});
 	if (length(multiindxsel)>0 )
-		[snipspcell{1,fnum},t{fnum}] = loadSnipIndex(spfiles{fnum},'spike',channels(1),multiindxsel);
+		[snipspcell{1,fnum},t{fnum}] = loadSnipIndex(snipfiles{fnum},sniptype,channels(1),multiindxsel);
 	end
 	if (length(indxsel{fnum}>0))
 		fc{fnum}(1,:) = fnum*ones(1,length(indxsel{fnum}));
 		fc{fnum}(2,:) = 1:length(indxsel{fnum});
-% 		header{fnum} = ReadSnipHeader(spfiles{fnum});
 	else
 		fc{fnum} = [];
-		header{fnum} = [];	
 	end
 end
 snips=cat(2,snipspcell{:});
@@ -45,7 +51,7 @@ if (nchans>1)
 			end
 		end
 		if (~isempty(flist))
-			snipctcell(:,flist)= loadRawData(ctfiles(flist),channels(2:end),t(flist),h.sniprange); %crosstalk is a list of files
+			snipctcell(:,flist)= loadRawData(ctfiles(flist),channels(2:end),t(flist),range); %crosstalk is a list of files
 		end
 	end
 	snipctchans=cell(nchans-1,1);

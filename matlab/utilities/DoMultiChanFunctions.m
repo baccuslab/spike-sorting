@@ -76,7 +76,7 @@ case 'SortSubset'
 		clflindxnew(1,:)={[]};
 		clflindxnew(2:end,:)=clflindx(selclust,:);
 		setappdata (h,'clflindx',clflindxnew);
-		clflindxsub=cell(1,size(g.spikefiles,2));
+		clflindxsub=cell(1,size(g.snipfiles,2));
 		for fnum = 1:size(g.snipfiles,1)
 			clflindxsub{fnum} = sort(cat(2,clflindxnew{2:end,fnum}));
 		end
@@ -739,14 +739,14 @@ case 'Done'
 	else
 		g.chanclust{sortchidx} = newclusts;
 	end
-	if (length (ctchannels)>0)
+	if (~isempty (ctchannels))
 		[tmpremCT,tmpremidx] = RemoveCrosstalk(g,newclusts,ctchannels,h);
 	else
 		tmpremCT=[];
 	end
 
 	%Save removed crosstalk 
-	if (length(tmpremCT)>0)
+	if (~isempty(tmpremCT))
 		for c = 1:length(ctchannels)
 			for fnum = 1:nfiles
 				if (size(tmpremCT{c}{fnum},2)>0)

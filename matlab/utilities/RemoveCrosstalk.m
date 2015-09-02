@@ -1,7 +1,7 @@
 function [remtimes,remidx]= RemoveCrosstalk(g,ch1,ctchannels,h)
 sortchannels=getappdata(h,'sortchannels');
 handles = getappdata(h,'handles');
-nfiles=size(g.spikefiles,2);
+nfiles=size(g.snipfiles,2);
 chindices=find(ismember(g.channels,ctchannels));
 if g.pwflag
 	global sptimes

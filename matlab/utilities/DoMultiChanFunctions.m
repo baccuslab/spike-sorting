@@ -192,7 +192,7 @@ case 'DiscrimFilters'
 	spindx=getappdata(h,'spindx');
 	spikes = cell(nsel,1);
 	for i = 1:nsel
-		spikes{i} = MultiLoadIndexSnippetsMF(g.snipfiles,g.ctfiles,sortchannels,wvindx(i,:),spindx,h);
+		spikes{i} = MultiLoadIndexSnippetsMF(g.snipfiles,'spike',g.ctfiles,sortchannels,wvindx(i,:),spindx,h);
 	end
 	[filt,lambda] = MaxSep(spikes);
 	sv = sqrt(lambda);
@@ -367,9 +367,7 @@ case 'UpdateDisplay'
 					subindx=cell(1,nfiles);
 					subindx(flist)=getsubset (clflindx(c,flist),loadnsnips);		
 				end
-				display.snips{c} = MultiLoadIndexSnippetsMF(g.snipfiles,g.ctfiles,sortchannels,subindx,spindx,h);
-				%subindx=getsubset (clflindx(c,:),loadnsnips);
-				% display.snips{c} = MultiLoadIndexSnippetsMF(g.snipfiles,g.ctfiles,sortchannels,subindx,spindx,h);
+				display.snips{c} = MultiLoadIndexSnippetsMF(g.snipfiles,'spike',g.ctfiles,sortchannels,subindx,spindx,h);
 			else %Updatearr(1,c)>0 ,transfer clusters to different number,
 				%as occurs during cluster deletion
 				display.snips{c}=display.snips{updatearr(1,c)};
@@ -653,7 +651,7 @@ case 'Recon'
 	sptimes=cell(size(clflindx,1),1);
 	for c=1:size(clflindx,1)
 		if (size(clflindx{c,flindx},2)>0)
-			[snips{c},sptimes{c}] = LoadIndexSnip(g.snipfiles{flindx},sortchannels(1),spindx{flindx}(clflindx{c,flindx}));
+			[snips{c},sptimes{c}] = loadSnipIndex(g.snipfiles{flindx},'spike',sortchannels(1),spindx{flindx}(clflindx{c,flindx}));
 		end
 	end
 	%[time,hdr]=LoadSnipTimes(g.snipfiles{flindx},sortchannels(1),1);

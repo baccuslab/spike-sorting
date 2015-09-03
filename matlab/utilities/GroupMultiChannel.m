@@ -28,7 +28,7 @@ while (outrange == 0)
 		if (max(range(2,:))>0)
 			blkindx = BuildIndexMF(range,snipindx);
 			% Load in the snippets
-			[snips,f1,header]= MultiLoadIndexSnippetsMF(spikefiles,ctfiles,channels,blkindx,spindx,hsort);
+			[snips,f1]= MultiLoadIndexSnippetsMF(spikefiles,'spike',ctfiles,channels,blkindx,spindx,hsort);
 			for fnum=1:length(spikefiles)
 				t1{fnum}=sptimes{fnum}(blkindx{fnum});
 			end

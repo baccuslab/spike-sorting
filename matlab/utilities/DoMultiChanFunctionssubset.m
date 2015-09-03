@@ -192,7 +192,7 @@ case 'DiscrimFilters'
 	spindx=getappdata(h,'spindx');
 	spikes = cell(nsel,1);
 	for i = 1:nsel
-		spikes{i} = MultiLoadIndexSnippetsMF(g.snipfiles,g.ctfiles,sortchannels,wvindx(i,:),spindx,h);
+		spikes{i} = MultiLoadIndexSnippetsMF(g.snipfiles,'spike',g.ctfiles,sortchannels,wvindx(i,:),spindx,h);
 	end
 	[filt,lambda] = MaxSep(spikes);
 	sv = sqrt(lambda);
@@ -367,7 +367,7 @@ case 'UpdateDisplay'
 					subindx=cell(1,nfiles);
 					subindx(flist)=getsubset (clflindx(c,flist),loadnsnips);		
 				end
-				display.snips{c} = MultiLoadIndexSnippetsMF(g.snipfiles,g.ctfiles,sortchannels,subindx,spindx,h);
+				display.snips{c} = MultiLoadIndexSnippetsMF(g.snipfiles,'spike',g.ctfiles,sortchannels,subindx,spindx,h);
 				%subindx=getsubset (clflindx(c,:),loadnsnips);
 				% display.snips{c} = MultiLoadIndexSnippetsMF(g.snipfiles,g.ctfiles,sortchannels,subindx,spindx,h);
 			else %Updatearr(1,c)>0 ,transfer clusters to different number,

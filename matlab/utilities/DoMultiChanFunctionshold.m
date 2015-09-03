@@ -128,7 +128,7 @@ case 'DiscrimFilters'
 	spikefiles = getappdata(h,'spikefiles');
 	spikes = cell(nsel,1);
 	for i = 1:nsel
-		spikes{i} = MultiLoadIndexSnippetsMF(spikefiles,channels,wvindx(i,:),multiindx);
+		spikes{i} = MultiLoadIndexSnippetsMF(spikefiles,'spike',channels,wvindx(i,:),multiindx);
 	end
 	[filt,lambda] = MaxSep(spikes);
 	sv = sqrt(lambda);
@@ -345,7 +345,7 @@ case 'UpdateDisplay'
 			for f=1:length(spikefiles)
 				loadindx{f} = clflindx{i,f}(1:min(500,length(clflindx{i,f})));
 			end
-			snips{i} = MultiLoadIndexSnippetsMF(spikefiles,channels(1),loadindx,multiindx);
+			snips{i} = MultiLoadIndexSnippetsMF(spikefiles,'spike',channels(1),loadindx,multiindx);
 			amp{i}=max(snips{i})-min(snips{i});
 		end	
 	else
@@ -841,5 +841,5 @@ function snips=loaddisplaysnips (nclust)
 			end
 			nsubsnips(i)=nsubsnips(i)+length(clflindx{i,f});
 		end
-		snips{i} = MultiLoadIndexSnippetsMF(spikefiles,channels,loadindx,multiindx);
+		snips{i} = MultiLoadIndexSnippetsMF(spikefiles,'spike',channels,loadindx,multiindx);
 	end	

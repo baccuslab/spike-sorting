@@ -73,7 +73,7 @@ xlabel('Peak value');
 ylabel('#/bin');
 set(hthresh,'Tag','ThreshAxes');
 % Now plot all the spike waveforms
-LineH=cell(1,nchan)
+LineH=cell(1,nchan);
 for ch=1:nchan
 	axes(hwf(ch))
 	TAxis = sniprange(1):sniprange(1)+onesnipsize-1;

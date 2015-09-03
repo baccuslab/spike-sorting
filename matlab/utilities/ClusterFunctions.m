@@ -279,7 +279,10 @@ case 'ShowMembership'
 	polygons = getappdata(hfig,'polygons');
 	indxs = ClusterMembers(ComputeMembership(x,y,polygons));
 	for i = 1:length(indxs)
+        % get color corresponding to cluster
 		clustcol = GetClustCol(i);
+        %hold on;
+        %scatter(x(indxs), y(indxs), 'Color', clustcol);
 		line(x(indxs{i}),y(indxs{i}),'Marker','.','LineStyle','none','MarkerSize',12,'Color',clustcol,'Tag','memberline');
 	end
 case 'Clear'

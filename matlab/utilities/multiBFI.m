@@ -3,7 +3,8 @@ function [filters,subrange,sv,wave] = multiBFI(snipfiles,ctfiles,nspikes,nnoise,
 % indexout: same as tout except it's the index # of the snippet rather than the time
 % First figure out how many snippets we have/channel in each file
 nchans=size(channels,2);
-[chans,mnsnips,ssniprange] = GetSnipNums(snipfiles);		%This is here solely to set ssniprange
+%[chans,mnsnips,ssniprange] = GetSnipNums(snipfiles);		%This is here solely to set ssniprange
+ssniprange = getSnipRange(snipfiles);
 for i = 1:length(snipindx)
 	nsnips(i) = length(snipindx{i});
 end

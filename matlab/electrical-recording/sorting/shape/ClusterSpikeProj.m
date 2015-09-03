@@ -14,13 +14,13 @@ h1 = uicontrol('Parent',hfig, ...
 	'String','AutoCorr',...
 	'Callback','ClustSPCallback AutoCorr',...
 	'Tag','AutoCorrButton');
-setuprop(hfig,'t',t);
+setappdata(hfig,'t',t);
 if (nargin == 5)
 	% Co-opt the "Clear" function and turn it into a "Revert" function
 	h = findobj(hfig,'Tag','ClearButton');
 	set(h,'String','Revert','Callback','ClustSPCallback Revert');
-	setuprop(hfig,'clustnums0',clustnums);
-	setuprop(hfig,'polygons0',polygons);
+	setappdata(hfig,'clustnums0',clustnums);
+	setappdata(hfig,'polygons0',polygons);
 	ClustSPCallback('Revert',hfig);
 end
 if nargout > 0, fig = hfig; end

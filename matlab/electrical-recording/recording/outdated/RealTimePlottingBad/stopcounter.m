@@ -1,1 +1,1 @@
-function stopcounterglobal isrunningisrunning = 0;
+function stopcounterglobal isrunningisrunning = 0;

@@ -44,8 +44,8 @@ while (alldone == 0)
 		wave = [];
 		return
 	end
-	goodspikes = getuprop(hfig,'GoodSpikes');
-	sniprange = getuprop(hfig,'NewRange');
+	goodspikes = getappdata(hfig,'GoodSpikes');
+	sniprange = getappdata(hfig,'NewRange');
 	if (length(goodspikes) <= sniprange(2)-sniprange(1))
 		errordlg('Do not have enough spikes on this channel to build filters! Select more, or cancel.','','modal');
 		set(hfig,'UserData','');

@@ -5,7 +5,7 @@ end
 switch(action)
 case 'AutoCorr'
 	selvec = getappdata(hfig,'selectflag');
-	selclust = find(selvec);
+	selclust = selvec;
 	polygons = getappdata(hfig,'polygons');
 	x = getappdata(hfig,'x');
 	y = getappdata(hfig,'y');
@@ -14,10 +14,10 @@ case 'AutoCorr'
 	membership = ComputeMembership(x,y,polygons(selclust));
 	indx = find(membership);
 	for i = 1:length(t)
-		findx = find(f(1,indx) == i);	% Find the subset in a given file
+		findx = f(1,indx) == i;	% Find the subset in a given file
 		tsub{i} = t{i}(f(2,indx(findx)));	% Pull out the times for this file
 	end
-	if (length(indx) > 0)
+	if (~isempty(indx))
 		AutoCorrFig(tsub,0.01,'s');
 	else
 		errordlg('Must select one or more clusters first');

@@ -20,21 +20,21 @@ hclustmodebox = uicontrol('Parent',hfig, ...
 'Style','checkbox', ...
 'Callback','ClustSWCallback Clustmodebox',...
 'Tag','clustmode', ...
-'Value',getuprop(hsort,'clustmode'));
-setuprop (hfig,'hsort',hsort);
-setuprop(hfig,'t',t);
-setuprop(hfig,'f',f);
-setuprop(hfig,'ctfiles',ctfiles);
-setuprop(hfig,'spikefiles',spikefiles);
-setuprop(hfig,'channels',channels);
-setuprop(hfig,'snipindx',snipindx);
-setuprop(hfig,'multiindx',multiindx);
+'Value',getappdata(hsort,'clustmode'));
+setappdata (hfig,'hsort',hsort);
+setappdata(hfig,'t',t);
+setappdata(hfig,'f',f);
+setappdata(hfig,'ctfiles',ctfiles);
+setappdata(hfig,'spikefiles',spikefiles);
+setappdata(hfig,'channels',channels);
+setappdata(hfig,'snipindx',snipindx);
+setappdata(hfig,'multiindx',multiindx);
 if (nargin > 4)
 	% Co-opt the "Clear" function and turn it into a "Revert" function
 	h = findobj(hfig,'Tag','ClearButton');
 	set(h,'String','Revert','Callback','ClustSPCallback Revert');
-	setuprop(hfig,'clustnums0',clustnums);
-	setuprop(hfig,'polygons0',polygons);
+	setappdata(hfig,'clustnums0',clustnums);
+	setappdata(hfig,'polygons0',polygons);
 	ClustSPCallback('Revert',hfig);
 end
 if nargout > 0, fig = hfig; end

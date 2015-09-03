@@ -62,8 +62,8 @@ case 'BuildFilters'
 	% Get the waveforms in the selected clusters
 	[selclust,wvindx] = GetSelClust(h);
 	channel = getuprop(h,'channel');
-	[filters,subrange,sv,wave] = BFI(getuprop(h,'spikefiles'),getuprop(h,'noisefiles'),...
-		nspikes,nnoise,channel,wvindx);
+    g=getappdata(handles.main,'g');
+	[filters,subrange,sv,wave] = BFI(g.snipfiles,nspikes,nnoise,channel,wvindx);
 	if (length(filters) == 0)
 		return;
 	end

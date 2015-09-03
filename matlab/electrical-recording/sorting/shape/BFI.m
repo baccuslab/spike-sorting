@@ -1,21 +1,21 @@
-function [filters,subrange,sv,wave] = BFI(spikefiles,noisefiles,nspikes,nnoise,channel,snipindx)
+function [filters,subrange,sv,wave] = BFI(snipfiles,nspikes,nnoise,channel,snipindx)
 % tout{clustnum,filenum} = Times of spikes of cell # clustnum, in the file spikefiles{filenum}
 % indexout: same as tout except it's the index # of the snippet rather than the time
 subset = 0;
 if (nargin == 6), subset = 1; end
 % First figure out how many snippets we have/channel in each file
 if (subset)
-	[chans,mnsnips,ssniprange] = GetSnipNums(spikefiles);		%This is here solely to set ssniprange
+	[chans,mnsnips,ssniprange] = GetSnipNums(snipfiles);		%This is here solely to set ssniprange
 	for i = 1:length(snipindx)
 		nsnips(i) = length(snipindx{i});
 	end
 else
-	[chans,mnsnips,ssniprange] = GetSnipNums(spikefiles);
+	[chans,mnsnips,ssniprange] = GetSnipNums(snipfiles);
 	chindx = find(chans == channel);
 	nsnips = mnsnips(chindx,:);
 end
 % Do the same for noise snippets. No indexing necessary here!
-[chans,mnoise,nsniprange] = GetSnipNums(noisefiles);
+[chans,mnoise,nsniprange] = GetSnipNums(snipfiles);
 chindx = find(chans == channel);
 nnoise = mnoise(chindx,:);
 % Now load a representative sample of the snippets for filter construction
@@ -33,7 +33,7 @@ else
 	indexspike = BuildIndexMF(rangespike);
 end
 indexnoise = BuildIndexMF(BuildRangeMF(nnoise,fracnoise));
-spikes = LoadIndexSnippetsMF(spikefiles,channel,indexspike);
+spikes = LoadIndexSnippetsMF(snipfiles,'spike',channel,indexspike);
 alldone = 0;
 hfig = ChooseWaveforms(spikes,ssniprange);
 while (alldone == 0)
@@ -56,7 +56,7 @@ while (alldone == 0)
 	end
 end
 close(hfig);
-noise = LoadIndexSnippetsMF(noisefiles,channel,indexnoise);
+noise = LoadIndexSnippetsMF(snipfiles,'noise',channel,indexnoise);
 %noise = 50*randn(ssniprange(2)-ssniprange(1)+1,nnoise);
 subrange = [sniprange(1)-ssniprange(1)+1, sniprange(2)-ssniprange(1)+1];
 [filters,wave,sv] = Build2Filters(spikes(subrange(1):subrange(2),goodspikes),noise(subrange(1):subrange(2),:));

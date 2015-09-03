@@ -72,6 +72,10 @@ case 'DoPolygon'
     vertices = hpoly.getPosition;
     pvx = vertices(:,1);
     pvy = vertices(:,2);
+    % computeMembership requires last vertex to equal first vertex
+    pvx(end+1) = pvx(1);
+    pvy(end+1) = pvy(1);
+
 	if (isempty(pvx) && replace == 1)
 		pvx = oldpolygon.x;
 		pvy = oldpolygon.y;

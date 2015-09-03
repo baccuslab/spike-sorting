@@ -60,6 +60,9 @@ case 'DoPolygon'
     vertices = hpoly.getPosition;
     pvx = vertices(:,1);
     pvy = vertices(:,2);
+    % computeMembership requires last vertex to be same as first vertex
+    pvx(end+1) = pvx(1);
+    pvy(end+1) = pvy(1);
 	
 	if (~isempty(pvx))
 		%   Assign cluster number to selected points, and

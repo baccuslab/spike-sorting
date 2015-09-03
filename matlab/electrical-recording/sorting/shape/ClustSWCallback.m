@@ -74,7 +74,7 @@ case 'ShowWaveform'
 	d1=x-xyloc(1,1);
 	d2=y-xyloc(1,2);
 	pdist=d1.*d1+d2.*d2;
-	snidx=f(:,find (pdist==min(pdist)));
+	snidx=f(:,pdist==min(pdist));
 	ctfiles=getappdata(gcbf,'ctfiles');
 	spikefiles=getappdata(gcbf,'spikefiles');
 	channels=getappdata(gcbf,'channels');

@@ -5,7 +5,7 @@ end
 switch(action)
 case 'AutoCorr'
 	selvec = getappdata(hfig,'selectflag');
-	selclust = selvec;
+	selclust = find(selvec);
 	polygons = getappdata(hfig,'polygons');
 	x = getappdata(hfig,'x');
 	y = getappdata(hfig,'y');

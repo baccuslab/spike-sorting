@@ -135,7 +135,7 @@ case 'BuildFilters'
 	hmain=getappdata(h,'hmain');
 	sortchannels = getappdata(h,'sortchannels');
 	spindx=getappdata(h,'spindx');
-	[filters,subrange,sv,wave] = multiBFI(g.snipfiles,g.ctfiles,g.noisefiles,...
+	[filters,subrange,sv,wave] = multiBFI(g.snipfiles,g.ctfiles,...
 	nspikes,nnoise,sortchannels,wvindx,spindx,h); 
 	setappdata (gcf,'wavehold',wave);
 	if (length(filters) == 0)

@@ -2,6 +2,7 @@ function DoMultiChanFunctions(action,h)
 if (nargin == 1)
 	h = gcbf;
 end
+handles=getappdata(h,'handles');
 pwflag=getappdata(h,'pwflag');
 if (pwflag)
 	global proj,times
@@ -70,8 +71,8 @@ case 'BuildFilters'
 	channels = getappdata(h,'channels');
 	multiindx=getappdata(h,'multiindx');
 	noisefiles=getappdata(h,'noisefiles');
-	[filters,subrange,sv,wave] = multiBFI(getappdata(h,'spikefiles'),noisefiles,...
-	nspikes,nnoise,channels,wvindx,multiindx);
+	[filters,subrange,sv,wave] = multiBFI(g.snipfiles,g.ctfiles,...
+	nspikes,nnoise,channels,wvindx,multiindx,h);
 	if (length(filters) == 0)
 		return;
 	end
@@ -295,9 +296,11 @@ case 'Sep'
 	closeindx
 	nspikes = str2num(get(findobj(h,'Tag','NumSpikes'),'String'));
 	nnoise = str2num(get(findobj(h,'Tag','NumNoise'),'String'));
+    hmain=getappdata(h,'hmain');
+	g=getappdata(hmain,'g');
 	% Get the waveforms
-	[filters,subrange,sv,wave] = multiBFI(getappdata(h,'spikefiles'),getuprop(h,'noisefiles'),...
-	nspikes,nnoise,channels,closeindx,multiindx);
+	[filters,subrange,sv,wave] = multiBFI(g.snipfiles,g.ctfiles,...
+	nspikes,nnoise,channels,closeindx,multiindx,h);
 	if (length(filters) == 0)
 		return;
 	end

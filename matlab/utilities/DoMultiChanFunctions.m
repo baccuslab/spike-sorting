@@ -378,7 +378,11 @@ case 'UpdateDisplay'
 				if (dispnsnips==0)
 					plot(mean(display.snips{c}(:,1:min(size(display.snips{c},2),200)),2));
 				else
-					plot(display.snips{c}(:,1:min(size(display.snips{c},2),dispnsnips)));
+					%plot(display.snips{c}(:,1:min(size(display.snips{c},2),dispnsnips)));
+                    tempsnip = display.snips{c}(:,1:min(size(display.snips{c},2),dispnsnips));
+                    disp([min(tempsnip), max(tempsnip), dispnsnips])
+                    plot(tempsnip);
+                    axis([1,50,-1,1])
 				end
 			
 			else
@@ -555,24 +559,28 @@ case 'CrossCorr'
 	end
 	[cpdf,pair,npb] = CrossCorrAll(tsecs,tmax);
 	iend = min(25,length(cpdf));
-	figure
-	set(gcf,'Renderermode','manual','Renderer','zbuffer');
-	maxsp = ceil(sqrt(iend));
-	for i = 1:iend
-		subplot(maxsp,maxsp,i);
-		nbins = length(npb{i});
-		binwidth = 2*tmax/nbins;
-		xax = linspace(-tmax+binwidth/2,tmax-binwidth/2,nbins);
-		bar(xax,npb{i},1,'b');
-		set(gca,'XLim',[-tmax,tmax]);
-		for j = 1:2
-			if (pair(i,j) == 1)
-				ctext{j} = 'U';
-			else
-				ctext{j} = sprintf('%d',pair(i,j)+clustnumoffset-1);
-			end
-		end
-		title(sprintf('%s and %s',ctext{1},ctext{2}))
+    if (isempty(npb))
+        errordlg('Two or more clusters needed to compute cross correlation.');
+    else
+        figure
+        set(gcf,'Renderermode','manual','Renderer','zbuffer');
+        maxsp = ceil(sqrt(iend));
+        for i = 1:iend
+            subplot(maxsp,maxsp,i);
+            nbins = length(npb{i});
+            binwidth = 2*tmax/nbins;
+            xax = linspace(-tmax+binwidth/2,tmax-binwidth/2,nbins);
+            bar(xax,npb{i},1,'b');
+            set(gca,'XLim',[-tmax,tmax]);
+            for j = 1:2
+                if (pair(i,j) == 1)
+                    ctext{j} = 'U';
+                else
+                    ctext{j} = sprintf('%d',pair(i,j)+clustnumoffset-1);
+                end
+            end
+            title(sprintf('%s and %s',ctext{1},ctext{2}))
+        end
 	end
 
 case 'Clear'

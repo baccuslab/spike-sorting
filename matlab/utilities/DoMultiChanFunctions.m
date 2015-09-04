@@ -559,7 +559,7 @@ case 'CrossCorr'
 	[cpdf,pair,npb] = CrossCorrAll(tsecs,tmax);
 	iend = min(25,length(cpdf));
     if (isempty(npb))
-        errordlg('Two or more clusters needed to compute cross correlation.');
+        msgbox('Two or more clusters needed to compute cross correlation.');
     else
         figure
         set(gcf,'Renderermode','manual','Renderer','zbuffer');

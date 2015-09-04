@@ -116,8 +116,7 @@ case 'Storeinmem'
 		[storedsnips]  = MultiLoadIndexCTMF(g.snipfiles,g.ctfiles,sortchannels,wvindx,spindx);
 		setappdata (h,'storedsnips',storedsnips); clear storedsnips
 		setappdata (h,'storedindx',wvindx); clear wvindx
-		hdr = ReadSnipHeader(g.snipfiles{1});
-		setappdata (h,'storedsniprange',hdr.sniprange);
+		setappdata (h,'storedsniprange',g.sniprange);
 	else
 		setappdata (h,'Storestatus',0);
 		set(findobj(h,'Tag','Storeinmem'),'BackgroundColor',[0.8 0.8 0.8]);

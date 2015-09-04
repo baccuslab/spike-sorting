@@ -14,7 +14,7 @@ t=cell(1,nfiles);
 for fnum = 1:nfiles
 	multiindxsel=fullmultiindx{fnum}(:,indxsel{fnum});
 	if (length(multiindxsel)>0 )
-		[snip1f,t{fnum}] = loadSnip(spfiles{fnum},'spike',channels(1),len(multiindxsel));
+		[snip1f,t{fnum}] = loadSnip(spfiles{fnum},'spike',channels(1),length(multiindxsel));
 	end
 % 	if (length(indxsel{fnum}>0))
 % 		header{fnum} = ReadSnipHeader(spfiles{fnum});

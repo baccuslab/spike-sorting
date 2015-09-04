@@ -54,7 +54,10 @@ if (nchans>1)
             % loadRawData takes filenames, channels, index of snippet
             % start, and length of snippet. Previously range was 2d array
             % of start and stop of snippet relative to peak.
-			snipctcell(:,flist)= loadRawData(ctfiles(flist),channels(2:end),t(flist)+range(1),range(2)-range(1)); %crosstalk is a list of files
+            start_idx = range(1);
+            len = range(2) - start_idx;
+            t{flist} = t{flist} + start_idx;
+			snipctcell(:,flist)= loadRawData(ctfiles(flist),channels(2:end),t(flist),len); %crosstalk is a list of files
 		end
 	end
 	snipctchans=cell(nchans-1,1);

@@ -113,7 +113,7 @@ case 'Storeinmem'
 		else
 			wvindx=getappdata (h,'clflindxsub');
 		end
-		[storedsnips,header]  = MultiLoadIndexCTMF(g.snipfiles,g.ctfiles,sortchannels,wvindx,spindx);
+		[storedsnips]  = MultiLoadIndexCTMF(g.snipfiles,g.ctfiles,sortchannels,wvindx,spindx);
 		setappdata (h,'storedsnips',storedsnips); clear storedsnips
 		setappdata (h,'storedindx',wvindx); clear wvindx
 		hdr = ReadSnipHeader(g.snipfiles{1});

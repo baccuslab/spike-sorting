@@ -199,13 +199,13 @@ void snipfile::SnipFile::writeChannels(const arma::uvec& channels)
 	writeFileAttr("nchannels", type, &channels.n_elem);
 	hsize_t dims[1] = {channels.n_elem};
 	H5::DataSpace space(1, dims);
-	H5::DataSet set = file.createDataSet("channels", type, space);
+	H5::DataSet set = file.createDataSet("extracted-channels", type, space);
 	set.write(channels.memptr(), type);
 }
 
 void snipfile::SnipFile::readChannels()
 {
-	auto chanSet = file.openDataSet("channels");
+	auto chanSet = file.openDataSet("extracted-channels");
 	auto chanSpace = chanSet.getSpace();
 	hsize_t dims[1] = {0};
 	chanSpace.getSimpleExtentDims(dims);

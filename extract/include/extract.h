@@ -61,6 +61,8 @@ bool isLocalMax(const sampleMat& data, size_t channel,
 /*! Extract all noise snippets from the data
  * \param data The data matrix
  * \param nrandom The number of random snippets to extract.
+ * \param nbefore Number of samples before random index peak to extract.
+ * \param nafter Number of samples after random index peak to extract.
  * \param idx The vector of indices of the random snippets
  * \param snips The arrays of actual snippets.
  *
@@ -70,11 +72,15 @@ bool isLocalMax(const sampleMat& data, size_t channel,
  * the output array `snips` with the raw data at those times.
  */
 void extractNoise(const sampleMat& data, const size_t& nrandom,
-		std::vector<arma::uvec>& idx, std::vector<sampleMat>& snips);
+		const int& nbefore, const int& nafter,
+		std::vector<arma::uvec>& idx, 
+		std::vector<sampleMat>& snips);
 
 /*! Extract all spikes from the raw data.
  * \param data The data matrix from which to extract.
  * \param thresholds An array of thresholds for each channel.
+ * \param nbefore Number of samples before a spike peak to extract.
+ * \param nafter Number of samples after a spike peak to extract.
  * \param idx Array filled with indices of each extract snippet.
  * \param snips The extracted snippets for each channel.
  *
@@ -91,6 +97,7 @@ void extractNoise(const sampleMat& data, const size_t& nrandom,
  * The output array's contain one element for each channel.
  */
 void extractSpikes(const sampleMat& data, const arma::vec& thresholds,
+		const int& nbefore, const int& nafter,
 		std::vector<arma::uvec>& idx, std::vector<sampleMat>& snips);
 
 };

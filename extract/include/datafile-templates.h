@@ -55,10 +55,6 @@ void datafile::DataFile::_read_data(
 	else if (hash == typeid(arma::Mat<uint8_t>).hash_code())
 		dtype = H5::PredType::STD_U8LE;
 	dataset.read(out.memptr(), dtype, mspace, dataspace);
-
-	/* Sign-invert the Hidens data */
-	if (array() == "hidens")
-		out *= -1;
 }
 
 template<class T>
@@ -110,9 +106,5 @@ void datafile::DataFile::_read_data(
 	else if (hash == typeid(arma::Mat<uint8_t>).hash_code())
 		dtype = H5::PredType::STD_U8LE;
 	dataset.read(out.memptr(), dtype, mspace, dataspace);
-
-	/* Sign-invert the Hidens data */
-	if (array() == "hidens")
-		out *= -1;
 }
 

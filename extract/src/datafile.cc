@@ -177,8 +177,8 @@ void datafile::DataFile::computeCoords(const arma::uvec& channels,
 	auto nchan = channels.n_elem;
 	*nelem = nsamp * nchan;
 	out->set_size(datafile::DATASET_RANK, *nelem);
-	for (auto c = 0; c < nchan; c++) {
-		for (auto s = 0; s < nsamp; s++) {
+	for (decltype(nchan) c = 0; c < nchan; c++) {
+		for (decltype(nsamp) s = 0; s < nsamp; s++) {
 			(*out)(0, c * nsamp + s) = channels(c);
 			(*out)(1, c * nsamp + s) = s + start;
 		}

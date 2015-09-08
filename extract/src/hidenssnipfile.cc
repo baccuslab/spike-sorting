@@ -74,7 +74,7 @@ void hidenssnipfile::HidensSnipFile::copyConfiguration(const
 	auto labelDset = configGroup.createDataSet("label", 
 			strtype, space);
 	writeConfigDataset(labelDset, label_);
-	auto channelDset = configGroup.createDataSet("extracted-channels", 
+	auto channelDset = configGroup.createDataSet("channels", 
 			H5::PredType::STD_I32LE, space);
 	writeConfigDataset(channelDset, connectedChannels_);
 }

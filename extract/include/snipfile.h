@@ -24,10 +24,10 @@ namespace snipfile {
 const size_t NUM_RANDOM_SNIPPETS = 5000;
 
 /*! The number of samples before a local maximum to take for each snippet */
-const size_t NUM_SAMPLES_BEFORE = 10;
+const size_t NUM_SAMPLES_BEFORE = 6;
 
 /*! The number of samples after a local maximum to take for each snippet */
-const size_t NUM_SAMPLES_AFTER = 25;
+const size_t NUM_SAMPLES_AFTER = 20;
 
 /*! The size of boxcar filter to use when considering local maxima. */
 const size_t WINDOW_SIZE = 3;
@@ -56,7 +56,9 @@ class SnipFile {
 		 * \param source The original DataFile object from which raw data
 		 * will be extracted. This is used to copy file metadata.
 		 */
-		SnipFile(std::string filename, const datafile::DataFile& source); // New file
+		SnipFile(std::string filename, const datafile::DataFile& source,
+				const size_t nbefore = snipfile::NUM_SAMPLES_BEFORE, 
+				const size_t nafter = snipfile::NUM_SAMPLES_AFTER);
 
 		/*! Open an existing snippet file.
 		 * \param filename The name of the snippet file to load.
@@ -191,8 +193,8 @@ class SnipFile {
 		float offset_;
 		size_t nchannels_;
 		size_t nsamples_;
-		size_t samplesBefore_ = -NUM_SAMPLES_BEFORE;
-		size_t samplesAfter_ = NUM_SAMPLES_AFTER;
+		size_t samplesBefore_;
+		size_t samplesAfter_;
 		arma::uvec channels_;
 		arma::vec thresholds_;
 

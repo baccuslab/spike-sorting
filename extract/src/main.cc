@@ -13,6 +13,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <cstdio>
 #include <vector>
 #include <numeric>
 
@@ -43,6 +44,8 @@ const char YEAR[] = "2015";
 const char USAGE[] = "\n\
  Usage: extract [-v | --version] [-h | --help]\n\
   \t\t[-t | --threshold " UL_PRE "threshold" UL_POST "]\n\
+  \t\t[-b | --before " UL_PRE "nbefore" UL_POST "]\n\
+  \t\t[-a | --after " UL_PRE "nafter" UL_POST "]\n\
   \t\t[-n | --nrandom " UL_PRE "nrandom" UL_POST "]\n\
   \t\t[-c | --chan " UL_PRE "chan-list" UL_POST "]\n\
   \t\t[-o | --output " UL_PRE"name" UL_POST "]\n\
@@ -51,7 +54,11 @@ const char USAGE[] = "\n\
  Parameters:\n\n\
    " UL_PRE "threshold" UL_POST "\tThreshold multiplier for determining spike\n\
    \t\tsnippets. The threshold will be set independently for each channel, such\n\
-   \t\tthat: " UL_PRE "threshold" UL_POST " * median(abs(v)). Default = " DEFAULT_THRESH_STR "\n\n\
+   \t\tthat: " UL_PRE "threshold" UL_POST " * median(abs(v)). Default = %0.1f\n\n\
+   " UL_PRE "nbefore" UL_POST "\tNumber of samples before a spike peak to extract.\n\
+   \t\tDefaults to %zu for MCS arrays and %zu for HiDens arrays.\n\n\
+   " UL_PRE "nafter" UL_POST "\tNumber of samples after a spike peak to extract.\n\
+   \t\tDefaults to %zu for MCS arrays and %zu for HiDens arrays.\n\n\
    " UL_PRE "nrandom" UL_POST "\tThe number of random snippets to extract.\n\n\
    " UL_PRE "chan" UL_POST "\t\tA comma- or dash-separated list of channels from which\n\
    \t\tsnippets will be extracted. E.g., \"0,1,2,3\" will extract data only from\n\
@@ -66,7 +73,9 @@ const char USAGE[] = "\n\
 
 void print_usage_and_exit()
 {
-	std::cout << USAGE << std::endl;
+	printf(USAGE, DEFAULT_THRESHOLD, snipfile::NUM_SAMPLES_BEFORE, 
+			hidenssnipfile::NUM_SAMPLES_BEFORE, snipfile::NUM_SAMPLES_AFTER,
+			hidenssnipfile::NUM_SAMPLES_AFTER);
 	exit(EXIT_SUCCESS);
 }
 
@@ -144,7 +153,7 @@ void parse_chan_list(std::string arg, arma::uvec& channels,
 				}
 				auto num = end - start;
 				channels.resize(channels.n_elem + num);
-				for (auto i = 0; i < num; i++)
+				for (decltype(num) i = 0; i < num; i++)
 					channels(channels.n_elem - i - 1) = start + i;
 			}
 		}
@@ -157,8 +166,8 @@ void parse_chan_list(std::string arg, arma::uvec& channels,
 }
 
 void parse_command_line(int argc, char **argv, 
-		double& thresh, size_t& nrandom_snippets, std::string& chan_arg, 
-		std::string& output, std::string& filename)
+		double& thresh, size_t& nrandom_snippets, int& nbefore, int& nafter,
+		std::string& chan_arg, std::string& output, std::string& filename)
 {
 	if (argc == 1)
 		print_usage_and_exit();
@@ -166,6 +175,8 @@ void parse_command_line(int argc, char **argv,
 	/* Parse options */
 	struct option options[] = {
 		{ "threshold", 	required_argument, 	nullptr, 't' },
+		{ "before", 	required_argument, 	nullptr, 'b' },
+		{ "after", 		required_argument, 	nullptr, 'a' },
 		{ "help", 		no_argument, 		nullptr, 'h' },
 		{ "version", 	no_argument, 		nullptr, 'v' },
 		{ "chan", 		required_argument, 	nullptr, 'c' },
@@ -187,6 +198,12 @@ void parse_command_line(int argc, char **argv,
 					std::cerr << "Invalid threshold: " << optarg << std::endl;
 					exit(EXIT_FAILURE);
 				}
+				break;
+			case 'b':
+				nbefore = std::stoi(std::string(optarg));
+				break;
+			case 'a':
+				nafter = std::stoi(std::string(optarg));
 				break;
 			case 'c':
 				chan_arg = std::string(optarg);
@@ -236,7 +253,7 @@ void verify_channels(arma::uvec& channels, const datafile::DataFile* file)
 	std::iota(file_channels.begin(), file_channels.end(), 0);
 	arma::uvec valid_channels(file_channels.n_elem, arma::fill::zeros);
 	size_t nelem = 0;
-	for (auto i = 0; i < channels.n_elem; i++) {
+	for (auto i = decltype(channels.n_elem){0}; i < channels.n_elem; i++) {
 		if (arma::any(file_channels == channels(i))) {
 			valid_channels(nelem) = channels(i);
 			nelem++;
@@ -246,15 +263,31 @@ void verify_channels(arma::uvec& channels, const datafile::DataFile* file)
 	channels = valid_channels;
 }
 
+void verify_snippet_offsets(const std::string& array, int& nbefore, int& nafter)
+{
+	if (nbefore <= 0) {
+		nbefore = ((array == "hidens") ? hidenssnipfile::NUM_SAMPLES_BEFORE :
+				snipfile::NUM_SAMPLES_BEFORE);
+	}
+	if (nafter <= 0) {
+		nafter = ((array == "hidens") ? hidenssnipfile::NUM_SAMPLES_AFTER :
+				snipfile::NUM_SAMPLES_AFTER);
+	}
+}
+
 int main(int argc, char *argv[])
 {	
 	/* Parse input and get the array type */
 	auto thresh = DEFAULT_THRESHOLD;
 	auto nrandom_snippets = snipfile::NUM_RANDOM_SNIPPETS;
 	std::string chan_arg, output, filename;
-	parse_command_line(argc, argv, thresh, nrandom_snippets, 
+	int nbefore = -1, nafter = -1;
+	parse_command_line(argc, argv, thresh, nrandom_snippets, nbefore, nafter,
 			chan_arg, output, filename);
 	std::string array = get_array(filename);
+
+	/* Verify the number of samples before/after a spike peak, based on array. */
+	verify_snippet_offsets(array, nbefore, nafter);
 
 	/* Get channels based on input */
 	arma::uvec channels;
@@ -293,10 +326,11 @@ int main(int argc, char *argv[])
 	if (array == "hidens")
 		snip_file = dynamic_cast<hidenssnipfile::HidensSnipFile*>(
 				new hidenssnipfile::HidensSnipFile(output + 
-				snipfile::FILE_EXTENSION, *dynamic_cast<hidensfile::HidensFile*>(file)));
+				snipfile::FILE_EXTENSION, *dynamic_cast<hidensfile::HidensFile*>(file),
+				nbefore, nafter));
 	else
 		snip_file = new snipfile::SnipFile(
-				output + snipfile::FILE_EXTENSION, *file);
+				output + snipfile::FILE_EXTENSION, *file, nbefore, nafter);
 
 	/* Compute thresholds */
 #ifdef DEBUG
@@ -309,8 +343,10 @@ int main(int argc, char *argv[])
 	auto nchannels = channels.size();
 	std::vector<arma::uvec> spike_idx(nchannels), noise_idx(nchannels);
 	std::vector<sampleMat> spike_snips(nchannels), noise_snips(nchannels);
-	extract::extractNoise(data, nrandom_snippets, noise_idx, noise_snips);
-	extract::extractSpikes(data, thresholds, spike_idx, spike_snips);
+	extract::extractNoise(data, nrandom_snippets, nbefore, nafter,
+			noise_idx, noise_snips);
+	extract::extractSpikes(data, thresholds, nbefore, nafter, 
+			spike_idx, spike_snips);
 
 	/* Write snippets to disk */
 	snip_file->setChannels(channels);

@@ -15,8 +15,9 @@ hidenssnipfile::HidensSnipFile::HidensSnipFile(const std::string& name)
 }
 
 hidenssnipfile::HidensSnipFile::HidensSnipFile(const std::string& name,
-		const hidensfile::HidensFile& source)
-	: snipfile::SnipFile(name, source)
+		const hidensfile::HidensFile& source,
+		const size_t nbefore, const size_t nafter)
+	: snipfile::SnipFile(name, source, nbefore, nafter)
 {
 	copyConfiguration(source);
 }

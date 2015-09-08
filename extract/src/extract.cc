@@ -27,9 +27,9 @@ void extract::randsample(std::vector<arma::uvec>& out, size_t min, size_t max)
 	/* Shuffle each column (channel) independently, draw value from it */
 	std::vector<size_t> pop(max - min);
 	std::iota(pop.begin(), pop.end(), min);
-	for (auto c = 0; c < out.size(); c++) {
+	for (decltype(out.size()) c = 0; c < out.size(); c++) {
 		auto& v = out.at(c);
-		for (auto i = 0; i < v.n_elem; i++) {
+		for (arma::uword i = 0; i < v.n_elem; i++) {
 			auto idx = dist(gen);
 			std::swap(pop[i], pop[idx]);
 			v(i) = pop[idx];
@@ -39,7 +39,7 @@ void extract::randsample(std::vector<arma::uvec>& out, size_t min, size_t max)
 
 void extract::meanSubtract(sampleMat& data)
 {
-	for (auto i = 0; i < data.n_cols; i++)
+	for (auto i = decltype(data.n_cols){0}; i < data.n_cols; i++)
 		data.col(i) -= arma::mean(arma::conv_to<arma::vec>::from(data.col(i)));
 }
 
@@ -56,7 +56,7 @@ bool extract::isLocalMax(const sampleMat& data, size_t channel,
 	 */
 	arma::vec tmp(n);
 	auto mid = std::floor(n / 2);
-	for (auto k = 0; k < n; k++)
+	for (decltype(n) k = 0; k < n; k++)
 		tmp(k) = arma::accu(data(
 				arma::span(sample - n + k + 1, sample + k), channel)) / n;
 	return (arma::all(tmp(arma::span(0, mid - 1)) < tmp(mid)) && 
@@ -64,23 +64,22 @@ bool extract::isLocalMax(const sampleMat& data, size_t channel,
 }
 
 void extract::extractNoise(const sampleMat& data, const size_t& nrandom_snippets,
-		std::vector<arma::uvec>& idx, std::vector<sampleMat>& snips)
+		const int& nbefore, const int& nafter, std::vector<arma::uvec>& idx, 
+		std::vector<sampleMat>& snips)
 {
 	/* Create random indices into each channel */
-	auto nsamples_per_snip = snipfile::NUM_SAMPLES_BEFORE + 
-		snipfile::NUM_SAMPLES_AFTER + 1;
+	auto nsamples_per_snip = nbefore + nafter + 1;
 	auto nsamples = data.n_rows, nchannels = data.n_cols;
 	for (auto& each : idx)
 		each.set_size(nrandom_snippets);
-	randsample(idx, snipfile::NUM_SAMPLES_BEFORE, 
-			nsamples - snipfile::NUM_SAMPLES_AFTER);
+	randsample(idx, nbefore, nsamples - nafter);
 
 #ifdef DEBUG
 	std::cout << "Extracting noise snippets" << std::endl;
 #endif
 
 	/* Extract snippets at those random indices */
-	for (auto c = 0; c < nchannels; c++) {
+	for (decltype(nchannels) c = 0; c < nchannels; c++) {
 
 #ifdef DEBUG
 		std::cout << " Channel " << c << std::endl;
@@ -89,27 +88,26 @@ void extract::extractNoise(const sampleMat& data, const size_t& nrandom_snippets
 		auto& snip_mat = snips.at(c);
 		snip_mat.set_size(nsamples_per_snip, nrandom_snippets);
 		auto& ix = idx.at(c);
-		for (auto s = 0; s < nrandom_snippets; s++) {
+		for (auto s = decltype(nrandom_snippets){0}; s < nrandom_snippets; s++) {
 			auto& start = ix.at(s);
 			snip_mat(arma::span::all, s) = data(
-					arma::span(start - snipfile::NUM_SAMPLES_BEFORE,
-					start + snipfile::NUM_SAMPLES_AFTER), c);
+					arma::span(start - nbefore, start + nafter), c);
 		}
 	}
 }
 
 void extract::extractSpikes(const sampleMat& data, const arma::vec& thresholds, 
+		const int& nbefore, const int& nafter,
 		std::vector<arma::uvec>& idx, std::vector<sampleMat>& snips)
 {
-	auto nsamples_per_snip = snipfile::NUM_SAMPLES_BEFORE + 
-		snipfile::NUM_SAMPLES_AFTER + 1;
+	auto nsamples_per_snip = nbefore + nafter + 1;
 	auto nsamples = data.n_rows, nchannels = data.n_cols;
 
 #ifdef DEBUG
 	std::cout << "Extracting spike snippets" << std::endl;
 #endif 
 
-	for (auto c = 0; c < nchannels; c++) {
+	for (decltype(nchannels) c = 0; c < nchannels; c++) {
 		auto& idx_vec = idx.at(c);
 		auto& snip_mat = snips.at(c);
 		auto& thresh = thresholds(c);
@@ -118,8 +116,8 @@ void extract::extractSpikes(const sampleMat& data, const arma::vec& thresholds,
 		size_t snip_num = 0;
 
 		/* Find snippets */
-		arma::uword i = snipfile::NUM_SAMPLES_BEFORE;
-		while (i < nsamples - snipfile::NUM_SAMPLES_AFTER + 1) {
+		arma::uword i = nbefore;
+		while (i < nsamples - nafter + 1) {
 			if (data(i, c) > thresh) {
 				if (isLocalMax(data, c, i, snipfile::WINDOW_SIZE)) {
 					if (snip_num >= snip_mat.n_cols) {
@@ -128,8 +126,7 @@ void extract::extractSpikes(const sampleMat& data, const arma::vec& thresholds,
 					}
 					idx_vec(snip_num) = i;
 					snip_mat(arma::span::all, snip_num) = data(
-							arma::span(i - snipfile::NUM_SAMPLES_BEFORE,
-							i + snipfile::NUM_SAMPLES_AFTER), c);
+							arma::span(i - nbefore, i + nafter), c);
 					snip_num++;
 					i += snipfile::WINDOW_SIZE;
 				} else

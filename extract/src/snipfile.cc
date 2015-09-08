@@ -12,7 +12,10 @@
 
 #include "snipfile.h"
 
-snipfile::SnipFile::SnipFile(std::string fname, const datafile::DataFile& source)
+snipfile::SnipFile::SnipFile(std::string fname, const datafile::DataFile& source, 
+		const size_t nbefore, const size_t nafter)
+	: samplesBefore_(-nbefore),
+	samplesAfter_(nafter)
 {
 	filename_ = fname;
 	struct stat buf;
@@ -133,7 +136,7 @@ void snipfile::SnipFile::writeNoiseSnips(const std::vector<arma::uvec> &idx,
 void snipfile::SnipFile::writeSnips(const std::string& type, 
 		const std::vector<arma::uvec>& idx, const std::vector<arma::Mat<short> >& snips)
 {
-	for (auto i = 0; i < nchannels_; i++) {
+	for (decltype(nchannels_) i = 0; i < nchannels_; i++) {
 		/* Create data{space,set} for each channel's spike snippets and indices */
 		auto& grp = channelGroups[i];
 		hsize_t idxDims[snipfile::IDX_DATASET_RANK] = {idx.at(i).n_elem};
@@ -264,7 +267,7 @@ void snipfile::SnipFile::spikeSnips(std::vector<arma::uvec>& idx,
 	std::vector<arma::Mat<short> > tmp;
 	spikeSnips(idx, tmp);
 	snippets.resize(tmp.size());
-	for (auto i = 0; i < tmp.size(); i++)
+	for (decltype(tmp.size()) i = 0; i < tmp.size(); i++)
 		snippets[i] = gain() * arma::conv_to<arma::mat>::from(tmp[i]) + offset();
 }
 
@@ -274,7 +277,7 @@ void snipfile::SnipFile::noiseSnips(std::vector<arma::uvec>& idx,
 	std::vector<arma::Mat<short> > tmp;
 	noiseSnips(idx, tmp);
 	snippets.resize(tmp.size());
-	for (auto i = 0; i < tmp.size(); i++)
+	for (decltype(tmp.size()) i = 0; i < tmp.size(); i++)
 		snippets[i] = gain() * arma::conv_to<arma::mat>::from(tmp[i]) + offset();
 }
 
@@ -284,7 +287,7 @@ void snipfile::SnipFile::snips(const std::string& type,
 	snippets.resize(nchannels());
 	idx.resize(nchannels());
 	std::string grpName(32, '\0');
-	for (auto c = 0; c < nchannels(); c++) {
+	for (decltype(nchannels()) c = 0; c < nchannels(); c++) {
 		grpName.erase();
 		std::snprintf(&grpName[0], grpName.capacity(), "channel-%03llu", channels_(c));
 		H5::Group grp;

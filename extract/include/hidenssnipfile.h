@@ -17,6 +17,12 @@
 /*! Create and write snippet files for data from HiDens arrays */
 namespace hidenssnipfile {
 
+/*! The number of samples before a local maximum to take for each snippet */
+const size_t NUM_SAMPLES_BEFORE = 12;
+
+/*! The number of samples after a local maximum to take for each snippet */
+const size_t NUM_SAMPLES_AFTER = 40;
+
 /*! The HidensSnipFile class subclasses SnipFile, extending it with
  * functionality specific to data recorded on the HiDens array.
  *
@@ -31,7 +37,9 @@ class HidensSnipFile : public snipfile::SnipFile {
 		 * \param name The name of the newly constructed file
 		 * \param source The raw data file from which snippets will be extracted.
 		 */
-		HidensSnipFile(const std::string& name, const hidensfile::HidensFile& source);
+		HidensSnipFile(const std::string& name, const hidensfile::HidensFile& source,
+				const size_t nbefore = hidenssnipfile::NUM_SAMPLES_BEFORE,
+				const size_t nafter = hidenssnipfile::NUM_SAMPLES_AFTER);
 
 		/*! Open an existing snippet file */
 		HidensSnipFile(const std::string& name); // existing file

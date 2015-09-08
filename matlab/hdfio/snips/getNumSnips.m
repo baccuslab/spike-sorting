@@ -18,6 +18,8 @@ function nsnips = getNumSnips(filenames, sniptype, chans)
 % Updates:
 % 2015-08-31 - Aran Nayebi and Pablo Jadzinsky
 %   - added multiple file functionality
+% 2015-09-08 - Lane McIntosh
+%   - changed /channels to /extracted-channels
 
 % Parse input
 if nargin == 1
@@ -40,7 +42,7 @@ for fnum=1:length(filenames)
 
     % Open the snippet file and verify that channel information exists
     try 
-        channels = h5read(filenames{fnum}, '/channels');
+        channels = h5read(filenames{fnum}, '/extracted-channels');
     catch me
         error('hdfio:snips:getSnipDims', ...
             'The snippet file does not contain any channel information');

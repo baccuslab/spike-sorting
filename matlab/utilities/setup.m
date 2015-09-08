@@ -7,14 +7,16 @@ function hmain = setup(outfile, snipfiles, datafiles)
 % 2015-07-20 - Benjamin Naecker
 %	- Updating for new HDF snippet file format
 %	- A bit of miscellaneous formatting
+% 2015-09-08 - Lane McIntosh
+%   - Changed channels dataset
 
 % Read channels to be sorted from the file
 numfiles = size(snipfiles, 2);
 for fnum=1:numfiles
     if fnum == 1
-        channels = double(h5read(snipfiles{fnum}, '/channels'));
+        channels = double(h5read(snipfiles{fnum}, '/extracted-channels'));
     else
-        channels_other = double(h5read(snipfiles{fnum}, '/channels'));
+        channels_other = double(h5read(snipfiles{fnum}, '/extracted-channels'));
         if channels ~= channels_other
             error('Channels should be the same across snipfiles!')
         end

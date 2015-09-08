@@ -20,6 +20,8 @@ function [snips, range] = readFromAllChannels(snipfiles, sniptype, num, channels
 % Updates:
 % 2015-08-31 - Aran Nayebi and Pablo Jadzinsky
 %   - added multiple file functionality
+% 2015-09-08 - Lane McIntosh
+%   - changed channels dataset
 
 if ischar(snipfiles)
     snipfiles = {snipfiles};
@@ -32,9 +34,9 @@ for fnum = 1:length(snipfiles)
             'The snippet file does not exist: %s', snipfiles);
     end
     if fnum==1
-        fileChannels = h5read(snipfiles{fnum}, '/channels');
+        fileChannels = h5read(snipfiles{fnum}, '/extracted-channels');
     else
-        if fileChannels ~= h5read(snipfiles{fnum}, '/channels')
+        if fileChannels ~= h5read(snipfiles{fnum}, '/extracted-channels')
             error('All snipfiles should have data for the same channels')
         end
     end

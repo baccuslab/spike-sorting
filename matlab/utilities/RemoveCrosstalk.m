@@ -21,7 +21,7 @@ cpdf = [];
 npb = {};
 pair = zeros(0,2);
 cttime=0.4;
-ctsamp=0.5+cttime*g.scanrate(1)/1000;
+ctsamp=0.5+cttime*double(g.scanrate(1))/1000;
 idxc=cell(1,nctchans);
 remtimes=idxc;
 remidx=idxc;
@@ -31,9 +31,9 @@ for ch=1:nctchans
 end
 for ch = 1:nctchans
 	if g.pwflag
-		[placeholder,idxc{ch}] = CrossCorrRecRow1(ch1(1,:),sptimes{ctchannels(ch)},ctsamp); %coincident spikes
+		[~,idxc{ch}] = CrossCorrRecRow1(ch1(1,:),sptimes{ctchannels(ch)},ctsamp); %coincident spikes
 	else
-		[placeholder,idxc{ch}] = CrossCorrRecRow1(ch1(1,:),sptimes{ch},ctsamp); %coincident spikes
+		[~,idxc{ch}] = CrossCorrRecRow1(ch1(1,:),sptimes{ch},ctsamp); %coincident spikes
 	end
 	%Keep only the 2nd channel
 	for fnum=1:nfiles

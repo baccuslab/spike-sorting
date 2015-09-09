@@ -32,7 +32,15 @@ if ischar(filenames)
 end
 
 if nargin < 4
-    maxsnip = Inf;
+    % check to make sure there is at least 1 snip, otherwise return
+    numSnips = getNumSnips(filenames, sniptype, channel);
+    if numSnips > 0
+        maxsnip = Inf;
+    else
+        snip = [];
+        time = [];
+        return;
+    end
 else
     maxsnip = min(maxsnip, getNumSnips(filenames, sniptype, channel));
 end

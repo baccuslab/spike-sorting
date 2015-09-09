@@ -332,11 +332,19 @@ int main(int argc, char *argv[])
 		snip_file = new snipfile::SnipFile(
 				output + snipfile::FILE_EXTENSION, *file, nbefore, nafter);
 
+	/* Compute means and write them to the data file, so they may
+	 * be used later.
+	 */
+#ifdef DEBUG
+	std::cout << "Mean-subtracting data" << std::endl;
+#endif
+	auto means = extract::meanSubtract(data);
+	file->writeMeans(means);
+
 	/* Compute thresholds */
 #ifdef DEBUG
 	std::cout << "Computing thresholds" << std::endl;
 #endif
-	extract::meanSubtract(data);
 	auto thresholds = extract::computeThresholds(data, thresh);
 
 	/* Find noise and spike snippets */

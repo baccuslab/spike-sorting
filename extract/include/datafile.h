@@ -65,6 +65,19 @@ class DataFile {
 		/*! Return the length of the recording, in seconds */
 		double length() const;
 
+		/*! Write mean of each data channel to the file as an attribute
+		 * of the 'data' dataset.
+		 * \param means Vector of means for each channel.
+		 */
+		void writeMeans(const arma::vec& means);
+
+		/*! Read the means of each extracted channel stored in the file, 
+		 * if it exists. An empty vector is returned if the file does
+		 * not contain the appropriate attribute, i.e., snippets have not
+		 * been extracted.
+		 */
+		arma::vec readMeans();
+
 		/*! Return the datatype of the stored voltage data */
 		H5::DataType datatype() const;
 
@@ -186,13 +199,13 @@ class DataFile {
 		size_t nsamples_;
 		size_t nchannels_;
 		double length_;
+		bool new_file;
 
 		H5::H5File file;
 		H5::DataSpace dataspace;
 		H5::DataType datatype_;
 		H5::DSetCreatPropList props;
 		H5::DataSet dataset;
-		bool rdonly;
 
 		void readSampleRate();
 		void readGain();

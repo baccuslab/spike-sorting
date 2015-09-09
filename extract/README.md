@@ -11,6 +11,8 @@ Usage
 
 	./extract 	[ -v | --version ] [-h | --help ]
 				[ -t | --threshold <threshold> ]
+				[ -a | --after <nafter> ]
+				[ -b | --before <nbefore> ]
 				[ -c | --chan <chanlist> ]
 				[ -n | --nrandom <nrandom> ]
 				[ -o | --output <name> ]
@@ -26,6 +28,12 @@ Parameters
 - `-t | --threshold <threshold>` 
 	- Candidate spikes are those sections of the data trace
 which are above a threshold, set as `<threshold> * median(abs(v - mean(v)))`
+- `-b | --before <nbefore>`
+	- Number of samples before a spike peak to extract. Defaults to 6 for
+MCS array data and 12 for HiDens array data.
+- `-a | --after <nafter>`
+	- Number of samples after a spike peak to extract. Defaults to 20 for
+MCS array data and 40 for HiDens array data.
 - `-c | --chan <chanlist>` 
 	- A comma-separated and dash-separated list of channels from
 which data is extracted. Dashes indicate a channel range, e.g., `0-4` extracts
@@ -36,14 +44,14 @@ intervals are half-open.
 	- The number of random snippets to extract from each channel. Defaults to 5000.
 - `-o | --output <basename>` 
 	- A base name for the output file. Snippets will be saved to
-`<basename>.snip`.
+`<basename>.snip`. Defaults to the recording file's base name.
 
 Requirements and building
 -------------------------
 
 - C++11 or later
 - [HDF5](http://www.hdfgroup.org) version 1.15 or higher
-- The standard autotools suite
+- GNU `make`
 - [Doxygen](http://www.doxygen.org) for making documentation
 
 The project comes with a custom Makefile that should work on Ubuntu Linux and OS X.

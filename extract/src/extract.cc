@@ -37,10 +37,14 @@ void extract::randsample(std::vector<arma::uvec>& out, size_t min, size_t max)
 	}
 }
 
-void extract::meanSubtract(sampleMat& data)
+arma::vec extract::meanSubtract(sampleMat& data)
 {
-	for (auto i = decltype(data.n_cols){0}; i < data.n_cols; i++)
-		data.col(i) -= arma::mean(arma::conv_to<arma::vec>::from(data.col(i)));
+	arma::vec means(data.n_cols, arma::fill::zeros);
+	for (auto i = decltype(data.n_cols){0}; i < data.n_cols; i++) {
+		means(i) = arma::mean(arma::conv_to<arma::vec>::from(data.col(i)));
+		data.col(i) -= means(i);
+	}
+	return means;
 }
 
 arma::vec extract::computeThresholds(const sampleMat& data, double thresh)

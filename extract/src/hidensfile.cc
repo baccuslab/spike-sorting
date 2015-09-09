@@ -10,7 +10,7 @@
 
 hidensfile::HidensFile::HidensFile(std::string name) : datafile::DataFile(name) 
 {
-	if (rdonly)
+	if (new_file)
 		readConfiguration();
 	//else
 		// not yet supported

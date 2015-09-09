@@ -32,8 +32,8 @@ namespace extract {
  */
 void randsample(std::vector<arma::uvec>& out, size_t min, size_t max);
 
-/*! Subtract the mean from each column of data. */
-void meanSubtract(sampleMat& data);
+/*! Subtract the mean from each column of data, and return them */
+arma::vec meanSubtract(sampleMat& data);
 
 /*! Compute the threshold value for each data column.
  * \param data The matrix storing raw data.

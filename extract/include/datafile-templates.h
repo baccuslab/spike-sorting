@@ -54,6 +54,8 @@ void datafile::DataFile::_read_data(
 		dtype = H5::PredType::STD_I16LE;
 	else if (hash == typeid(arma::Mat<uint8_t>).hash_code())
 		dtype = H5::PredType::STD_U8LE;
+	else if (hash == typeid(arma::Mat<int8_t>).hash_code())
+		dtype = H5::PredType::STD_I8LE;
 	dataset.read(out.memptr(), dtype, mspace, dataspace);
 }
 
@@ -105,6 +107,8 @@ void datafile::DataFile::_read_data(
 		dtype = H5::PredType::STD_I16LE;
 	else if (hash == typeid(arma::Mat<uint8_t>).hash_code())
 		dtype = H5::PredType::STD_U8LE;
+	else if (hash == typeid(arma::Mat<int8_t>).hash_code())
+		dtype = H5::PredType::STD_I8LE;
 	dataset.read(out.memptr(), dtype, mspace, dataspace);
 }
 

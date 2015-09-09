@@ -107,7 +107,7 @@ bool is_hidens(std::string array)
 
 H5::DataType get_array_dtype(std::string array)
 {
-	return (array == "hidens") ? H5::PredType::STD_U8LE : H5::PredType::STD_I16LE;
+	return (array == "hidens") ? H5::PredType::STD_I8LE : H5::PredType::STD_I16LE;
 }
 
 void parse_chan_list(std::string arg, arma::uvec& channels, 

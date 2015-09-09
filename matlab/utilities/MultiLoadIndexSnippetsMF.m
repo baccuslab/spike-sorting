@@ -31,6 +31,7 @@ for fnum = 1:nfiles
 		fc{fnum} = [];
 	end
 end
+% loadRawData below is loading snips the transpose of loadSnipIndex
 snips=cat(2,snipspcell{:});
 filenum = cat(2,fc{:});
 if (nchans>1)
@@ -55,9 +56,13 @@ if (nchans>1)
             % start, and length of snippet. Previously range was 2d array
             % of start and stop of snippet relative to peak.
             start_idx = range(1);
-            len = range(2) - start_idx;
+            len = range(2) - start_idx + 1;
             t{flist} = t{flist} + start_idx;
 			snipctcell(:,flist)= loadRawData(ctfiles(flist),channels(2:end),t(flist),len); %crosstalk is a list of files
+            % loadRawData is loading snips the transpose of loadSnipIndex
+            for i=1:length(snipctcell)
+                snipctcell{i} = snipctcell{i}';
+            end
 		end
 	end
 	snipctchans=cell(nchans-1,1);

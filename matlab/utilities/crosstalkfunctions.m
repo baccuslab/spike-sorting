@@ -117,7 +117,7 @@ case 'showmean'
 		for cl=1:size(snips.data,1);	
 			axes(handles.cc(chindx));
 			if (size(snips.data{cl,chindx},2)>0)
-				plot(mean(snips.data{cl,chindx}'),getcolor(cl))
+				plot(mean(snips.data{cl,chindx}),getcolor(cl))
 				hold on
 			else
 				cla

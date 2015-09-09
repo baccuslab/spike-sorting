@@ -56,16 +56,20 @@ all: lib extract
 debug: lib-debug extract-debug
 
 extract: $(BUILD_DIR)/main.o lib
+	@mkdir -p bin
 	$(CXX) -o $(BIN_DIR)/$@ $< $(LDFLAGS) $(LIBS) $(BIN_LDFLAGS)
 
 extract-debug: $(BUILD_DIR)/main-debug.o lib-debug
+	@mkdir -p bin
 	$(CXX) -o $(BIN_DIR)/$@ $< $(LDFLAGS) $(LIBS) $(BIN_LDFLAGS)
 
 lib: $(LIB_OBJECTS)
+	@mkdir -p lib
 	$(CXX) $(LIB_LDFLAGS) -o $(LIB_DIR)/$(LIB_NAME) $^ $(LIBS)
 	$(LINK) $(CWD)/$(LIB_DIR)/$(LIB_NAME) $(CWD)/$(LIB_DIR)/$(LIB_LINK_NAME)
 
 lib-debug: $(LIB_DEBUG_OBJECTS)
+	@mkdir -p lib
 	$(CXX) $(LIB_LDFLAGS) -o $(LIB_DIR)/$(LIB_NAME) $^ $(LIBS)
 	$(LINK) $(CWD)/$(LIB_DIR)/$(LIB_NAME) $(CWD)/$(LIB_DIR)/$(LIB_LINK_NAME)
 
@@ -76,9 +80,11 @@ $(BUILD_DIR)/main-debug.o: $(SRC_DIR)/main.cc
 	$(CXX) -c -o $@ $(LIB_CXXFLAGS) $(CXXFLAGS) $(CXXFLAGS_DEBUG) $<
 
 $(BUILD_DIR)/%.o: %.cc %.h
+	@mkdir -p build
 	$(CXX) -c -o $@ $(LIB_CXXFLAGS) $(CXXFLAGS) $(CXXFLAGS_RELEASE) $<
 
 $(BUILD_DIR)/%-debug.o: %.cc %.h
+	@mkdir -p build
 	$(CXX) -c -o $@ $(LIB_CXXFLAGS) $(CXXFLAGS) $(CXXFLAGS_DEBUG) $<
 
 clean:

@@ -1,5 +1,5 @@
-function cthandle = crosstalkwindow (hsort,g);
-snipsize=[-6 20]; %do we want [-10 25] for high dens array?
+function cthandle = crosstalkwindow (hsort,g)
+%snipsize=[-6 20]; %do we want [-10 25] for high dens array?
 numch=size(g.channels,1);
 %open figure
 figure ('Name','Crosstalk','Position', [300 50 750 750]);%,'doublebuffer','on');

@@ -77,8 +77,8 @@ for fnum=1:length(filenames)
     
     if voltage
         % Return data in actual voltage values
-        gain = h5readatt(filenames{fnum}, '/', 'gain');
-        offset = h5readatt(filenames{fnum}, '/', 'offset');
+        gain = h5readatt(filenames{fnum}, '/data', 'gain');
+        offset = h5readatt(filenames{fnum}, '/data', 'offset');
     end
 
     % Read data

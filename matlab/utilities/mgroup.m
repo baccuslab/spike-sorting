@@ -34,7 +34,7 @@ else
 	for fn=1:nfiles
 		spindxsel{1,fn}=spindx{fn}(1,selindx{fn});
 	end
-	projsp=loadprojindexed('proj.bin',chindices(1),size(g.channels,2),size(g.ctfiles,2),spindxsel);
+	projsp=loadprojindexed('proj.bin',chindices(1),length(g.channels),length(g.ctfiles),spindxsel);
 	%Load crosstalk projections
 	%Get times
 	t = getappdata(hsort,'t');
@@ -49,7 +49,8 @@ else
         % loadRawData takes snip start and length
         snip_start_offset = g.sniprange(1);
         snip_length = abs(g.sniprange(2)-snip_start_offset) + 1;
-		snipsct=loadRawData(g.ctfiles, sortchannels(2:end), tsel+snip_start_offset, snip_length); %crosstalk is a list of files
+        snip_start = cellfun(@(x) x + snip_start_offset, tsel, 'UniformOutput', false);
+		snipsct=loadRawData(g.ctfiles, sortchannels(2:end), snip_start, snip_length); %crosstalk is a list of files
 	end
 	projct=cell(size(sortchannels,2)-1,size(g.ctfiles,2));
 	for f=1:size(g.ctfiles,2)

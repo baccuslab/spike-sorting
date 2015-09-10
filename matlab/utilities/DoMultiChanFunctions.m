@@ -788,7 +788,9 @@ case 'Done'
 	end
 	remidxlist=[sortchidx ctindices'];
 	proj=loadprojindexed('proj.bin',remidxlist,nchans,nfiles,remidx);
-	[xc,yc,nspikes]=Hist2dcalc(proj,nx,ny,g.rectx(remidxlist,:),g.recty(remidxlist,:)); 
+    % Hist2dcalc used to also take 2 additional arguments,
+    % g.rectx(remidxlist,:) and g.recty(remidxlist,:)
+	[xc,yc,nspikes]=Hist2dcalc(proj,nx,ny); 
 	for ch=1:length (remidxlist)
 		g.nspikes{remidxlist(ch)}=g.nspikes{remidxlist(ch)}-nspikes{ch};
 		g.nspikes{remidxlist(ch)}(find(g.nspikes{remidxlist(ch)}<0))=0;

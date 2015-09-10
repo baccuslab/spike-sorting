@@ -234,7 +234,7 @@ ylim(recty);
 clear n;
 for f=1:length(x)
 	if (length(x{f})>1)
-		[n1,xc,yc] = hist2d(x{f},y{f},[rectx recty],100,100);
+		[n1,xc,yc] = hist2d(x{f},y{f},100, 100);
 		if (exist('n')) n=n+n1; else n=n1; end
 	end
 end

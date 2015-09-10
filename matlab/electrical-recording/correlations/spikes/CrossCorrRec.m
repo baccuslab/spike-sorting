@@ -29,7 +29,9 @@ if (binning)
 else
 	tccout = [];
 	for i = 1:length(t1)
-		[tcctemp,indxout{i}] = CrossCorr(t1{i},t2{i},tmax);
-		tccout(end+1:end+length(tcctemp)) = tcctemp;
+		if (and(size(t1{i},2)>0,size(t2{i},2)>0));
+          [tcctemp,indxout{i}] = CrossCorr(t1{i},t2{i},tmax);
+          tccout(end+1:end+length(tcctemp)) = tcctemp;
+        end
 	end
 end

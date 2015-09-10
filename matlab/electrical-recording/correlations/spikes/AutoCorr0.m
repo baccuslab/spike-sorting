@@ -24,8 +24,3 @@ if (nargin == 3)
 	xc = linspace(binwidth/2,tmax-binwidth/2,nbins);
 	tac = hist(tac,xc);
 end
-
-%[tac,indx] = CrossCorr(record,cell,cell,tmax);
-%Ikeep = find(tac ~= 0);
-%tac = tac(Ikeep);
-%indx = indx(Ikeep);

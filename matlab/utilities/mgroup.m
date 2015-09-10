@@ -1,5 +1,5 @@
 function mgroup(hsort,g,sortchannels,selindx)
-% crosstalkfunctions: function to calculate, show, and sort crosstalk.
+% mgroup: has something to do with multichannel clustering
 %
 % INPUT:
 %   hsort               - ?
@@ -15,7 +15,7 @@ function mgroup(hsort,g,sortchannels,selindx)
 % 2015-08-26 - Lane McIntosh
 %   - updating to use HDFIO functions instead of loadaibdata
 %
-if (size(sortchannels,2)<2) 
+if length(sortchannels) < 2
 	return
 end
 figure ('Position',[20 120 1000 680],'doublebuffer','on');

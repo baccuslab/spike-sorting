@@ -705,7 +705,7 @@ case 'Done'
 	sortstatus=getappdata(h,'Sortstatus');
 	if (~sortstatus)
 		donebutton=questdlg ('You have sorted only a subset of spikes: really finish?','','yes','no','no');
-		switch donebutton,
+		switch donebutton
 		case 'no'
 			return
 		end %switch
@@ -772,7 +772,7 @@ case 'Done'
 		end
 	end
 	%Remove crosstalk from array plot
-	if (length(tmpremCT)>0)
+	if (~isempty(tmpremCT))
 		for c = 1:length(ctchannels)
 			for fnum = 1:nfiles
 				if (size(tmpremCT{c}{fnum},2)>0)

@@ -7,7 +7,7 @@ if g.pwflag
 	global sptimes
 else
 	%Load in times
-	for ch=1:size(ctchannels,2)
+	for ch=1:length(ctchannels)
 		for fnum=1:nfiles;
             [~, sptimes{ch}{fnum}] = loadSnip(g.snipfiles{fnum},'spike',ctchannels(ch));
 			%[sptimes{ch}{fnum},hdr]=LoadSnipTimes(g.snipfiles{fnum},ctchannels(ch));
@@ -16,7 +16,7 @@ else
 	end
 	sptimes=removetimes (sptimes,g.chanclust(chindices),g.removedCT(chindices,:),1:size(chindices,2));
 end
-nctchans = size(ctchannels,2);
+nctchans = length(ctchannels);
 cpdf = [];
 npb = {};
 pair = zeros(0,2);
@@ -81,6 +81,8 @@ else
         if and(size(t1{i},2)>0, size(allt{i},2)>0)
           [tcctemp,indxout{i}] = CrossCorr(t1{i},allt{i}(1,:),tmax);
           tccout(end+1:end+length(tcctemp)) = tcctemp;
+        else
+          indxout{i} = [];
         end
 	end
 end

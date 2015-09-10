@@ -58,7 +58,9 @@ if (nchans>1)
             start_idx = range(1);
             len = range(2) - start_idx + 1;
             t{flist} = t{flist} + start_idx;
-			snipctcell(:,flist)= loadRawData(ctfiles(flist),channels(2:end),t(flist),len); %crosstalk is a list of files
+            % last argument is choosing to load data as voltages to match
+            % the same scale as loadSnip and loadSnipIndex
+			snipctcell(:,flist)= loadRawData(ctfiles(flist),channels(2:end),t(flist),len,1); %crosstalk is a list of files
             % loadRawData is loading snips the transpose of loadSnipIndex
             for i=1:length(snipctcell)
                 snipctcell{i} = snipctcell{i}';

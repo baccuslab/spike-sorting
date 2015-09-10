@@ -54,12 +54,6 @@ if isempty(channels) || nargin < 4
     return
 end
 
-if voltage
-    % Return snippets in actual voltage values
-    gain = h5readatt(filenames{fnum}, '/', 'gain');
-    offset = h5readatt(filenames{fnum}, '/', 'offset');
-end
-
 % Preallocate array for all data
 nchannels = length(channels);
 total_d = cell(nchannels, 1);
@@ -79,6 +73,12 @@ for fnum=1:length(filenames)
 
     if isscalar(idxs{fnum})
         idxs{fnum} = [idxs{fnum}];
+    end
+    
+    if voltage
+        % Return data in actual voltage values
+        gain = h5readatt(filenames{fnum}, '/', 'gain');
+        offset = h5readatt(filenames{fnum}, '/', 'offset');
     end
 
     % Read data

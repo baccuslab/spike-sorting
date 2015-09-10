@@ -1,5 +1,5 @@
-function total_d = loadRawData(filenames, channels, idxs, len)
-% FUNCTION d = loadRawData(filenames, channels, idxs, len)
+function total_d = loadRawData(filenames, channels, idxs, len, voltage)
+% FUNCTION d = loadRawData(filenames, channels, idxs, len, voltage)
 %
 % Loads raw data from the HDF recording file in filename at the given times.
 %
@@ -9,6 +9,8 @@ function total_d = loadRawData(filenames, channels, idxs, len)
 %	idxs		- Cell array of the indices into each file from which the
 %	data should be read or single array of indices
 % 	len			- The number of points to be read, starting from each idx
+%   voltage     - Bool value for if raw data should be adjusted by gain and offset
+%                 in the same manner that loadSnip loads data
 %	
 % OUTPUT:
 %	total_d 		- A cell array with one cell for each channel. Each entry of
@@ -24,6 +26,8 @@ function total_d = loadRawData(filenames, channels, idxs, len)
 % Updates:
 % 2015-08-31 - Aran Nayebi and Pablo Jadzinsky
 %   - added multiple file functionality
+% 2015-09-10 - Lane McIntosh
+%   - added voltage flag
 
 if ischar(filenames) %check if filenames is a cell array
     filenames = {filenames};
@@ -44,6 +48,12 @@ end
 if isempty(channels) || nargin < 4
     total_d = {};
     return
+end
+
+if voltage
+    % Return snippets in actual voltage values
+    gain = h5readatt(filenames{fnum}, '/', 'gain');
+    offset = h5readatt(filenames{fnum}, '/', 'offset');
 end
 
 % Preallocate array for all data
@@ -76,7 +86,11 @@ for fnum=1:length(filenames)
             tmp = h5read(filenames{fnum}, '/data', [min(idxs{fnum}) min(channels)], ...
                 [nidx nchannels]);
             for c = 1:nchannels
-                total_d{c}(acc:acc+nidx-1, 1) = tmp(c, :);
+                if voltages
+                    total_d{c}(acc:acc+nidx-1, 1) = tmp(c, :) * gain + offset;
+                else
+                    total_d{c}(acc:acc+nidx-1, 1) = tmp(c, :);
+                end
             end
         else
             % Reading a contiguous block of channels, so read larger chunks
@@ -84,13 +98,12 @@ for fnum=1:length(filenames)
             for i = 1:nidx
                 for c = 1:nchannels
                     file_idx = idxs{fnum};
-%                    tmp = h5read(filenames{fnum}, '/data', [file_idx(i) channels(c)], ...
-%                    [len 1]);
-%                    total_d{c}(acc+i, :) = tmp;
-                    total_d{c}(acc+i-1, :) = h5read(filenames{fnum}, '/data', [file_idx(i) channels(c)], [len 1]);
-
-
-                
+                    if voltage
+                        temp_data = h5read(filenames{fnum}, '/data', [file_idx(i) channels(c)], [len 1]);
+                        total_d{c}(acc+i-1, :) = temp_data * gain + offset;
+                    else
+                        total_d{c}(acc+i-1, :) = h5read(filenames{fnum}, '/data', [file_idx(i) channels(c)], [len 1]);
+                    end
                 end
             end
         end
@@ -99,7 +112,13 @@ for fnum=1:length(filenames)
         for c = 1:length(channels)
             for i = 1:nidx
                 file_idx = idxs{fnum};
-                total_d{c}(acc+i-1, :) = h5read(filenames{fnum}, '/data', [file_idx(i) channels(c)], [len 1]);
+                % Return raw data or data as voltages?
+                if voltage
+                    temp_data = h5read(filenames{fnum}, '/data', [file_idx(i) channels(c)], [len 1]);
+                    total_d{c}(acc+i-1, :) = temp_data * gain + offset;
+                else
+                    total_d{c}(acc+i-1, :) = h5read(filenames{fnum}, '/data', [file_idx(i) channels(c)], [len 1]);
+                end
             end
         end
     end

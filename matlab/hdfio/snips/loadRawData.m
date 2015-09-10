@@ -9,8 +9,8 @@ function total_d = loadRawData(filenames, channels, idxs, len, voltage)
 %	idxs		- Cell array of the indices into each file from which the
 %	data should be read or single array of indices
 % 	len			- The number of points to be read, starting from each idx
-%   voltage     - Bool value for if raw data should be adjusted by gain and offset
-%                 in the same manner that loadSnip loads data
+%   voltage     - Bool value (0 or 1) for if raw data should be adjusted by gain 
+%                 and offset in the same manner that loadSnip loads data
 %	
 % OUTPUT:
 %	total_d 		- A cell array with one cell for each channel. Each entry of
@@ -28,6 +28,10 @@ function total_d = loadRawData(filenames, channels, idxs, len, voltage)
 %   - added multiple file functionality
 % 2015-09-10 - Lane McIntosh
 %   - added voltage flag
+
+if (nargin == 4)
+    voltage = 0;
+end
 
 if ischar(filenames) %check if filenames is a cell array
     filenames = {filenames};

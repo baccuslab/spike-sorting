@@ -24,9 +24,7 @@ handles=getappdata(hsort,'handles');
 chindices=getappdata(hsort,'chindices');
 spindx=getappdata(hsort,'spindx');
 nfiles=size(g.snipfiles,2); 
-hdr=readsnipheader (g.snipfiles{1});
 nch=length(chindices);
-[chans,numproj,sniprange] = GetSnipNums(g.snipfiles);
 if g.pwflag
 	global proj
 	projch=proj(chindices);

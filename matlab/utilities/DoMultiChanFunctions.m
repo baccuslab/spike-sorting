@@ -786,7 +786,7 @@ case 'Done'
 			end
 		end
 	end
-	remidxlist=[sortchidx ctindices];
+	remidxlist=[sortchidx ctindices'];
 	proj=loadprojindexed('proj.bin',remidxlist,nchans,nfiles,remidx);
 	[xc,yc,nspikes]=Hist2dcalc(proj,nx,ny,g.rectx(remidxlist,:),g.recty(remidxlist,:)); 
 	for ch=1:length (remidxlist)

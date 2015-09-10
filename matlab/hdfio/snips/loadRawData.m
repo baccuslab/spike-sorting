@@ -91,7 +91,7 @@ for fnum=1:length(filenames)
                 [nidx nchannels]);
             for c = 1:nchannels
                 if voltages
-                    total_d{c}(acc:acc+nidx-1, 1) = tmp(c, :) * gain + offset;
+                    total_d{c}(acc:acc+nidx-1, 1) = single(tmp(c, :)) * gain + offset;
                 else
                     total_d{c}(acc:acc+nidx-1, 1) = tmp(c, :);
                 end
@@ -104,7 +104,7 @@ for fnum=1:length(filenames)
                     file_idx = idxs{fnum};
                     if voltage
                         temp_data = h5read(filenames{fnum}, '/data', [file_idx(i) channels(c)], [len 1]);
-                        total_d{c}(acc+i-1, :) = temp_data * gain + offset;
+                        total_d{c}(acc+i-1, :) = single(temp_data) * gain + offset;
                     else
                         total_d{c}(acc+i-1, :) = h5read(filenames{fnum}, '/data', [file_idx(i) channels(c)], [len 1]);
                     end
@@ -119,7 +119,7 @@ for fnum=1:length(filenames)
                 % Return raw data or data as voltages?
                 if voltage
                     temp_data = h5read(filenames{fnum}, '/data', [file_idx(i) channels(c)], [len 1]);
-                    total_d{c}(acc+i-1, :) = temp_data * gain + offset;
+                    total_d{c}(acc+i-1, :) = single(temp_data) * gain + offset;
                 else
                     total_d{c}(acc+i-1, :) = h5read(filenames{fnum}, '/data', [file_idx(i) channels(c)], [len 1]);
                 end

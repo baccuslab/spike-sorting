@@ -90,3 +90,5 @@ $(BUILD_DIR)/%-debug.o: %.cc %.h
 clean:
 	rm -f $(LIB_DIR)/* $(BUILD_DIR)/* $(BIN_DIR)/*
 
+install:
+	ln -sf $(BIN_DIR)/extract /usr/local/bin/extract

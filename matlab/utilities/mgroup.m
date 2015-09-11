@@ -55,7 +55,7 @@ else
 	projct=cell(length(sortchannels)-1,length(g.ctfiles));
 	for f=1:length(g.ctfiles)
 		for ch=1:(length(sortchannels)-1)
-			projct{ch,f}=g.deffilters{chindices(ch+1)}'*snipsct{ch,f};
+			projct{ch,f}=g.deffilters{sortchannels(ch+1)}'*snipsct{ch,f}';
 			amp=max(snipsct{ch,f})-min(snipsct{ch,f});
 			projct{ch,f}=[projct{ch,f};amp];
 		end

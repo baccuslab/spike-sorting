@@ -23,7 +23,7 @@ setappdata (hsort,'selindx',selindx);
 handles=getappdata(hsort,'handles');
 chindices=getappdata(hsort,'chindices');
 spindx=getappdata(hsort,'spindx');
-nfiles=size(g.snipfiles,2); 
+nfiles=length(g.snipfiles); 
 nch=length(chindices);
 if g.pwflag
 	global proj
@@ -39,7 +39,7 @@ else
 	%Get times
 	t = getappdata(hsort,'t');
 	tsel=cell(1,nfiles);				
-	for fnum = 1:size(g.snipfiles,2)
+	for fnum = 1:length(g.snipfiles)
 		tsel{1,fnum} = t{fnum}(selindx{fnum});
 	end
 	%Load ct snippets and calculate projections
@@ -52,9 +52,9 @@ else
         snip_start = cellfun(@(x) x + snip_start_offset, tsel, 'UniformOutput', false);
 		snipsct=loadRawData(g.ctfiles, sortchannels(2:end), snip_start, snip_length); %crosstalk is a list of files
 	end
-	projct=cell(size(sortchannels,2)-1,size(g.ctfiles,2));
-	for f=1:size(g.ctfiles,2)
-		for ch=1:(size(sortchannels,2)-1)
+	projct=cell(length(sortchannels)-1,length(g.ctfiles));
+	for f=1:length(g.ctfiles)
+		for ch=1:(length(sortchannels)-1)
 			projct{ch,f}=g.deffilters{chindices(ch+1)}'*snipsct{ch,f};
 			amp=max(snipsct{ch,f})-min(snipsct{ch,f});
 			projct{ch,f}=[projct{ch,f};amp];
@@ -214,7 +214,7 @@ MultiClusterFunctions ('displayall',hfig);
 
 function len=totlength (arr)
 len=0;
-for f=1:size(arr,2)
+for f=1:length(arr)
 	len=len+length(arr{f});
 end
 function [nx,ny]=bins(rectx,recty)
@@ -239,7 +239,8 @@ for f=1:length(x)
 	end
 end
 n=n/max(max(n));
-himage = imagesc(xc,yc,log(n+1)');
+% first two arguments to imagesc must be vectors
+himage = imagesc(xc(1,:),yc(:,1),log(n+1)');
 set(h,'YDir','normal');
 colormap(1-gray);
 set(h,'XTickLabel',{''},'xtick',[],'YTickLabel',{''},'Ytick',[]);

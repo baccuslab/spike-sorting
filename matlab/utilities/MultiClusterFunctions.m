@@ -624,7 +624,7 @@ set(himage,'HitTest','off');
 set(gca,'Tag','','ButtonDownFcn','MultiCluster (gca)');
 
 function plotonetype (n,xc,yc)
-himage = image(xc,yc,n');
+himage = image(xc(1,:),yc(:,1),n');
 set(gca,'YDir','normal');
 set(gca,'XTickLabel',{''},'xtick',[],'YTickLabel',{''},'Ytick',[]);
 set(himage,'HitTest','off');

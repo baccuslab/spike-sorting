@@ -21,10 +21,11 @@ end
 figure ('Position',[20 120 1000 680],'doublebuffer','on');
 setappdata (hsort,'selindx',selindx);	
 handles=getappdata(hsort,'handles');
-chindices=getappdata(hsort,'chindices');
 spindx=getappdata(hsort,'spindx');
 nfiles=length(g.snipfiles); 
-nch=length(chindices);
+nch=length(sortchannels); %was chindices
+chindices=sortchannels;
+%chindices=getappdata(hsort,'chindices');
 if g.pwflag
 	global proj
 	projch=proj(chindices);
@@ -56,8 +57,8 @@ else
 	for f=1:length(g.ctfiles)
 		for ch=1:(length(sortchannels)-1)
 			projct{ch,f}=g.deffilters{sortchannels(ch+1)}'*snipsct{ch,f}';
-			amp=max(snipsct{ch,f})-min(snipsct{ch,f});
-			projct{ch,f}=[projct{ch,f};amp];
+			amp=range(snipsct{ch,f},2);
+			projct{ch,f}=[projct{ch,f}; amp'];
 		end
 	end
 	projch=cat(1,projsp,projct);

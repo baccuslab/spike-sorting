@@ -131,7 +131,8 @@ case 'DensityPlot'
 	% Generate & plot histogram
 	x = getappdata(hfig,'x');
 	y = getappdata(hfig,'y');
-	[n,xc,yc] = hist2d(x,y,[rectx recty],nx,ny);
+    % hist2d no longer takes rectangle arguments
+	[n,xc,yc] = hist2d(x,y,nx,ny);
 	himage = imagesc(xc,yc,log(n+1)');
 	set(gca,'YDir','normal');
 	colormap(1-gray);
@@ -345,8 +346,9 @@ case 'showselected'
 				selected{ax,fn}=setdiff(selected{ax,fn},newselected);
 			end
 			if (size(xall{ax,fn},2)>0)
+                % hist2d no longer takes rectangle arguments
 				[nsel1,xcsel,ycsel]=hist2d(xall{ax,fn}(selected{ax,fn}),yall{ax,fn}(selected{ax,fn}),...
-				[rectx{ax} recty{ax}],length(xc{ax}),length(yc{ax}));
+				length(xc{ax}),length(yc{ax}));
 			else
 				nsel1(length(xc{ax}),length(yc{ax}))=0;
 			end
@@ -617,7 +619,7 @@ im(:,:,1)=im1';
 im(:,:,2)=im2';
 im(:,:,3)=im3';
 set(gca,'nextplot','replacechildren')
-himage = image(xc,yc,log(im+1));
+himage = image(xc(1,:),yc(:,1),log(im+1));
 set(gca,'YDir','normal');
 set(gca,'XTickLabel',{''},'xtick',[],'YTickLabel',{''},'Ytick',[])
 set(himage,'HitTest','off');

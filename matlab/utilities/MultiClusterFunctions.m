@@ -70,7 +70,7 @@ case 'DoPolygon'
 		polygons{1}.x = pvx;
 		polygons{1}.y = pvy;
 		setappdata(hfig,'polygons',polygons);
-		Multiclusterfunctions ('showselected');
+		MultiClusterFunctions ('showselected');
 	end
 	if (ishandle(hfig))	% User might have hit cancel during polygon drawing
 		%   Re-enable cluster selection callbacks

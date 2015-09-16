@@ -71,7 +71,7 @@ case 'Sep'
 			newclflindx(elim,:) = [];
 		end
 		nsnips = getappdata(h,'nsnips');
-		newclflindx(1,:) = RebuildUnassigned(newclflindx,nsnips,h);
+		newclflindx(1,:) = rebuildunassigned(newclflindx,nsnips,h);
 		% Store the new assignments
 		setappdata(h,'clflindx',newclflindx);
 		DoChanFunctions('Unselect',h);

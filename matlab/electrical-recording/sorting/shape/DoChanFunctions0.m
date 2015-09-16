@@ -182,7 +182,7 @@ case 'Cluster'
 			newclflindx(elim,:) = [];
 		end
 		nsnips = getappdata(h,'nsnips');
-		newclflindx(1,:) = RebuildUnassigned(newclflindx,nsnips);
+		newclflindx(1,:) = rebuildunassigned(newclflindx,nsnips);
 		% Store the new assignments
 		setappdata(h,'clflindx',newclflindx);
 		DoChanFunctions('Unselect',h);
@@ -356,7 +356,7 @@ case 'Delete'
 	clflindx = getappdata(h,'clflindx');
 	clflindx(selindx,:) = [];
 	nsnips = getappdata(h,'nsnips');
-	clflindx(1,:) = RebuildUnassigned(clflindx,nsnips);
+	clflindx(1,:) = rebuildunassigned(clflindx,nsnips);
 	setappdata(h,'clflindx',clflindx);
 	DoChanFunctions('Unselect',h);
 	DoChanFunctions('UpdateDisplay',h);
@@ -404,7 +404,7 @@ if (nargout > 1)
 end
 return
 
-function uas = RebuildUnassigned(assindx,nsnips)
+function uas = rebuildunassigned(assindx,nsnips)
 % Re-compute the unassigned group as the difference
 % between the total and the assigned data
 % First get the union of all assigned data

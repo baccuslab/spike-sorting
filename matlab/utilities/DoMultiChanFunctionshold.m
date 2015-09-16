@@ -214,7 +214,7 @@ case 'Cluster'
 			newclflindx(elim,:) = [];
 		end
 		nsnips = getappdata(h,'nsnips');
-		newclflindx(1,:) = RebuildUnassigned(newclflindx,nsnips,h);
+		newclflindx(1,:) = rebuildunassigned(newclflindx,nsnips,h);
 		% Store the new assignments
 		setappdata(h,'clflindx',newclflindx);
 		DoMultiChanFunctions('Unselect',h);
@@ -654,7 +654,7 @@ case 'Delete'
 	upd=setdiff(upd,selindx);
 	clflindx(selindx,:) = [];
 	nsnips = getappdata(h,'nsnips');
-	clflindx(1,:) = RebuildUnassigned(clflindx,nsnips,h);
+	clflindx(1,:) = rebuildunassigned(clflindx,nsnips,h);
 	setappdata(h,'clflindx',clflindx);
 	setappdata (h,'updatevector',upd);
 	DoMultiChanFunctions('Unselect',h);

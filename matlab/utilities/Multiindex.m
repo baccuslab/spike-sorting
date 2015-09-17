@@ -1,5 +1,5 @@
 function [multitimes,multiindx]= Multiindex (hmain,g,sortchannels,mchidx);
-nfiles=size(g.snipfiles,2); %check this
+nfiles=size(g.snipfiles,2);
 %Load in spike times
 sptimes=cell(1); sptimes{1}=cell(1,nfiles);
 for fnum=1:nfiles;

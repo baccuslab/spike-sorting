@@ -15,8 +15,13 @@ set (gcf,'CloseRequestFcn','')
 
 for chindx=1:numch
     pos = GetPosition(channels, array_type, numch)
+    axes('position',[pos 1/11 0.125]);
+    %set(gca,'XTickLabel',{''},'xtick',[],'YTickLabel',{''},'Ytick',[],...
+    %'XColor',[0.8 0.8 0.8],'YColor',[0.8 0.8 0.8]);
+    hax=gca;
+
     %subplot(ceil(sqrt(numch)), ceil(sqrt(numch)), chindx);
-    title(sprintf('Ch %d', channels(chindx)));
+    %title(sprintf('Ch %d', channels(chindx)));
 	setappdata(gca,'mode','density');
 	
 	hch(chindx)=gca;

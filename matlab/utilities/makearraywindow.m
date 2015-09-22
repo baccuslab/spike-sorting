@@ -1,11 +1,21 @@
-function handles = makearraywindow (channels);
-numch=size(channels,1);
+function handles = makearraywindow(channels, array_type);
+% function handles = makearraywindow(channels, array_type)
+% Creates the initial window with each channel and its default
+% 2D projections
+%
+% Modified 2015-09-22 by Lane McIntosh
+%   - added array_type argument and changed loop to call
+%   getPosition
+%
+numch=length(channels);
 %SETUP ARRAY CHANNEL PLOT
 figure ('Name','Array','Position', [150 50 1050 750],'NumberTitle','off');%,'doublebuffer','on');
 set (gcf,'CloseRequestFcn','')
 %Plot each recorded channel
+
 for chindx=1:numch
-    subplot(ceil(sqrt(numch)), ceil(sqrt(numch)), chindx);
+    pos = GetPosition(channels, array_type, numch)
+    %subplot(ceil(sqrt(numch)), ceil(sqrt(numch)), chindx);
     title(sprintf('Ch %d', channels(chindx)));
 	setappdata(gca,'mode','density');
 	

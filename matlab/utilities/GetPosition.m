@@ -45,7 +45,7 @@ elseif strcmp(array_type, 'hidens')
     % want poslistx and poslisty to be between 0 and 1
     poslistx = x_configuration/max(x_configuration);
     poslisty = y_configuration/max(y_configuration);
-    pos = [poslistx(ch); poslisty(ch)]';
+    pos = [poslistx(ch), poslisty(ch)];
 
 else
     % if not one of the above array types, just plot the channels in numerical order

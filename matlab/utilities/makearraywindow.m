@@ -20,15 +20,15 @@ set(gcf,'CloseRequestFcn','')
 %Plot each recorded channel
 
 for chindx=1:numch
-    if strcmp(g.array, 'hidens')
-        pos = GetPosition(channels, array_type, numch, x_coordinates, y_coordinates)
+    if strcmp(array_type, 'hidens')
+        pos = GetPosition(channels, array_type, numch, x_coordinates, y_coordinates);
     else
-        pos = GetPosition(channels, array_type, numch)
+        pos = GetPosition(channels, array_type, numch);
     end
     axes('position',[pos 1/11 0.125]);
     %set(gca,'XTickLabel',{''},'xtick',[],'YTickLabel',{''},'Ytick',[],...
     %'XColor',[0.8 0.8 0.8],'YColor',[0.8 0.8 0.8]);
-    hax=gca;
+    %hax=gca;
 
     %subplot(ceil(sqrt(numch)), ceil(sqrt(numch)), chindx);
     %title(sprintf('Ch %d', channels(chindx)));

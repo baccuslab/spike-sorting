@@ -139,8 +139,16 @@ if (pwflag)
 	proj=getappdata(handles.main,'proj');
 	global sptimes
 end
+
 %Create array plot
-handles = makearraywindow (channels);
+g.array = h5readatt(datafiles{1}, '/data', 'array');
+if strcmp(g.array, 'hidens')
+    g.x_coordinates = double(h5read(datafiles{fnum}, '/configuration/x'));
+    g.y_coordinates = double(h5read(datafiles{fnum}, '/configuration/y'));
+    handles = makearraywindow(channels, g.array, g.x_coordinates, g.y_coordinates);
+else
+    handles = makearraywindow(channels, g.array);
+end
 
 %Definitions
 chanclust = cell(1,numch);			%Cell clusters, contains spike times

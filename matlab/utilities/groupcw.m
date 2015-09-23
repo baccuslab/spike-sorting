@@ -42,7 +42,11 @@ if (exist(outfile, 'file'))		% If file already exists
 		removedCT = cell(nchans, nfiles);
 	end
 	%Setup array window
-	handles = makearraywindow(g.channels);
+    if strcmp(g.array, 'hidens')
+        handles = makearraywindow(g.channels, g.array, g.x_coordinates, g.y_coordinates);
+    else
+        handles = makearraywindow(g.channels, g.array);
+    end
     Arrayplot(g.channels, handles.ch, g.xc, g.yc, g.nspikes);
 	setappdata(handles.main, 'g', g);		
 

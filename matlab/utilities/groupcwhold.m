@@ -40,9 +40,13 @@ if (~pwflag) %Continuous waveform data
 			removedCT=cell(nchans,nfiles);
 		end
 		%Setup array window
-		handles = makearraywindow (g.channels);
-		arrayplot (g.channels,handles.ch,g.xc,g.yc,g.nspikes) ;
-		setappdata (handles.main,'g',g);		
+        if strcmp(g.array, 'hidens')
+            handles = makearraywindow(g.channels, g.array, g.x_coordinates, g.y_coordinates);
+        else
+            handles = makearraywindow(g.channels, g.array);
+        end
+		Arrayplot(g.channels, handles.ch, g.xc, g.yc, g.nspikes) ;
+		setappdata(handles.main, 'g', g);		
 	end %end continuous waveform case
 else %peak-width
 	nfiles=1;
@@ -52,7 +56,7 @@ else %peak-width
 		fprintf(sprintf('Continuing where we left off with file %s...\n',outfile));
 		load(outfile)
 		%Remove spikes already in clusters and the removed crosstalk
-		sptimes=removetimes (sptimes,chanclust,removedCT,1:nchans );
+		sptimes=removetimes(sptimes, chanclust, removedCT, 1:nchans );
 	end
 end
 

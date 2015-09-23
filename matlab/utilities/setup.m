@@ -138,7 +138,14 @@ else
 end
 
 %Create array plot
-handles = makearraywindow (channels);
+g.array = h5readatt(datafiles{1}, '/data', 'array');
+if strcmp(g.array, 'hidens')
+    g.x_coordinates = double(h5read(datafiles{fnum}, '/configuration/x'));
+    g.y_coordinates = double(h5read(datafiles{fnum}, '/configuration/y'));
+    handles = makearraywindow(channels, g.array, g.x_coordinates, g.y_coordinates);
+else
+    handles = makearraywindow(channels, g.array);
+end
 
 %Definitions
 chanclust = cell(1,numch);			%Cell clusters, contains spike times
@@ -160,7 +167,7 @@ for ch=1:numch
 		[xc(ch),yc(ch),nspikes(ch)]=Hist2dcalc(proj(ch),nx,ny); 
 	end
 end
-Arrayplot (channels,handles.ch,xc,yc,nspikes);
+Arrayplot(channels,handles.ch,xc,yc,nspikes);
 %Indicate zero if not a peak-width plot
 if ~pwflag
 	for chindx=1:size(channels,2)

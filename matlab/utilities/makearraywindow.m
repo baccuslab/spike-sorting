@@ -1,5 +1,5 @@
-function handles = makearraywindow(channels, array_type);
-% function handles = makearraywindow(channels, array_type)
+function handles = makearraywindow(channels, array_type, x_coordinates, y_coordinates);
+%function handles = makearraywindow(channels, array_type, x_coordinates, y_coordinates);
 % Creates the initial window with each channel and its default
 % 2D projections
 %
@@ -7,14 +7,24 @@ function handles = makearraywindow(channels, array_type);
 %   - added array_type argument and changed loop to call
 %   getPosition
 %
+if nargin < 3
+    x_coordinates = [];
+    y_coordinates = [];
+end
+
+
 numch=length(channels);
 %SETUP ARRAY CHANNEL PLOT
-figure ('Name','Array','Position', [150 50 1050 750],'NumberTitle','off');%,'doublebuffer','on');
-set (gcf,'CloseRequestFcn','')
+figure('Name','Array','Position', [150 50 1050 750],'NumberTitle','off');%,'doublebuffer','on');
+set(gcf,'CloseRequestFcn','')
 %Plot each recorded channel
 
 for chindx=1:numch
-    pos = GetPosition(channels, array_type, numch)
+    if strcmp(g.array, 'hidens')
+        pos = GetPosition(channels, array_type, numch, x_coordinates, y_coordinates)
+    else
+        pos = GetPosition(channels, array_type, numch)
+    end
     axes('position',[pos 1/11 0.125]);
     %set(gca,'XTickLabel',{''},'xtick',[],'YTickLabel',{''},'Ytick',[],...
     %'XColor',[0.8 0.8 0.8],'YColor',[0.8 0.8 0.8]);

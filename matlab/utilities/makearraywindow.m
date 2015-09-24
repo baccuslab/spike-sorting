@@ -21,9 +21,9 @@ set(gcf,'CloseRequestFcn','')
 
 for chindx=1:numch
     if strcmp(array_type, 'hidens')
-        pos = GetPosition(channels, array_type, numch, x_coordinates, y_coordinates);
+        pos = GetPosition(chindx, array_type, numch, x_coordinates, y_coordinates);
     else
-        pos = GetPosition(channels, array_type, numch);
+        pos = GetPosition(chindx, array_type, numch);
     end
     axes('position',[pos 1/11 0.125]);
     %set(gca,'XTickLabel',{''},'xtick',[],'YTickLabel',{''},'Ytick',[],...

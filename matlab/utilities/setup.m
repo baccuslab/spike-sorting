@@ -42,7 +42,7 @@ if (~pwflag)
 
 			% Step 1: load in representatives of all channels
 			fprintf('Building default filters:\n  Reading sample spike snippets from all channels...\n');
-			numSpikeSnips = 5000;
+			numSpikeSnips = 1000; % this is per channel!!
             %numperfile = round(numSpikeSnips/numfiles);
 			%[spikes, ssniprange] = readFromAllChannels(snipfiles, 'spike', numperfile, channels(channels ~= 2));
 			

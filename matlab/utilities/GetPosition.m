@@ -43,8 +43,9 @@ elseif strcmp(array_type, 'hidens')
         err = 'No hidens array x and y configuration loaded!'
     end
     % want poslistx and poslisty to be between 0 and 1
-    poslistx = x_configuration/max(x_configuration);
-    poslisty = y_configuration/max(y_configuration);
+    % add 1, 0.01 to provide some space at border
+    poslistx = x_configuration/(max(x_configuration)+1) + 0.01;
+    poslisty = y_configuration/(max(y_configuration)+1) + 0.01;
     pos = [poslistx(ch), poslisty(ch)];
 
 else
@@ -53,13 +54,14 @@ else
     if num_channels == -1
         err = 'Number of channels is not specified!'
     end
-    width = sqrt(num_channels);
-    poslistx = floor(ch / width);
-    poslisty = mod(ch, width);
+    width = ceil(sqrt(num_channels)) + 1;
+    poslistx = mod(ch, width);
+    poslisty = floor(ch / width);
     % want poslistx and postlisty to be between 0 and 1
-    poslistx = postlistx/max(postlistx);
-    poslisty = postlisty/max(postlisty);
-    pos = [poslistx(ch); poslisty(ch)]';
+    % padding for borders
+    poslistx = poslistx/(width+1.9) + 0.01;
+    poslisty = (width - poslisty)/(width-1) - 0.28;
+    pos = [poslistx; poslisty]';
 
 end
 

@@ -22,10 +22,11 @@ set(gcf,'CloseRequestFcn','')
 for chindx=1:numch
     if strcmp(array_type, 'hidens')
         pos = GetPosition(chindx, array_type, numch, x_coordinates, y_coordinates);
+        axes('position',[pos 1/15 1/20]);
     else
         pos = GetPosition(chindx, array_type, numch);
+        axes('position',[pos 1/11 0.125]);
     end
-    axes('position',[pos 1/11 0.125]);
     %set(gca,'XTickLabel',{''},'xtick',[],'YTickLabel',{''},'Ytick',[],...
     %'XColor',[0.8 0.8 0.8],'YColor',[0.8 0.8 0.8]);
     %hax=gca;

@@ -124,8 +124,13 @@ if (~pwflag)
 		%Calculate default filter projections for all channels
         calcproj (snipfiles,'proj.bin',channels,subrange,deffilters);
     else
+        % if proj.bin does not exist
         subsetbutton = 'no'; %added, check this
-	end %If proj.bin does not exist
+        scanrate = h5readatt(snipfiles{1}, '/', 'sample-rate');
+        %sniprange = [];
+        %subrange = [];
+        %deffilters = [];
+	end 
 else
 	global proj;
 	channels=1:size(channels,1);
@@ -187,15 +192,24 @@ g.ctchannels=[];
 g.snipfiles = snipfiles;
 g.ctfiles=datafiles;
 g.xc=xc; g.yc=yc; g.nspikes=nspikes;g.rectx=rectx;g.recty=recty;
-g.sniprange=sniprange;
+% when resuming spike sorting, sniprange isn't set
+if exist('sniprange', 'var')
+    g.sniprange=sniprange;
+end
 g.nsnips=nsnips;
 if  (pwflag) 
 	setappdata(handles.main,'proj',proj);
 	setappdata(handles.main,'nfiles',1);
 else
     g.snipfiles=snipfiles;
-	g.deffilters=deffilters;
-	g.subrange=subrange;
+    % when resuming spike sorting, deffilters isn't set
+    if exist('deffilters', 'var')
+        g.deffilters=deffilters;
+    end
+    % when resuming spike sorting, subrange isn't set
+    if exist('subrange', 'var')
+        g.subrange=subrange;
+    end
 end
 g.chanclust=chanclust;
 g.outfile=outfile;

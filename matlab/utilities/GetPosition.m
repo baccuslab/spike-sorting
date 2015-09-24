@@ -44,8 +44,10 @@ elseif strcmp(array_type, 'hidens')
     end
     % want poslistx and poslisty to be between 0 and 1
     % add 1, 0.01 to provide some space at border
-    poslistx = x_configuration/(max(x_configuration)+1) + 0.01;
-    poslisty = y_configuration/(max(y_configuration)+1) + 0.01;
+    x_configuration = x_configuration - min(x_configuration);
+    y_configuration = y_configuration - min(y_configuration);
+    poslistx = x_configuration/(max(x_configuration)+18) + 0.12;
+    poslisty = y_configuration/(max(y_configuration)+18) + 0.05;
     pos = [poslistx(ch), poslisty(ch)];
 
 else

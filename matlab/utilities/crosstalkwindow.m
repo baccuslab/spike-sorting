@@ -8,7 +8,7 @@ numch=size(g.channels,1);
 %open figure
 figure ('Name','Crosstalk','Position', [300 50 750 750]);%,'doublebuffer','on');
 %Create axis for each channel
-for chan= 0:63
+for chan=1:numch
     if strcmp(g.array, 'hidens')
         pos = GetPosition(chan, g.array, numch, g.x_coordinates, g.y_coordinates);
     else
@@ -16,6 +16,7 @@ for chan= 0:63
     end
  	axes('position',[pos 0.11 0.11]);
  	set(gca,'XTickLabel',{''},'xtick',[],'YTickLabel',{''},'Ytick',[],'XColor',[0.8 0.8 0.8],'YColor',[0.8 0.8 0.8]);
+    hcc(chan)=gca;
 end
 %for chindx=1:numch
 %    subplot(ceil(sqrt(numch)), ceil(sqrt(numch)), chindx);

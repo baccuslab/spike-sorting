@@ -132,11 +132,15 @@ void extract::extractSpikes(const sampleMat& data, const arma::vec& thresholds,
 					snip_mat(arma::span::all, snip_num) = data(
 							arma::span(i - nbefore, i + nafter), c);
 					snip_num++;
-					i += snipfile::WINDOW_SIZE;
-				} else
-					i++;
-			} else
-				i++;
+				}
+			}
+			/* XXX: Previous versions set this jump size as the smoothing window
+			 * size if current sample was considered a local maximum, and one
+			 * otherwise. Keeping it at 1 increases the number of snippets extracted
+			 * by about 1%, but these extra snippets are probably doubly-counted
+			 * versions of the same snippet.
+			 */
+			i += 1;
 		}
 		snip_mat.resize(snip_mat.n_rows, snip_num);
 		idx_vec.resize(snip_num);

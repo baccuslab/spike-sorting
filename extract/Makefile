@@ -91,4 +91,4 @@ clean:
 	rm -f $(LIB_DIR)/* $(BUILD_DIR)/* $(BIN_DIR)/*
 
 install:
-	ln -sf $(BIN_DIR)/extract /usr/local/bin/extract
+	ln -sf $(CWD)/$(BIN_DIR)/extract /usr/local/bin/extract

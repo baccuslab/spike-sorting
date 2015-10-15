@@ -198,7 +198,11 @@ void snipfile::SnipFile::readFileAttr(const std::string& name,
 
 void snipfile::SnipFile::writeChannels(const arma::uvec& channels)
 {
-	H5::DataType type(H5::PredType::STD_U64LE);
+	H5::DataType type;
+	if (sizeof(arma::uword) == sizeof(uint32_t))
+		type = H5::DataType(H5::PredType::STD_U32LE);
+	else
+		type = H5::DataType(H5::PredType::STD_U64LE);
 	writeFileAttr("nchannels", type, &channels.n_elem);
 	hsize_t dims[1] = {channels.n_elem};
 	H5::DataSpace space(1, dims);

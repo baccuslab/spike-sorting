@@ -25,7 +25,7 @@ else
     end
     range = g.sniprange;
     nscans = -1 * range(1) + range(2) + 1; %since 0 > range(1) = numsamples before
-    rectime = g.scanrate/nscans; %scanrate and nscans are read from multiple files
+    rectime = ones(nfiles, 1) * g.scanrate/nscans; %scanrate and nscans are read from multiple files
 end
 %Get times of spikes on first channel and coincident spikes on other channels
 [sptimes,spindx]= Multiindex (hmain,g,sortchannels,chindices);

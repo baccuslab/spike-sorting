@@ -7,6 +7,16 @@ function [f,lambda] = MaxSep(snips)
 % Outputs:
 %	f is the matrix of filters, each in a column
 %	lambda is the set of eigenvalues
+%
+% History:
+%
+% 2015-10-15
+%	It appears that Matlab's ordering of eigenvalues returned
+%	by the `eig` function has changed, from high-to-low to
+%	low-to-high. Flipping the returned arrays to match the
+% 	old behavior
+%		- Benjamin Naecker bnaecker@stanford.edu
+
 nclust = length(snips);
 if (nclust < 2)
 	error('Must have at least 2 clusters to separate');
@@ -54,6 +64,8 @@ lambda = abs(real(diag(lambda)));
 f = real(f);
 normf = diag(f'*denom*f)/nclust;	% Change default normalization so that
 f = f/diag(sqrt(normf));			% f'*Cnoise*f = identity
+f = fliplr(f);
+lambda = flipud(lambda);
 %lambda = diag(lambda)/(nclust-1);
 %[U,V,X,C,S] = gsvd(chol(num),chol(denom),0);	% This version assures it's real
 %f = sqrt(width)*inv(S*X');

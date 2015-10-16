@@ -1,7 +1,7 @@
 function [tout,indexout] = GroupDefaultProj(g,sortchannels,chindices,blocksize,useclnums,snipindx,multiindx,multitimes,hsort)
 % tout{clustnum,filenum} = Times of spikes of cell # clustnum, in the file spikefiles{filenum}
 % indexout: same as tout except it's the index # of the snippet rather than the time
-spfiles = {g.snipfiles}; %change to multiple files
+spfiles = g.snipfiles; %change to multiple files
 nfiles=size(spfiles,2);
 for i = 1:length(snipindx)
 	nsnips(i) = length(snipindx{i});

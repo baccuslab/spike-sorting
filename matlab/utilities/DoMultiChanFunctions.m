@@ -76,8 +76,8 @@ case 'SortSubset'
 		clflindxnew(1,:)={[]};
 		clflindxnew(2:end,:)=clflindx(selclust,:);
 		setappdata (h,'clflindx',clflindxnew);
-		clflindxsub=cell(1,size(g.snipfiles,2));
-		for fnum = 1:size(g.snipfiles,1)
+		clflindxsub=cell(1,length(g.snipfiles));
+		for fnum = 1:length(g.snipfiles)
 			clflindxsub{fnum} = sort(cat(2,clflindxnew{2:end,fnum}));
 		end
 		setappdata(h,'clflindxsub',clflindxsub);
@@ -584,9 +584,9 @@ case 'CrossCorr'
 
 case 'Clear'
 	% Delete current clusters and make all spikes unassigned
-	newclflindx=cell(size(g.snipfiles,1));
+	newclflindx=cell(length(g.snipfiles));
 	clflindx=getappdata (h,'clflindx');
-	for fnum = 1:size(g.snipfiles,1)
+	for fnum = 1:length(g.snipfiles)
 		newclflindx{fnum} = sort(cat(2,clflindx{1:end,fnum}));
 	end
 	setappdata (gcf,'clflindx',newclflindx);
@@ -667,7 +667,7 @@ case 'Recon'
 	ViewReconstruction([1 50000],g.ctfiles(flindx),sortchannels,sptimes,hdr);
 case 'Crosstalk'
 	t = getappdata(h,'t');
-	nfiles=size(g.snipfiles,1);
+	nfiles=length(g.snipfiles);
 	[selclust,wvindx] = GetSelClust(h); 	%indices in the selected clusters
 	clflindx=getappdata (h,'clflindx');
 	%Get times for subset
@@ -675,7 +675,7 @@ case 'Crosstalk'
 	tsel=cell(nclust,nfiles);				
 	for cl=1:nclust
 		subindx=getsubset (clflindx(selclust(cl),:),30*nfiles);	%Changed  SAB 10/13/08, Change to smaller  number if too slow
-		for fnum = 1:size(g.snipfiles,1)
+		for fnum = 1:nfiles
 			tsel{cl,fnum} = t{fnum}(subindx{fnum});
 		end
 	end
@@ -770,17 +770,20 @@ case 'Done'
 				remidx{1,fnum}=spindx{fnum}(1,newclindx{clust,fnum});
 			end
 		end
-	end
+    end
+    
 	%Remove crosstalk from array plot
+    alltimes = cell(1, nfiles);
 	if (~isempty(tmpremCT))
 		for c = 1:length(ctchannels)
 			for fnum = 1:nfiles
 				if (size(tmpremCT{c}{fnum},2)>0)
 					ch=ctindices(c);
-                    snipfiles = g.snipfiles;
-					[snip, time]=loadSnip(snipfiles{fnum},'spike',ch);
-                    alltimes = {time}; %can be removed when we support multiple files
-					alltimes{fnum}=[alltimes{fnum}';1:length(alltimes{fnum})];
+
+                    % Why is the variable alltimes here at all?
+                    [~, alltimes{fnum}] = loadSnip(g.snipfiles{fnum}, 'spike', ch);
+                    alltimes{fnum}=[alltimes{fnum}';1:length(alltimes{fnum})];
+                    
 					remidx{c+1,fnum}=tmpremidx{c}{fnum};
 				end
 			end
@@ -790,10 +793,10 @@ case 'Done'
 	proj=loadprojindexed('proj.bin',remidxlist,nchans,nfiles,remidx);
     % Hist2dcalc used to also take 2 additional arguments,
     % g.rectx(remidxlist,:) and g.recty(remidxlist,:)
-	[xc,yc,nspikes]=Hist2dcalc(proj,nx,ny); 
+	[xc,yc,nspikes]=Hist2dcalc(proj,nx,ny);
 	for ch=1:length (remidxlist)
-		g.nspikes{remidxlist(ch)}=g.nspikes{remidxlist(ch)}-nspikes{ch};
-		g.nspikes{remidxlist(ch)}(find(g.nspikes{remidxlist(ch)}<0))=0;
+        g.nspikes{remidxlist(ch)} = max(g.nspikes{remidxlist(ch)} - ...
+            nspikes{ch}, 0);
 	end
 	% Make a file copy after each channel
 	% (in case something goes wrong);

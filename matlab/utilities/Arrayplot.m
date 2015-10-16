@@ -11,7 +11,7 @@ function Arrayplot(channels,hch,xc,yc,nspikes)
         yc_arr = [yc{chindx}];
         xc_arr = [xc{chindx}];
         if(~(isempty(xc_arr) && isempty(yc_arr)))
-            sp_arr = nspikes{chindx};
+            sp_arr = log(nspikes{chindx});
             h=imagesc(xc_arr(1,:), yc_arr(:,1),sp_arr);
             set(h,'UserData',chindx,'ButtonDownFcn','startsort');
         else

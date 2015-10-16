@@ -81,7 +81,7 @@ case 'showall'
 		for cl=1:size(snips.data,1);	
 			axes(handles.cc(chindx));
 			if (size(snips.data{cl,chindx},2)>0)
-				plot(snips.data{cl,chindx},getcolor(cl))
+				plot(snips.data{cl,chindx}',getcolor(cl))
 				hold on
 			else
 				cla
@@ -175,7 +175,8 @@ case 'remove'
 	setappdata (handles.sort,'ctchannels',sellist);
 	hctlist=getappdata(handles.sort,'hctlist');
 	if (ishandle(hctlist))
-		set(hctlist,'String',sprintf('Remove cross talk on: %s',num2str(sellist)));
+		set(hctlist,'String',sprintf(['Remove cross talk on: ' ...
+            repmat(['%d '], [1 length(sellist)])], sellist));
 	end
 	set(findobj(handles.sort,'Tag','DoneButton'),'Enable','on');
 otherwise

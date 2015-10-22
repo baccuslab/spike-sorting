@@ -1,44 +1,34 @@
-function hmain = setup(outfile, snipfile)
-% Setup the main spike sorting interface
-%
-% (C) 2015 The Baccus Lab
-%
-% Updates:
-% 2015-07-20 - Benjamin Naecker
-%	- Updating for new HDF snippet file format
-%	- A bit of miscellaneous formatting
-
-% Read channels to be sorted from the file
-channels = h5read(snipfile, '/channels');
-numch = length(channels);
-
-pwflag = 0; % BN - temporary, removing support in the future
-
+function hmain=setup(outfile,datafiles,spikefiles,noisefiles,channels,pwflag);
+numch=size(channels,2);
+numfiles=size(spikefiles,2);
 if (~pwflag)
 	if (isempty(dir('proj.bin')))
-
 		%subsetbutton=questdlg ('Define spikes on a subset of data', '', 'yes', 'no','no');
-		subsetbutton = 'no';
+		subsetbutton='no';
 		%Default Filters
 		%deffiltbutton=questdlg ('Choose default filters', '', 'load', 'calculate','load');
-		deffiltbutton = 'calculate';
+		deffiltbutton='calculate';
 		switch deffiltbutton
 		case 'load',
-			[deffiltname, deffiltpath] = uigetfile('*.mat', 'Load default filters');
-			load(deffiltname);
-
+			[deffiltname,deffiltpath]=uigetfile ('*.mat','Load default filters');
+			load (deffiltname);
 		case 'calculate',
-
 			% Step 1: load in representatives of all channels
 			fprintf('Building default filters:\n  Reading sample spike snippets from all channels...\n');
-			numSpikeSnips = 5000;
-			[spikes, ssniprange] = readFromAllChannels(snipfile, 'spike', numSpikeSnips, channels(channels ~= 2));
-
+			numperfile = 50000/numfiles;
+			spikes = [];
+			for i = 1:numfiles
+				[newspikes,ssniprange] = ReadFromAllChannels(spikefiles{i},numperfile,channels(find(channels~=2)));
+				spikes = [spikes,newspikes];
+			end
 			% Step 2: do the same for noise
 			fprintf('  Reading noise snippets from all channels...\n');
-			numNoiseSnips = 1000;
-			noise = readFromAllChannels(snipfile, 'noise', numNoiseSnips, channels(channels ~= 2));
-
+			noiseperfile = 5000/length(noisefiles);
+			noise=[];
+			for i = 1:length(noisefiles)
+				newnoise = ReadFromAllChannels(noisefiles{i},noiseperfile,channels);
+				noise = [noise,newnoise];
+			end
 			% Step 3: let user set sniprange
 			deffilters=cell(1,numch);
 			sv=cell(1,numch);
@@ -51,7 +41,7 @@ if (~pwflag)
 			%writes coincident snippets, the peak may be elsewhere, or there may not even be a spike.
 			%spikes=spikes(:,find(max(spikes)==spikes(-ssniprange(1)+1,:)));
 			%take only the biggest 50% of the spikes
-			peakval=spikes(ssniprange(1)+1,:); 
+			peakval=spikes(-ssniprange(1)+1,:); 
 			peakval=[peakval;1:size(peakval,2)];
 			peakval=sortrows(peakval')';
 			peakval=peakval(:,floor(end-size(peakval,2)/2):end);

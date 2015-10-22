@@ -1,1 +1,0 @@
-c2 = linspace(0,1/30,25)';for i = 1:ngc	subplot(3,5,i);	errorbar([c',c'],[pstim(4:7,i),pstim(8:11,i)],[errstim(4:7,i),errstim(8:11,i)],'x');	hold on	ptemp = pmmklin(:,gc(i));	plot([c2,c2],[ptemp(3)*ptemp(4)*c2./(ptemp(4)*c2+ptemp(2)),ptemp(3)*ptemp(5)*c2./(ptemp(5)*c2+ptemp(2))]);	title(num2str(gc(i)));end

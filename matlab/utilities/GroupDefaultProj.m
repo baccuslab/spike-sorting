@@ -85,7 +85,7 @@ while (outrange == 0)
 	if (outrange == 0)
 		set(findobj(gcf,'Tag','DoneButton'),'String','Next');
 	end
-	setuprop(hfig,'mode',mode);		% Use the same mode that finished with last time
+	setappdata(hfig,'mode',mode);		% Use the same mode that finished with last time
 	hslider = findobj(hfig,'Tag','Slider');
 	slidermin = get(hslider,'Min');
 	slidermax = get(hslider,'Max');
@@ -95,7 +95,7 @@ while (outrange == 0)
 		slidervalue = slidermax;
 	end
 	set(hslider,'Value',slidervalue);
-	setuprop(hfig,'ClusterLabels',useclnums);	% Set the sequence of cluster #s to print on screen
+	setappdata(hfig,'ClusterLabels',useclnums);	% Set the sequence of cluster #s to print on screen
 	ClusterFunctions('Replot',hfig);	% Plot in correct mode
 	% Now wait for user input to finish
 	waitfor(hfig,'UserData','done');
@@ -106,11 +106,11 @@ while (outrange == 0)
 		return
 	end
 	% Retrieve the information about the clusters
-	clustnums = getuprop(hfig,'clustnums');
-	polygons = getuprop(hfig,'polygons');
-	x = getuprop(hfig,'x');
-	y = getuprop(hfig,'y');
-	mode = getuprop(hfig,'mode');
+	clustnums = getappdata(hfig,'clustnums');
+	polygons = getappdata(hfig,'polygons');
+	x = getappdata(hfig,'x');
+	y = getappdata(hfig,'y');
+	mode = getappdata(hfig,'mode');
 	slidervalue = get(hslider,'Value');
 	close(hfig)
 	% Determine which points fall in each polygon
@@ -161,21 +161,21 @@ hclustmodebox = uicontrol('Parent',hfig, ...
 'Style','checkbox', ...
 'Callback','ClustSWCallback Clustmodebox',...
 'Tag','clustmode', ...
-'Value',getuprop(hsort,'clustmode'));
-setuprop (hfig,'hsort',hsort);
-setuprop(hfig,'t',t);
-setuprop(hfig,'f',f);
-setuprop(hfig,'spikefiles',g.spikefiles);
-setuprop(hfig,'ctfiles',g.ctfiles);
-setuprop(hfig,'channels',sortchannels);
-setuprop(hfig,'snipindx',snipindx);
-setuprop(hfig,'multiindx',multiindx);
+'Value',getappdata(hsort,'clustmode'));
+setappdata (hfig,'hsort',hsort);
+setappdata(hfig,'t',t);
+setappdata(hfig,'f',f);
+setappdata(hfig,'spikefiles',g.spikefiles);
+setappdata(hfig,'ctfiles',g.ctfiles);
+setappdata(hfig,'channels',sortchannels);
+setappdata(hfig,'snipindx',snipindx);
+setappdata(hfig,'multiindx',multiindx);
 if (nargin > 4)
 	% Co-opt the "Clear" function and turn it into a "Revert" function
 	h = findobj(hfig,'Tag','ClearButton');
 	set(h,'String','Revert','Callback','ClustSPCallback Revert');
-	setuprop(hfig,'clustnums0',clustnums);
-	setuprop(hfig,'polygons0',polygons);
+	setappdata(hfig,'clustnums0',clustnums);
+	setappdata(hfig,'polygons0',polygons);
 	ClustSPCallback('Revert',hfig);
 end
 if nargout > 0, fig = hfig; end

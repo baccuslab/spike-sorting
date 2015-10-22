@@ -92,6 +92,6 @@ set(hwf,'Tag','WaveformsAxes', ...
 %set(LineH,'SelectionHighlight','off','EraseMode',emode,'Tag','wfm',...
 %	'ButtonDownFcn','ChooseWfmsCallback SelectLine');
 % Remember some useful #s
-setuprop(hwf,'PeakPos',sniprange(1)+1);
-setuprop(hwf,'oldthresh',thresh);
+setappdata(hwf,'PeakPos',sniprange(1)+1);
+setappdata(hwf,'oldthresh',thresh);
 

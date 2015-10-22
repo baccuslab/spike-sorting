@@ -47,7 +47,7 @@ while (outrange == 0)
 	if (outrange == 0)
 		set(findobj(gcf,'Tag','DoneButton'),'String','Next');
 	end
-	setuprop(hfig,'mode',mode);		% Use the same mode that finished with last time
+	setappdata(hfig,'mode',mode);		% Use the same mode that finished with last time
 	hslider = findobj(hfig,'Tag','Slider');
 	slidermin = get(hslider,'Min');
 	slidermax = get(hslider,'Max');
@@ -57,7 +57,7 @@ while (outrange == 0)
 		slidervalue = slidermax;
 	end
 	set(hslider,'Value',slidervalue);
-	setuprop(hfig,'ClusterLabels',useclnums);	% Set the sequence of cluster #s to print on screen
+	setappdata(hfig,'ClusterLabels',useclnums);	% Set the sequence of cluster #s to print on screen
 	ClusterFunctions('Replot',hfig);	% Plot in correct mode
 	% Now wait for user input to finish
 	waitfor(hfig,'UserData','done');
@@ -68,11 +68,11 @@ while (outrange == 0)
 		return
 	end
 	% Retrieve the information about the clusters
-	clustnums = getuprop(hfig,'clustnums');
-	polygons = getuprop(hfig,'polygons');
-	x = getuprop(hfig,'x');
-	y = getuprop(hfig,'y');
-	mode = getuprop(hfig,'mode');
+	clustnums = getappdata(hfig,'clustnums');
+	polygons = getappdata(hfig,'polygons');
+	x = getappdata(hfig,'x');
+	y = getappdata(hfig,'y');
+	mode = getappdata(hfig,'mode');
 	slidervalue = get(hslider,'Value');
 	close(hfig)
 	% Determine which points fall in each polygon

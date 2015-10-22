@@ -31,8 +31,8 @@ clustindx{1} = setdiff(1:length(tsnips),cindx);
 for i = 1:(ncells+1)
 	[wcell{i},tcell{i}] = ReconstructWaveform(snips(:,clustindx{i}),tsnips(clustindx{i}),sniprange,trange);
 end
-setuprop(gcf,'wcell',wcell);
-setuprop(gcf,'tcell',tcell);
+setappdata(gcf,'wcell',wcell);
+setappdata(gcf,'tcell',tcell);
 % Now plot the slider panel
 figure(fslide);
 %axes(axsl);
@@ -45,8 +45,8 @@ end
 xlim = trange;
 set(gca,'XLim',xlim);
 ylim = get(gca,'YLim');
-setuprop(gcf,'figxlim',xlim);
-setuprop(gcf,'figylim',ylim);
+setappdata(gcf,'figxlim',xlim);
+setappdata(gcf,'figylim',ylim);
 % Set & plot the selection rectangle
 selrectx = [xlim(1) xlim(2) xlim(2) xlim(1) xlim(1)];
 selrecty = [ylim(1) ylim(1) ylim(2) ylim(2) ylim(1)];

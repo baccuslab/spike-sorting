@@ -64,8 +64,8 @@ if (~pwflag)
 					fprintf('Operation cancelled by user\n');
 					return
 				end
-				choosespikes = getuprop(hfig,'GoodSpikes');
-				sniprange = getuprop(hfig,'NewRange');
+				choosespikes = getappdata(hfig,'GoodSpikes');
+				sniprange = getappdata(hfig,'NewRange');
 				if (length(choosespikes) <= sniprange(2)-sniprange(1))
 					errordlg('Do not have enough spikes on this channel to build filters! Select more, or cancel.','','modal');
 					set(hfig,'UserData','');
@@ -168,8 +168,8 @@ g.xc=xc; g.yc=yc; g.nspikes=nspikes;g.rectx=rectx;g.recty=recty;
 g.sniprange=sniprange;
 g.nsnips=nsnips;
 if  (pwflag) 
-	setuprop (handles.main,'proj',proj);
-	setuprop(handles.main,'nfiles',1);
+	setappdata (handles.main,'proj',proj);
+	setappdata(handles.main,'nfiles',1);
 else
 	g.noisefiles=noisefiles;
 	g.deffilters=deffilters;
@@ -182,7 +182,7 @@ g.allchannels=channels;
 g.pwflag=pwflag;
 g.scanrate=scanrate(1);
 g.subsetnum=20000;
-setuprop (handles.main,'g',g);
+setappdata (handles.main,'g',g);
 hmain=handles.main; %Return handle to main array figure
 
 function calcproj (files,outfile,channels,subrange,deffilters)

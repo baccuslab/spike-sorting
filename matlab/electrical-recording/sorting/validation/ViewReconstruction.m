@@ -64,19 +64,19 @@ if (nargin==5)
 	'Callback','ViewReconstruction',...
 	'Tag','Showbutton');
 	%Parameters for subsequent calls are stored in figure
-	setuprop (gcf,'datafname',datafname);
-	setuprop (gcf,'channels',channels);
-	setuprop (gcf,'sptimes',sptimes);
-	setuprop (gcf,'hdr',hdr);
+	setappdata (gcf,'datafname',datafname);
+	setappdata (gcf,'channels',channels);
+	setappdata (gcf,'sptimes',sptimes);
+	setappdata (gcf,'hdr',hdr);
 end
 if  (nargin == 0)
 	%Called with no parameters
 	fview=gcf;
 	%Retrieve parameters from figure
-	datafname=getuprop (gcf,'datafname');
-	channels=getuprop (gcf,'channels');
-	sptimes=getuprop (gcf,'sptimes');
-	hdr=getuprop (gcf,'hdr');
+	datafname=getappdata (gcf,'datafname');
+	channels=getappdata (gcf,'channels');
+	sptimes=getappdata (gcf,'sptimes');
+	hdr=getappdata (gcf,'hdr');
 	scanrange = [str2num(get(findobj(gcf,'Tag','tstart'),'String')) str2num(get(findobj(gcf,'Tag','tend'),'String'))]*hdr.scanrate;
 	%Check bounds for range of scans
 	if (scanrange(1)<1)
@@ -123,9 +123,9 @@ hold off
 ylabel('Voltage (V)');
 xlabel('Time (scan #)');
 if (nargin==0)
-	slidewin=getuprop (fview,'slidewin');
+	slidewin=getappdata (fview,'slidewin');
 	delete(slidewin);
 end
 slidewin=SliderWindow(gca,[21 60 1100 180]); %Show sliderwindow to zoom into data
 set(fview,'Visible','on');
-setuprop (fview,'slidewin',slidewin);
+setappdata (fview,'slidewin',slidewin);

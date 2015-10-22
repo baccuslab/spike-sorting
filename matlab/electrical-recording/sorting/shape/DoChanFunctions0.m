@@ -5,7 +5,7 @@ end
 switch(action)
 case 'SetCAxProp'
 	set(h,'KeyPressFcn','DoChanFunctions KeyTrap');	 %This seems to get overwritten
-	haxc = getuprop(h,'haxc');
+	haxc = getappdata(h,'haxc');
 	axcol = [0.6 0.6 0.6];
 	set(haxc,'Tag','ClustAxes', ...
 		'Box','off',...
@@ -25,7 +25,7 @@ case 'SetCAxProp'
 		end
 	end
 case 'SelectCell'
-	haxc = getuprop(h,'haxc');
+	haxc = getappdata(h,'haxc');
 	selection_type = get(h,'SelectionType');
 	if (~strcmp(selection_type,'extend'))
 		% First turn off all other selections if not shift-clicking
@@ -45,7 +45,7 @@ case 'SelectCell'
 		set(findobj(h,'Tag','DiscrimFiltersButton'),'Enable','off');
 	end
 case 'Unselect'
-	haxc = getuprop(h,'haxc');
+	haxc = getappdata(h,'haxc');
 	%selection_type = get(h,'SelectionType');
 	%if (~strcmp(selection_type,'extend'))
 		% Turn off all other selections if not shift-clicking
@@ -61,14 +61,14 @@ case 'BuildFilters'
 	nnoise = str2num(get(findobj(h,'Tag','NumNoise'),'String'));
 	% Get the waveforms in the selected clusters
 	[selclust,wvindx] = GetSelClust(h);
-	channel = getuprop(h,'channel');
-	[filters,subrange,sv,wave] = BFI(getuprop(h,'spikefiles'),getuprop(h,'noisefiles'),...
+	channel = getappdata(h,'channel');
+	[filters,subrange,sv,wave] = BFI(getappdata(h,'spikefiles'),getappdata(h,'noisefiles'),...
 		nspikes,nnoise,channel,wvindx);
 	if (length(filters) == 0)
 		return;
 	end
-	setuprop(h,'filters',filters);
-	setuprop(h,'subrange',subrange);
+	setappdata(h,'filters',filters);
+	setappdata(h,'subrange',subrange);
 	% Do the plotting
 	axes(findobj(h,'Tag','SVAxes'));
 	hlines = plot(sv(1:min([15 length(sv)])),'r.');
@@ -92,7 +92,7 @@ case 'DiscrimFilters'
 	nspikes = str2num(get(findobj(h,'Tag','NumSpikes'),'String'));
 	% Get the waveforms in the selected clusters
 	selclust = GetSelClust(h);
-	clflindx = getuprop(h,'clflindx');
+	clflindx = getappdata(h,'clflindx');
 	nfiles = size(clflindx,2);
 	nsel = length(selclust);
 	wvindx = cell(nsel,nfiles);
@@ -101,8 +101,8 @@ case 'DiscrimFilters'
 			wvindx{j,i} = clflindx{selclust(j),i};
 		end
 	end
-	channel = getuprop(h,'channel');
-	sfiles = getuprop(h,'spikefiles');
+	channel = getappdata(h,'channel');
+	sfiles = getappdata(h,'spikefiles');
 	spikes = cell(nsel,1);
 	for i = 1:nsel
 		spikes{i} = LoadIndexSnippetsMF(sfiles,channel,wvindx(i,:));
@@ -112,9 +112,9 @@ case 'DiscrimFilters'
 	filters = filt(:,1:2);
 	ifilt = inv(filt);
 	wave = ifilt(1:2,:)';
-	setuprop(h,'filters',filters);
+	setappdata(h,'filters',filters);
 	subrange = [1 size(spikes{1},1)];
-	setuprop(h,'subrange',subrange);
+	setappdata(h,'subrange',subrange);
 	% Do the plotting
 	axes(findobj(h,'Tag','SVAxes'));
 	hlines = plot(sv(1:min([15 length(sv)])),'r.');
@@ -138,27 +138,27 @@ case 'Cluster'
 	%			cluster labels (what the user actually sees) are cluster#s + clustnumoffset
 	% Offsetting the cluster labels allows multi-channel sorting to give unique numbers to each cell
 	% Also note: everything is done by snippet index #, the times are not used
-	channel = getuprop(h,'channel');
+	channel = getappdata(h,'channel');
 	if (get(findobj(h,'Tag','DefaultFiltersBox'),'Value') == 1)
-		filters = getuprop(h,'DefaultFilters');	% Use default filters
-		subrange = getuprop(h,'DefaultSubrange');
+		filters = getappdata(h,'DefaultFilters');	% Use default filters
+		subrange = getappdata(h,'DefaultSubrange');
 	else
-		filters = getuprop(h,'filters');			% Use built filters
-		subrange = getuprop(h,'subrange');
+		filters = getappdata(h,'filters');			% Use built filters
+		subrange = getappdata(h,'subrange');
 	end
 	% Get the blocksize from the edit box
 	blocksize = str2num(get(findobj(h,'Tag','BlockSize'),'String'));
 	% Get the waveforms in the selected clusters
 	[selclust,wvindx] = GetSelClust(h);
 	replclust = selclust(find(selclust>1));	% Don't replace the unassigned channel
-	clflindx = getuprop(h,'clflindx');
+	clflindx = getappdata(h,'clflindx');
 	replclust(end+1) = size(clflindx,1)+1;	% After replacing, append more clusters
 	nfiles = length(wvindx);
 	% Offset the cluster # labels appropriately
-	params = getuprop(h,'params');
+	params = getappdata(h,'params');
 	clustnumoffset = params.ClustNumOffset;
 	% Group the channel
-	spikefiles = getuprop(h,'spikefiles');
+	spikefiles = getappdata(h,'spikefiles');
 	[tnew,indxnew] = GroupChannel(spikefiles,channel,...
 		filters,subrange,blocksize,replclust+clustnumoffset-1,wvindx);
 	if (~isempty(tnew))	% If the user didn't hit cancel...
@@ -181,25 +181,25 @@ case 'Cluster'
 			elim = replclust(size(indxnew,1)+1:end-1); % eliminate if selected more than returned
 			newclflindx(elim,:) = [];
 		end
-		nsnips = getuprop(h,'nsnips');
+		nsnips = getappdata(h,'nsnips');
 		newclflindx(1,:) = RebuildUnassigned(newclflindx,nsnips);
 		% Store the new assignments
-		setuprop(h,'clflindx',newclflindx);
+		setappdata(h,'clflindx',newclflindx);
 		DoChanFunctions('Unselect',h);
 		DoChanFunctions('UpdateDisplay',h);
 	end			% End of (~isempty(tnew))
 	DoChanFunctions('SetCAxProp',h);
 case 'UpdateDisplay'
 	% Update the display
-	haxc = getuprop(h,'haxc');
-	t = getuprop(h,'t');
-	scanrate = getuprop(h,'scanrate');
-	hctext = getuprop(h,'hctext');
-	clflindx = getuprop(h,'clflindx');
+	haxc = getappdata(h,'haxc');
+	t = getappdata(h,'t');
+	scanrate = getappdata(h,'scanrate');
+	hctext = getappdata(h,'hctext');
+	clflindx = getappdata(h,'clflindx');
 	nclust = size(clflindx,1);
 	nfiles = size(clflindx,2);
-	spikefiles = getuprop(h,'spikefiles');
-	channel = getuprop(h,'channel');
+	spikefiles = getappdata(h,'spikefiles');
+	channel = getappdata(h,'channel');
 	dispnsnips = str2num(get(findobj(h,'Tag','DispNumSnips'),'String'));
 	actime = str2num(get(findobj(h,'Tag','ACTime'),'String'));
 	for i = 1:min(nclust,7)
@@ -253,7 +253,7 @@ case 'UpdateDisplay'
 		set(gca,'XTickMode','manual','XTick',[],'YTickMode','manual','YTick',[]);
 		haxc(2,i) = gca;
 		% Update the text below each cluster plot
-		params = getuprop(h,'params');
+		params = getappdata(h,'params');
 		clustnumoffset = params.ClustNumOffset;
 		if (i == 1)
 			set(hctext(1),'String',sprintf('Unassigned: %d',sum(nsubsnips)));
@@ -285,7 +285,7 @@ case 'UpdateDisplay'
 		set(haxc(1,i),'YLim',[ymin ymax]);
 	end
 	% Update the rate/clust,file graph
-	rectime = getuprop(h,'rectime');
+	rectime = getappdata(h,'rectime');
 	for i = 1:nclust
 		for j = 1:nfiles
 			nsubsnips(i,j) = length(clflindx{i,j})/rectime(j);
@@ -312,7 +312,7 @@ case 'DefFiltBox'
 		wvaxall = findobj(findobj(h,'Tag','WaveAxes'));
 		set(wvaxall,'Visible','off');
 		axes(findobj(h,'Tag','FiltAxes'));
-		filters = getuprop(h,'DefaultFilters');
+		filters = getappdata(h,'DefaultFilters');
 		plot(filters);
 		ylabel('Filters');
 		set(gca,'XLim',[1 size(filters,1)]);
@@ -328,7 +328,7 @@ case 'DefFiltBox'
 		set(findobj(findobj(h,'Tag','SVAxes')),'Visible','on');
 		set(findobj(findobj(h,'Tag','WaveAxes')),'Visible','on');
 		axes(findobj(h,'Tag','FiltAxes'));
-		filters = getuprop(h,'filters');
+		filters = getappdata(h,'filters');
 		if (~isempty(filters))
 			plot(filters);
 			ylabel('Filters');
@@ -341,10 +341,10 @@ case 'DefFiltBox'
 	end
 case 'Clear'
 	% Delete current clusters and make all spikes unassigned
-	nsnips = getuprop(h,'nsnips');
+	nsnips = getappdata(h,'nsnips');
 	range = [ones(1,length(nsnips));nsnips];
 	indx = BuildIndexMF(range);
-	setuprop(h,'clflindx',indx);
+	setappdata(h,'clflindx',indx);
 	% Unselect any selected clusters
 	DoChanFunctions('Unselect',h);
 	% Update display
@@ -353,24 +353,24 @@ case 'Delete'
 	% Delete selected clusters
 	selindx = GetSelClust(h);
 	selindx = selindx(find(selindx > 1));	% Can't delete unassigned cluster
-	clflindx = getuprop(h,'clflindx');
+	clflindx = getappdata(h,'clflindx');
 	clflindx(selindx,:) = [];
-	nsnips = getuprop(h,'nsnips');
+	nsnips = getappdata(h,'nsnips');
 	clflindx(1,:) = RebuildUnassigned(clflindx,nsnips);
-	setuprop(h,'clflindx',clflindx);
+	setappdata(h,'clflindx',clflindx);
 	DoChanFunctions('Unselect',h);
 	DoChanFunctions('UpdateDisplay',h);
 case 'Cancel'
 	delete(h);
 case 'Done'
 	% Fill parameters with current values
-	params = getuprop(h,'params');
+	params = getappdata(h,'params');
 	params.dispsnips = str2num(get(findobj(h,'Tag','DispNumSnips'),'String'));
 	params.ACTime = str2num(get(findobj(h,'Tag','ACTime'),'String'));
 	params.NSpikes = str2num(get(findobj(h,'Tag','NumSpikes'),'String'));
 	params.NNoise = str2num(get(findobj(h,'Tag','NumNoise'),'String'));
 	params.BlockSize = str2num(get(findobj(h,'Tag','BlockSize'),'String'));
-	setuprop(h,'params',params);
+	setappdata(h,'params',params);
 	% Signal other code using waitfor that we're done
 	% The relevant data can be extracted from clflindx & t
 	set(h,'UserData','done');
@@ -386,7 +386,7 @@ end
 
 function [selindx,wvindx] = GetSelClust(h)
 % Get the selected clusters, and consolidate into one big cluster
-haxc = getuprop(h,'haxc');
+haxc = getappdata(h,'haxc');
 selindx = [];
 for i = 1:size(haxc,2)
 	if (strcmp(get(haxc(1,i),'Selected'),'on'))
@@ -395,7 +395,7 @@ for i = 1:size(haxc,2)
 end
 if (nargout > 1)
 	% Consolidate the snippets in the selected clusters into one unit
-	clflindx = getuprop(h,'clflindx');
+	clflindx = getappdata(h,'clflindx');
 	nfiles = size(clflindx,2);
 	wvindx = cell(1,nfiles);
 	for i = 1:nfiles

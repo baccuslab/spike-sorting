@@ -4,7 +4,7 @@ if (nargin == 1)
 end
 switch(action)
 case 'SetCAxProp'
-	haxc = getuprop(h,'haxc');
+	haxc = getappdata(h,'haxc');
 	axcol = [0.6 0.6 0.6];
 	set(haxc,'Tag','ClustAxes', ...
 		'Box','off',...
@@ -14,7 +14,7 @@ case 'SetCAxProp'
 		'YTickMode','manual','YTick',[]);
 	% See if there is anything plotted in these axes
 	len = size(haxc,1)*size(haxc,2);
-	killMode = getuprop(h,'KillMode');
+	killMode = getappdata(h,'KillMode');
 	for i = 1:len
 		hc = get(haxc(i),'Children');
 		if (length(hc) > 0 & ~killMode)
@@ -25,7 +25,7 @@ case 'SetCAxProp'
 		end
 	end
 case 'SelectPair'
-	haxc = getuprop(h,'haxc');
+	haxc = getappdata(h,'haxc');
 	% First turn off all other selections
 	hsel = findobj(haxc,'Selected','on');
 	set(hsel,'Selected','off');
@@ -35,7 +35,7 @@ case 'SelectPair'
 	%set(findobj(h,'Tag','BuildFiltersButton'),'Enable','on');
 	set(findobj(h,'Tag','ClusterButton'),'Enable','on');
 case 'Unselect'
-	haxc = getuprop(h,'haxc');
+	haxc = getappdata(h,'haxc');
 	% Turn off all selections
 	hsel = findobj(haxc,'Selected','on');
 	set(hsel,'Selected','off');
@@ -47,17 +47,17 @@ case 'Cluster'
 	% Determine which pair is selected
 	plotselpair = GetSelPair(h);
 	% Get peaks, times data
-	peakx = getuprop(h,'plotpeakx');
-	peaky = getuprop(h,'plotpeaky');
-	plotpair = getuprop(h,'plotpair');
-	plotindx = getuprop(h,'plotindx');
-	time = getuprop(h,'time');	% This has all the timing data
-	peak = getuprop(h,'peak');
+	peakx = getappdata(h,'plotpeakx');
+	peaky = getappdata(h,'plotpeaky');
+	plotpair = getappdata(h,'plotpair');
+	plotindx = getappdata(h,'plotindx');
+	time = getappdata(h,'time');	% This has all the timing data
+	peak = getappdata(h,'peak');
 	nfiles = size(time,2);
-	channels = getuprop(h,'channels');
+	channels = getappdata(h,'channels');
 	% Get info on past clustering
-	pairdef = getuprop(h,'pairdef');
-	pairtime = getuprop(h,'pairtime');
+	pairdef = getappdata(h,'pairdef');
+	pairtime = getappdata(h,'pairtime');
 	% Get the data from the edit boxes
 	blocksize = str2num(get(findobj(h,'Tag','BlockSize'),'String'));
 	tsimult = str2num(get(findobj(h,'Tag','TSimult'),'String'));
@@ -76,7 +76,7 @@ case 'Cluster'
 		if (i < nblocks)
 			set(findobj(gcf,'Tag','DoneButton'),'String','Next');
 		end
-		setuprop(hfig,'mode',mode);		% Use the same mode that finished with last time
+		setappdata(hfig,'mode',mode);		% Use the same mode that finished with last time
 		hslider = findobj(hfig,'Tag','Slider');
 		slidermin = get(hslider,'Min');
 		slidermax = get(hslider,'Max');
@@ -89,7 +89,7 @@ case 'Cluster'
 			slidervalue = slidermax;
 		end
 		set(hslider,'Value',slidervalue);
-		setuprop(hfig,'ClusterLabels',useclnums);	% Set the sequence of cluster #s to print on screen
+		setappdata(hfig,'ClusterLabels',useclnums);	% Set the sequence of cluster #s to print on screen
 		ClusterFunctions('Replot',hfig);	% Plot in correct mode
 		% Now wait for user input to finish
 		waitfor(hfig,'UserData','done');
@@ -98,11 +98,11 @@ case 'Cluster'
 			return
 		end
 		% Retrieve the information about the clusters
-		clustnums = getuprop(hfig,'clustnums');
-		polygons = getuprop(hfig,'polygons');
-		x = getuprop(hfig,'x');
-		y = getuprop(hfig,'y');
-		mode = getuprop(hfig,'mode');
+		clustnums = getappdata(hfig,'clustnums');
+		polygons = getappdata(hfig,'polygons');
+		x = getappdata(hfig,'x');
+		y = getappdata(hfig,'y');
+		mode = getappdata(hfig,'mode');
 		slidervalue = get(hslider,'Value');
 		close(hfig)
 		% Determine which points fall in each polygon
@@ -121,7 +121,7 @@ case 'Cluster'
 		return;
 	end
 	% Sort clusters out across files
-	fileident = getuprop(h,'plotf');
+	fileident = getappdata(h,'plotf');
 	for i = 1:length(selclust)
 		for j = 1:nfiles
 			findx = find(fileident{plotselpair}(1,selclust{i}) == j);
@@ -199,14 +199,14 @@ case 'Cluster'
 	end
 	if (changed)
 		% "Save" the new data in the figure
-		setuprop(h,'time',time);
-		setuprop(h,'peak',peak);
-		setuprop(h,'pairdef',pairdef);
-		setuprop(h,'pairtime',pairtime);
+		setappdata(h,'time',time);
+		setappdata(h,'peak',peak);
+		setappdata(h,'pairdef',pairdef);
+		setappdata(h,'pairtime',pairtime);
 		% Write the cell definitions and remaining snippet times
 		% to disk
-		cdefname = getuprop(h,'CellDefFile');
-		spikefiles = getuprop(h,'SpikeFiles');
+		cdefname = getappdata(h,'CellDefFile');
+		spikefiles = getappdata(h,'SpikeFiles');
 		save(cdefname,'pairdef','pairtime','time','spikefiles','channels');
 		% Recalculate
 		CTremovefunctions('RecalculatePairs',h);
@@ -214,7 +214,7 @@ case 'Cluster'
 	end
 case 'UpdateDisplay'
 	% Determine the range and the prev/next button status
-	showRange = getuprop(h,'ShowRange');
+	showRange = getappdata(h,'ShowRange');
 	hprevbutton = findobj(h,'Tag','PrevButton');
 	hstartbutton = findobj(h,'Tag','StartButton');
 	if (showRange(1) == 1)
@@ -225,7 +225,7 @@ case 'UpdateDisplay'
 		set(hstartbutton,'Enable','on');
 	end
 	hnextbutton = findobj(h,'Tag','NextButton');
-	npb = getuprop(h,'npb');
+	npb = getappdata(h,'npb');
 	if (showRange(2) >= length(npb))
 		set(hnextbutton,'Enable','off');
 	else
@@ -238,20 +238,20 @@ case 'UpdateDisplay'
 	set(hpagetext,'String',sprintf('%d/%d',pagenum,npages));
 	% Calculate peaks data
 	RecalculateRange(h,showRange);
-	npb = getuprop(h,'plotnpb');	% Now just get the ones we're showing
-	haxc = getuprop(h,'haxc');
-	pair = getuprop(h,'plotpair');
-	indx = getuprop(h,'plotindx');
-	hctext = getuprop(h,'hctext');
-	x = getuprop(h,'plotpeakx');
-	y = getuprop(h,'plotpeaky');
-	channel = getuprop(h,'channels');
-	killMode = getuprop(h,'KillMode');
+	npb = getappdata(h,'plotnpb');	% Now just get the ones we're showing
+	haxc = getappdata(h,'haxc');
+	pair = getappdata(h,'plotpair');
+	indx = getappdata(h,'plotindx');
+	hctext = getappdata(h,'hctext');
+	x = getappdata(h,'plotpeakx');
+	y = getappdata(h,'plotpeaky');
+	channel = getappdata(h,'channels');
+	killMode = getappdata(h,'KillMode');
 	if (killMode)
 		ratio = str2num(get(findobj(h,'Tag','Ratio'),'String'));
 		offset = str2num(get(findobj(h,'Tag','Offset'),'String'));
-		hKillCB = getuprop(h,'hKillCB');
-		killflag = getuprop(h,'KillPair');
+		hKillCB = getappdata(h,'hKillCB');
+		killflag = getappdata(h,'KillPair');
 	end
 	tplot = str2num(get(findobj(h,'Tag','TPlot'),'String'));
 	tsimult = str2num(get(findobj(h,'Tag','TSimult'),'String'));
@@ -304,7 +304,7 @@ case 'UpdateDisplay'
 	CTremovefunctions('SetCAxProp',h);
 case 'KillMode'
 	% Set KillMode flag
-	setuprop(h,'KillMode',1);
+	setappdata(h,'KillMode',1);
 	% Unselect all pairs
 	CTremovefunctions('Unselect',h);
 	% Replace Cluster buttons & parameters with Kill button & parameters
@@ -313,7 +313,7 @@ case 'KillMode'
 	htext = findobj(h,'Tag','BlockSizeText');
 	set(htext,'String','ratio','Tag','RatioText');
 	hedit = findobj(h,'Tag','BlockSize');
-	params = getuprop(h,'params');
+	params = getappdata(h,'params');
 	set(hedit,'Tag','Ratio','String',num2str(params.KillRatio),'Callback','CTremovefunctions EditKillRatio');
 	% Insert the offset edit box
 	h1 = uicontrol('HorizontalAlignment','left', ...
@@ -331,10 +331,10 @@ case 'KillMode'
 	% Delete self
 	delete(gcbo)
 	% Set up data for checkboxes, and place them in the figure
-	cpdf = getuprop(h,'cpdf');
+	cpdf = getappdata(h,'cpdf');
 	killpair = (cpdf > 5);		% Kill only those pairs with sizeable CT
-	setuprop(h,'KillPair',killpair);
-	hctext = getuprop(h,'hctext');
+	setappdata(h,'KillPair',killpair);
+	hctext = getappdata(h,'hctext');
 	for i = 1:length(hctext)
 		pos = get(hctext(i),'Position');
 		hkillflag(i) =  uicontrol('Position',pos-[-5 15 0 0], ...
@@ -344,18 +344,18 @@ case 'KillMode'
 					'UserData',i, ...
 					'Tag','KillCT');
 	end
-	setuprop(h,'hKillCB',hkillflag);			
+	setappdata(h,'hKillCB',hkillflag);			
 	CTremovefunctions('UpdateDisplay',h);
 case 'Kill'
 	tsimult = str2num(get(findobj(h,'Tag','TSimult'),'String'));
 	ratio = str2num(get(findobj(h,'Tag','Ratio'),'String'));
 	offset = str2num(get(findobj(h,'Tag','Offset'),'String'));
-	time = getuprop(h,'time');
-	peak = getuprop(h,'peak');
-	pair = getuprop(h,'pair');
-	npbAll = getuprop(h,'npb');
-	channels = getuprop(h,'channels');
-	killpair = getuprop(h,'KillPair');
+	time = getappdata(h,'time');
+	peak = getappdata(h,'peak');
+	pair = getappdata(h,'pair');
+	npbAll = getappdata(h,'npb');
+	channels = getappdata(h,'channels');
+	killpair = getappdata(h,'KillPair');
 	killpair = find(killpair);
 	killindx = cell(size(time));
 	for i = 1:length(killpair)
@@ -388,15 +388,15 @@ case 'Kill'
 		end
 	end
 	fprintf('Killed a fraction %g of the total spikes on all channels\n',totkill/totspikes);
-	setuprop(h,'time',time);
-	setuprop(h,'peak',peak);
+	setappdata(h,'time',time);
+	setappdata(h,'peak',peak);
 	CTremovefunctions('RecalculatePairs',h);
 	% Reset check boxes
-	cpdf = getuprop(h,'cpdf');
+	cpdf = getappdata(h,'cpdf');
 	killpair = (cpdf > 5);		% Kill only those pairs with sizeable CT
-	setuprop(h,'KillPair',killpair);
+	setappdata(h,'KillPair',killpair);
 	% Move range back to beginning
-	setuprop(h,'ShowRange',[1 16]);
+	setappdata(h,'ShowRange',[1 16]);
 	CTremovefunctions('UpdateDisplay',h);
 case 'EditKillRatio'
 	hedit = findobj(h,'Tag','Ratio');
@@ -410,34 +410,34 @@ case 'Prev'
 case 'Next'
 	MoveRange(h,16);
 case 'Start'
-	showRange = getuprop(h,'ShowRange');
+	showRange = getappdata(h,'ShowRange');
 	MoveRange(h,-showRange(1)+1);
 case 'RecalculatePairs'
 	tplot = str2num(get(findobj(h,'Tag','TPlot'),'String'));
-	time = getuprop(h,'time');
-	fracspikes = getuprop(h,'fracspikes');
+	time = getappdata(h,'time');
+	fracspikes = getappdata(h,'fracspikes');
 	for i = 1:size(time,1)
 		for j = 1:size(time,2)
 			subtime{i,j} = time{i,j}(1:ceil(fracspikes)*length(time{i,j}));
 		end
 	end
 	[cpdf,pair,npb] = CrossCorrAll(subtime,tplot);
-	setuprop(h,'pair',pair);
-	setuprop(h,'npb',npb);
-	setuprop(h,'cpdf',cpdf);
+	setappdata(h,'pair',pair);
+	setappdata(h,'npb',npb);
+	setappdata(h,'cpdf',cpdf);
 case 'Cancel'
 	delete(h);
 case 'Done'
 	% Signal other code using waitfor that we're done
 	% The relevant data can be extracted
-	killMode = getuprop(h,'KillMode');
+	killMode = getappdata(h,'KillMode');
 	if (killMode)
-		pairdef = getuprop(h,'pairdef');
-		pairtime = getuprop(h,'pairtime');
-		time = getuprop(h,'time');
-		cdefname = getuprop(h,'CellDefFile');
-		spikefiles = getuprop(h,'SpikeFiles');
-		channels = getuprop(h,'channels');
+		pairdef = getappdata(h,'pairdef');
+		pairtime = getappdata(h,'pairtime');
+		time = getappdata(h,'time');
+		cdefname = getappdata(h,'CellDefFile');
+		spikefiles = getappdata(h,'SpikeFiles');
+		channels = getappdata(h,'channels');
 		save(cdefname,'pairdef','pairtime','time','spikefiles','channels');
 	end
 	set(h,'UserData','done');
@@ -455,9 +455,9 @@ function RecalculateRange(h,range)
 % Determine which events come within tsimult of each other,
 % for the pairs of cell/channels specified by pair(:,range(1):range(2))
 tsimult = str2num(get(findobj(h,'Tag','TSimult'),'String'));
-time = getuprop(h,'time');
-pair = getuprop(h,'pair');
-npbAll = getuprop(h,'npb');
+time = getappdata(h,'time');
+pair = getappdata(h,'pair');
+npbAll = getappdata(h,'npb');
 iend = min(range(2),size(pair,1));
 for i = range(1):iend
 	[tcc,indx] = CrossCorrRec(time(pair(i,1),:),time(pair(i,2),:),tsimult);
@@ -466,12 +466,12 @@ for i = range(1):iend
 	plotindx{j} = indx;
 	plotpair(j,:) = pair(i,:);
 end
-setuprop(h,'plotnpb',plotnpb);
-setuprop(h,'plotindx',plotindx);
-setuprop(h,'plotpair',plotpair);
+setappdata(h,'plotnpb',plotnpb);
+setappdata(h,'plotindx',plotindx);
+setappdata(h,'plotpair',plotpair);
 % Calculate the necessary info for peak-vs-peak plots
 %clear time	% Try to make some room!
-peak = getuprop(h,'peak');
+peak = getappdata(h,'peak');
 %fprintf('length(plotnpb) = %d\n',length(plotnpb));
 for i = 1:length(plotnpb)
 	%fprintf('length(plotindx{%d}) = %d\n',i,length(plotindx{i}));
@@ -488,30 +488,30 @@ for i = 1:length(plotnpb)
 	y{i} = cat(2,ytemp{:});
 	f{i} = cat(2,ftemp{:});
 end
-setuprop(h,'plotpeakx',x);
-setuprop(h,'plotpeaky',y);
-setuprop(h,'plotf',f);
+setappdata(h,'plotpeakx',x);
+setappdata(h,'plotpeaky',y);
+setappdata(h,'plotf',f);
 return
 
 function MoveRange(h,dr)
-showRange = getuprop(h,'ShowRange');
-killMode = getuprop(h,'KillMode');
+showRange = getappdata(h,'ShowRange');
+killMode = getappdata(h,'KillMode');
 if (killMode)		% Update killpair info from check boxes
-	hkillcb = getuprop(h,'hKillCB');
-	killpair = getuprop(h,'KillPair');
+	hkillcb = getappdata(h,'hKillCB');
+	killpair = getappdata(h,'KillPair');
 	val = get(hkillcb,'Value');
 	for i = 1:length(val)
 		killpair(i+showRange(1)-1) = val{i};
 	end
-	setuprop(h,'KillPair',killpair);
+	setappdata(h,'KillPair',killpair);
 end
 showRange = showRange + dr;
-setuprop(h,'ShowRange',showRange);
+setappdata(h,'ShowRange',showRange);
 CTremovefunctions('UpdateDisplay',h);
 return
 
 function plotselindx = GetSelPair(h)
-haxc = getuprop(h,'haxc');
+haxc = getappdata(h,'haxc');
 plotselindx = [];
 for i = 1:size(haxc,2)
 	if (strcmp(get(haxc(1,i),'Selected'),'on'))

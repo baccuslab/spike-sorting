@@ -7,7 +7,7 @@ switch(action)
 case 'replot'
 	hedit = cbo;
 	trange = str2num(get(hedit,'String'));
-	t = getuprop(hfig,'t');
+	t = getappdata(hfig,'t');
 	hax = findobj(hfig,'Tag','ACAxes');
 	set(hax,'Units','pixels');
 	pos = get(hax,'Position');

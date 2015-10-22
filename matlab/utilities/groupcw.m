@@ -31,13 +31,13 @@ if (exist(outfile, 'file'))		% If file already exists
 	%Setup array window
 	handles = makearraywindow(g.channels);
 	arrayplot(g.channels, handles.ch, g.xc, g.yc, g.nspikes);
-	setuprop(handles.main, 'g', g);		
+	setappdata(handles.main, 'g', g);		
 
 else % File does not yet exist
 
 	pwflag = 0;
 	hmain = setup(outfile, snipfile);
-	g = getuprop(hmain, 'g');
+	g = getappdata(hmain, 'g');
 	save(outfile, 'g');
 
 end 

@@ -3,7 +3,6 @@
 #include <vector>
 #include "mex.h"
 #include <math.h>
-#include <iostream>
 //#include "FileHeaders.cp"
 //#include "Utils.h"
 //#include "iotypes.h"
@@ -66,19 +65,22 @@ void mexFunction(int nlhs, mxArray *plhs[],
 	// Argument parsing
 	if (nrhs < 3 || nrhs > 4)
 		mexErrMsgTxt("CrossCorr requires 3 or 4 inputs");
-	int bad1 =  (!mxIsNumeric(prhs[0]) || mxIsComplex(prhs[0]) || (mxGetN(prhs[0]) != 1 && mxGetM(prhs[0]) != 1));
-	cout << bad1 << endl;
-
+	int bad1 =  (!mxIsNumeric(prhs[0]) || !mxIsDouble(prhs[0]) || mxIsComplex(prhs[0])
+			|| (mxGetN(prhs[0]) != 1 && mxGetM(prhs[0]) != 1));
+	//if (bad1)
+	//	mexWarnMsgTxt("bad1 = 1");
 	if (bad1 && !mxIsEmpty(prhs[0]))
+	//if (bad1)
 		mexErrMsgTxt("The first input to CrossCorr must be a real double vector");
-
 	double *t1 = mxGetPr(prhs[0]);
 	long n1 = mxGetN(prhs[0])*mxGetM(prhs[0]);
-	bad1 =  (!mxIsNumeric(prhs[1]) || mxIsComplex(prhs[1]) || (mxGetN(prhs[1]) != 1 && mxGetM(prhs[1]) != 1));
-
+	bad1 =  (!mxIsNumeric(prhs[1]) || !mxIsDouble(prhs[1]) || mxIsComplex(prhs[1])
+			|| (mxGetN(prhs[1]) != 1 && mxGetM(prhs[1]) != 1));
+	//if (bad1)
+	//	mexWarnMsgTxt("bad1 = 1");
 	if (bad1 && !mxIsEmpty(prhs[1]))
+	//if (bad1)
 		mexErrMsgTxt("The second input to CrossCorr must be a real double vector");
-
 	double *t2 = mxGetPr(prhs[1]);
 	long n2 = mxGetN(prhs[1])*mxGetM(prhs[1]);
 	if (!mxIsNumeric(prhs[2]) || !mxIsDouble(prhs[2]) || mxIsComplex(prhs[2])

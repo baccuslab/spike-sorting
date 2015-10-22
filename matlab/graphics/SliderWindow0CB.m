@@ -9,7 +9,7 @@ case 'PlotTop'
 	yd = get(hselrect,'YData');
 	xlim = [min(xd) max(xd)];
 	ylim = [min(yd) max(yd)];
-	haxupd = getappdata(hfig,'UpdAx');
+	haxupd = getuprop(hfig,'UpdAx');
 	set(haxupd,'XLim',xlim);
 	set(haxupd(1),'YLim',ylim);	% Only adjust y scaling on the chosen axis
 % The next 3 allow dragging the viewing rectangle

@@ -1,4 +1,4 @@
-function hmain = setup(outfile, snipfiles, datafiles)
+function hmain = setup(outfile, snipfile)
 % Setup the main spike sorting interface
 %
 % (C) 2015 The Baccus Lab
@@ -7,22 +7,11 @@ function hmain = setup(outfile, snipfiles, datafiles)
 % 2015-07-20 - Benjamin Naecker
 %	- Updating for new HDF snippet file format
 %	- A bit of miscellaneous formatting
-% 2015-09-08 - Lane McIntosh
-%   - Changed channels dataset
 
 % Read channels to be sorted from the file
-numfiles = size(snipfiles, 2);
-for fnum=1:numfiles
-    if fnum == 1
-        channels = double(h5read(snipfiles{fnum}, '/extracted-channels'));
-    else
-        channels_other = double(h5read(snipfiles{fnum}, '/extracted-channels'));
-        if channels ~= channels_other
-            error('Channels should be the same across snipfiles!')
-        end
-    end
-end
+channels = h5read(snipfile, '/channels');
 numch = length(channels);
+
 pwflag = 0; % BN - temporary, removing support in the future
 
 if (~pwflag)
@@ -42,22 +31,16 @@ if (~pwflag)
 
 			% Step 1: load in representatives of all channels
 			fprintf('Building default filters:\n  Reading sample spike snippets from all channels...\n');
-			numSpikeSnips = 1000; % this is per channel!!
-            %numperfile = round(numSpikeSnips/numfiles);
-			%[spikes, ssniprange] = readFromAllChannels(snipfiles, 'spike', numperfile, channels(channels ~= 2));
-			
-            [spikes, ssniprange] = readFromAllChannels(snipfiles, 'spike', numSpikeSnips, channels(channels ~= 2));
+			numSpikeSnips = 5000;
+			[spikes, ssniprange] = readFromAllChannels(snipfile, 'spike', numSpikeSnips, channels(channels ~= 2));
 
 			% Step 2: do the same for noise
 			fprintf('  Reading noise snippets from all channels...\n');
 			numNoiseSnips = 1000;
-            %numnoiseperfile = round(numNoiseSnips/numfiles);
-			%noise = readFromAllChannels(snipfiles, 'noise', numnoiseperfile, channels(channels ~= 2));
-
-            noise = readFromAllChannels(snipfiles, 'noise', numNoiseSnips, channels(channels ~= 2));
+			noise = readFromAllChannels(snipfile, 'noise', numNoiseSnips, channels(channels ~= 2));
 
 			% Step 3: let user set sniprange
- 			deffilters=cell(1,numch);
+			deffilters=cell(1,numch);
 			sv=cell(1,numch);
 			wave=cell(1,numch);
 			%Preprocess the spikes for building default filters
@@ -68,7 +51,7 @@ if (~pwflag)
 			%writes coincident snippets, the peak may be elsewhere, or there may not even be a spike.
 			%spikes=spikes(:,find(max(spikes)==spikes(-ssniprange(1)+1,:)));
 			%take only the biggest 50% of the spikes
-			peakval=spikes(-ssniprange(1)+1,:); 
+			peakval=spikes(ssniprange(1)+1,:); 
 			peakval=[peakval;1:size(peakval,2)];
 			peakval=sortrows(peakval')';
 			peakval=peakval(:,floor(end-size(peakval,2)/2):end);
@@ -81,8 +64,8 @@ if (~pwflag)
 					fprintf('Operation cancelled by user\n');
 					return
 				end
-				choosespikes = getappdata(hfig,'GoodSpikes');
-				sniprange = getappdata(hfig,'NewRange');
+				choosespikes = getuprop(hfig,'GoodSpikes');
+				sniprange = getuprop(hfig,'NewRange');
 				if (length(choosespikes) <= sniprange(2)-sniprange(1))
 					errordlg('Do not have enough spikes on this channel to build filters! Select more, or cancel.','','modal');
 					set(hfig,'UserData','');
@@ -120,37 +103,27 @@ if (~pwflag)
 		ylabel('Filters');
 		set(gca,'XLim',[1 size(deffiltersall,1)]);
 		set(gca,'Tag','FiltAxes');
-        scanrate = h5readatt(snipfiles{1}, '/', 'sample-rate');
+		[fid,message] = fopen(spikefiles{1},'r'); %sorting continuous waveform data
+		if (fid < 1)
+			error(message)
+		end
+		header = ReadSnipHeader(fid);
+		scanrate=header.scanrate;
 		%Calculate default filter projections for all channels
-        calcproj (snipfiles,'proj.bin',channels,subrange,deffilters);
-    else
-        % if proj.bin does not exist
-        subsetbutton = 'no'; %added, check this
-        scanrate = h5readatt(snipfiles{1}, '/', 'sample-rate');
-        %sniprange = [];
-        %subrange = [];
-        %deffilters = [];
-	end 
+		calcproj (spikefiles,'proj.bin',channels,subrange,deffilters);
+	end %If proj.bin does not exist
 else
 	global proj;
-	channels=1:size(channels,1);
+	channels=1:63;
 	numfiles=1;
 	numch=size(channels,2);
 	chanclust = cell(1,numch);			%Cell clusters, contains spike times
  	removedCT=cell(numch,numfiles);	%Removed crosstalk, contains spike indices
 	scanrate=20000;
-    subsetbutton = 'no'; %added, check this
 end
 
 %Create array plot
-g.array = h5readatt(datafiles{1}, '/data', 'array');
-if strcmp(g.array, 'hidens')
-    g.x_coordinates = double(h5read(datafiles{fnum}, '/configuration/x'));
-    g.y_coordinates = double(h5read(datafiles{fnum}, '/configuration/y'));
-    handles = makearraywindow(channels, g.array, g.x_coordinates, g.y_coordinates);
-else
-    handles = makearraywindow(channels, g.array);
-end
+handles = makearraywindow (channels);
 
 %Definitions
 chanclust = cell(1,numch);			%Cell clusters, contains spike times
@@ -165,14 +138,14 @@ pos=get(handles.ch(1),'Position');
 nx=floor(pos(3));ny=floor(pos(4));
 for ch=1:numch
 	if (~pwflag)
-        nsnips = getNumSnips(snipfiles);
+		[placeholder,nsnips,placeholder] = GetSnipNums(spikefiles);
 		proj=loadproj('proj.bin',ch,numch,numfiles,nsnips(ch,:));
-		[xc(ch),yc(ch),nspikes(ch)]=Hist2dcalc(proj(1,:),nx,ny); 
+		[xc(ch),yc(ch),nspikes(ch),rectx(ch,:),recty(ch,:)]=Hist2dcalc(proj(1,:),nx,ny); 
 	else
-		[xc(ch),yc(ch),nspikes(ch)]=Hist2dcalc(proj(ch),nx,ny); 
+		[xc(ch),yc(ch),nspikes(ch),rectx(ch,:),recty(ch,:)]=Hist2dcalc(proj(ch),nx,ny); 
 	end
 end
-Arrayplot(channels,handles.ch,xc,yc,nspikes);
+Arrayplot (channels,handles.ch,xc,yc,nspikes);
 %Indicate zero if not a peak-width plot
 if ~pwflag
 	for chindx=1:size(channels,2)
@@ -189,27 +162,18 @@ else
 end
 g.channels=channels;
 g.ctchannels=[];
-g.snipfiles = snipfiles;
+g.spikefiles=spikefiles;
 g.ctfiles=datafiles;
 g.xc=xc; g.yc=yc; g.nspikes=nspikes;g.rectx=rectx;g.recty=recty;
-% when resuming spike sorting, sniprange isn't set
-if exist('sniprange', 'var')
-    g.sniprange=sniprange;
-end
+g.sniprange=sniprange;
 g.nsnips=nsnips;
 if  (pwflag) 
-	setappdata(handles.main,'proj',proj);
-	setappdata(handles.main,'nfiles',1);
+	setuprop (handles.main,'proj',proj);
+	setuprop(handles.main,'nfiles',1);
 else
-    g.snipfiles=snipfiles;
-    % when resuming spike sorting, deffilters isn't set
-    if exist('deffilters', 'var')
-        g.deffilters=deffilters;
-    end
-    % when resuming spike sorting, subrange isn't set
-    if exist('subrange', 'var')
-        g.subrange=subrange;
-    end
+	g.noisefiles=noisefiles;
+	g.deffilters=deffilters;
+	g.subrange=subrange;
 end
 g.chanclust=chanclust;
 g.outfile=outfile;
@@ -218,33 +182,34 @@ g.allchannels=channels;
 g.pwflag=pwflag;
 g.scanrate=scanrate(1);
 g.subsetnum=20000;
-setappdata (handles.main,'g',g);
+setuprop (handles.main,'g',g);
 hmain=handles.main; %Return handle to main array figure
 
-function calcproj (file,outfile,channels,subrange,deffilters)
-numch=size(channels,1);
-projfp=zeros(numch,1);
-nsnips = getNumSnips(file);
-sniprange = getSnipRange(file);
+function calcproj (files,outfile,channels,subrange,deffilters)
+numch=size(channels,2);
+projfp=zeros(numch,size(files,2));
+[placeholder,nsnips,sniprange] = GetSnipNums(files);
 loadn=50000;
 fid=fopen(outfile,'w');
 fwrite(fid,projfp,'int32');
 for ch=1:numch
 	ch
-    startn=1;
-	endn=min(loadn,nsnips(ch,1));
-    while (startn<=nsnips(ch,1))
-        [snips, sptimes] = loadSnip(file, 'spike', channels(ch), loadn);
-	    proj(1:2,startn:endn)=deffilters{ch}'*snips(subrange(1):subrange(2),:);
-	    proj(3,startn:endn)=max(snips(subrange(1):subrange(2),:))-min(snips(subrange(1):subrange(2),:));
-		startn = startn + size(snips, 2);
-		endn = endn + size(snips, 2);
-    end
-	projfp(ch,1)=ftell(fid);
-	if (exist('proj'))
-		fwrite(fid,proj,'float32');
+	for fnum=1:size(files,2)
+		startn=1;
+		endn=min(loadn,nsnips(ch,fnum));
+		while (startn<=nsnips(ch,fnum))
+			[snips,sptimes] = LoadIndexSnip(files{fnum},channels(ch),startn:endn);
+			proj(1:2,startn:endn)=deffilters{ch}'*snips(subrange(1):subrange(2),:);
+			proj(3,startn:endn)=max(snips(subrange(1):subrange(2),:))-min(snips(subrange(1):subrange(2),:));
+			startn=startn+loadn;
+			endn=min(endn+loadn,nsnips(ch,fnum));
+		end
+		projfp(ch,fnum)=ftell(fid);
+		if (exist('proj'))
+			fwrite(fid,proj,'float32');
+		end
+		clear proj
 	end
-	clear proj
 end
 fseek(fid,0,'bof');
 fwrite(fid,projfp,'int32');

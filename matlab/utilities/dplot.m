@@ -6,8 +6,7 @@ function dplot (h,x,y,rectx,recty)
 	% Generate & plot histogram
 	xlim(rectx)
 	ylim(recty)
-    % hist2d no longer takes rectangle arguments
-	[n,xc,yc] = hist2d(x,y,nx,ny);
+	[n,xc,yc] = hist2d(x,y,[rectx recty],nx,ny);
 	n=(exp(1)-1)*n/max(max(n))+1;%n goes from 1 to e
 	himage = imagesc(xc,yc,64*log(n)');
 	set(h,'YDir','normal');

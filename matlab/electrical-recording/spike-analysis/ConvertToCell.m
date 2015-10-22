@@ -5,7 +5,7 @@ function  [record,recfiles,cells,chandef]=ConvertToCell(shapefilename)
 load(shapefilename)
 if (~exist('chanclust'))
 	chanclust=g.chanclust;
-	spikefiles=g.snipfiles;
+	spikefiles=g.spikefiles;
 	channels=g.channels;
 	scanrate=g.scanrate;
 end

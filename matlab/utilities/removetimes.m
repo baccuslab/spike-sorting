@@ -5,7 +5,7 @@ function timesout=removetimes (timesin,chanclust,removedCT,chindices)
 			for fnum=1:size(chanclust{chindices(ch)},2)
 				%indexes are for the remaining spikes
 				if (size(timesout{ch}{fnum},1)>0)
-					[~,indexes]=setdiff(timesout{ch}{fnum}(1,:),chanclust{chindices(ch)}{clust,fnum});%Remove previous clusters
+					[placeholder,indexes]=setdiff(timesout{ch}{fnum}(1,:),chanclust{chindices(ch)}{clust,fnum});%Remove previous clusters
 					timesout{ch}{fnum}=timesout{ch}{fnum}(:,indexes);
 				end
 			end
@@ -13,8 +13,8 @@ function timesout=removetimes (timesin,chanclust,removedCT,chindices)
 	end
 	for ch=1:size(chindices,2)
 		for fnum=1:size(timesin{1},2)
-			if (size(timesout{ch}{fnum},1)>0 && ~isempty(removedCT{chindices(ch)}))
-				[~,indexes]=setdiff(timesout{ch}{fnum}(1,:),removedCT{chindices(ch),fnum});%Remove crosstalk
+			if (size(timesout{ch}{fnum},1)>0 & ~isempty(removedCT{chindices(ch)}))
+				[placeholder,indexes]=setdiff(timesout{ch}{fnum}(1,:),removedCT{chindices(ch),fnum});%Remove crosstalk
 				timesout{ch}{fnum}=timesout{ch}{fnum}(:,indexes);
 			end
 		end	

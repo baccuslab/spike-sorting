@@ -1,5 +1,5 @@
 
-function uas = rebuildunassigned(totindx,selindx)
+function uas = RebuildUnassigned(totindx,selindx)
 % Re-compute the unassigned group as the difference
 % between the total and the assigned data
 % First get the union of all assigned data

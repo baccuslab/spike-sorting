@@ -73,7 +73,7 @@ xlabel('Peak value');
 ylabel('#/bin');
 set(hthresh,'Tag','ThreshAxes');
 % Now plot all the spike waveforms
-LineH=cell(1,nchan);
+LineH=cell(1,nchan)
 for ch=1:nchan
 	axes(hwf(ch))
 	TAxis = sniprange(1):sniprange(1)+onesnipsize-1;
@@ -113,5 +113,5 @@ set(hwf(1),'Tag','WaveformsAxes', ...
 %set(LineH,'SelectionHighlight','off','EraseMode',emode,'Tag','wfm',...
 %	'ButtonDownFcn','ChooseWfmsCallback SelectLine');
 % Remember some useful #s
-setappdata(hwf(1),'PeakPos',-sniprange(1)+1);
-setappdata(hwf(1),'oldthresh',thresh);
+setuprop(hwf(1),'PeakPos',-sniprange(1)+1);
+setuprop(hwf(1),'oldthresh',thresh);

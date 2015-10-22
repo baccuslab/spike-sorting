@@ -42,9 +42,9 @@ hselrect = line(selrectx,selrecty,'LineStyle',':','Color','k',...
 	'Parent',hnewax,...
 	'EraseMode','xor');
 % Remember which axes to update
-setappdata(hfig,'UpdAx',hax);
-setappdata(hfig,'FullXLim',xlim);
-setappdata(hfig,'FullYLim',ylim);
+setuprop(hfig,'UpdAx',hax);
+setuprop(hfig,'FullXLim',xlim);
+setuprop(hfig,'FullYLim',ylim);
 % Now copy all the children of the original axis to the new one
 hcnew = copyobj(hc,hnewax);
 set([hcnew;hnewax],'HitTest','off');

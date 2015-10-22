@@ -1,4 +1,4 @@
-function [tout,indexout] = GroupChannel(spikefiles,channel,filters,subrange,blocksize,useclnums,snipindx,g)
+function [tout,indexout] = GroupChannel(spikefiles,channel,filters,subrange,blocksize,useclnums,snipindx)
 % tout{clustnum,filenum} = Times of spikes of cell # clustnum, in the file spikefiles{filenum}
 % indexout: same as tout except it's the index # of the snippet rather than the time
 subset = 0;
@@ -32,11 +32,11 @@ while (outrange == 0)
 		blkindx = BuildIndexMF(range);
 	end
 	% Load in the snippets
-	[snips,f,t] = LoadIndexSnippetsMF(spikefiles,'spike',channel,blkindx);
+	[snips,f,t,header] = LoadIndexSnippetsMF(spikefiles,channel,blkindx);
 	% Convert the times to seconds
 	for i = 1:length(header)
 		if (~isempty(t{i}))
-			tsecs{i} = t{i}/g.scanrate;
+			tsecs{i} = t{i}/header{i}.scanrate;
 		end
 	end
 	%t = cat(1,t{:});
@@ -47,7 +47,7 @@ while (outrange == 0)
 	if (outrange == 0)
 		set(findobj(gcf,'Tag','DoneButton'),'String','Next');
 	end
-	setappdata(hfig,'mode',mode);		% Use the same mode that finished with last time
+	setuprop(hfig,'mode',mode);		% Use the same mode that finished with last time
 	hslider = findobj(hfig,'Tag','Slider');
 	slidermin = get(hslider,'Min');
 	slidermax = get(hslider,'Max');
@@ -57,7 +57,7 @@ while (outrange == 0)
 		slidervalue = slidermax;
 	end
 	set(hslider,'Value',slidervalue);
-	setappdata(hfig,'ClusterLabels',useclnums);	% Set the sequence of cluster #s to print on screen
+	setuprop(hfig,'ClusterLabels',useclnums);	% Set the sequence of cluster #s to print on screen
 	ClusterFunctions('Replot',hfig);	% Plot in correct mode
 	% Now wait for user input to finish
 	waitfor(hfig,'UserData','done');
@@ -68,11 +68,11 @@ while (outrange == 0)
 		return
 	end
 	% Retrieve the information about the clusters
-	clustnums = getappdata(hfig,'clustnums');
-	polygons = getappdata(hfig,'polygons');
-	x = getappdata(hfig,'x');
-	y = getappdata(hfig,'y');
-	mode = getappdata(hfig,'mode');
+	clustnums = getuprop(hfig,'clustnums');
+	polygons = getuprop(hfig,'polygons');
+	x = getuprop(hfig,'x');
+	y = getuprop(hfig,'y');
+	mode = getuprop(hfig,'mode');
 	slidervalue = get(hslider,'Value');
 	close(hfig)
 	% Determine which points fall in each polygon

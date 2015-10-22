@@ -51,8 +51,8 @@ if (~pwflag)
 					fprintf('Operation cancelled by user\n');
 					return
 				end
-				choosespikes = getappdata(hfig,'GoodSpikes');
-				sniprange = getappdata(hfig,'NewRange');
+				choosespikes = getuprop(hfig,'GoodSpikes');
+				sniprange = getuprop(hfig,'NewRange');
 				if (length(choosespikes) <= sniprange(2)-sniprange(1))
 					errordlg('Do not have enough spikes on this channel to build filters! Select more, or cancel.','','modal');
 					set(hfig,'UserData','');
@@ -109,7 +109,7 @@ if (~pwflag)
 				startn=1;
 				endn=min(loadn,nsnips(ch,fnum));
 				while (startn<=nsnips(ch,fnum))
-					[snips,sptimes] = loadSnipIndex(spikefiles{fnum},'spike',channels(ch),startn:endn);
+					[snips,sptimes] = LoadIndexSnip(spikefiles{fnum},channels(ch),startn:endn);
 					proj(1:2,startn:endn)=deffilters{ch}'*snips(subrange(1):subrange(2),:);
 					proj(3,startn:endn)=max(snips(subrange(1):subrange(2),:))-min(snips(subrange(1):subrange(2),:));
 					startn=startn+loadn;
@@ -136,19 +136,11 @@ else
 	scanrate=20000;
 end
 if (pwflag)
-	proj=getappdata(handles.main,'proj');
+	proj=getuprop(handles.main,'proj');
 	global sptimes
 end
-
 %Create array plot
-g.array = h5readatt(datafiles{1}, '/data', 'array');
-if strcmp(g.array, 'hidens')
-    g.x_coordinates = double(h5read(datafiles{fnum}, '/configuration/x'));
-    g.y_coordinates = double(h5read(datafiles{fnum}, '/configuration/y'));
-    handles = makearraywindow(channels, g.array, g.x_coordinates, g.y_coordinates);
-else
-    handles = makearraywindow(channels, g.array);
-end
+handles = makearraywindow (channels);
 
 %Definitions
 chanclust = cell(1,numch);			%Cell clusters, contains spike times
@@ -184,8 +176,7 @@ loadn=100000/numch/numfiles;
 for ch=1:numch
 	plottimes{ch}=cell(1,numfiles);
 	for fnum=1:numfiles	
-		%[plottimes{ch}{fnum},header]=LoadSnipTimes(spikefiles{fnum},channels(ch),loadn);
-        [~,plottimes{ch}{fnum}] = loadSnip(spikefiles{fnum},'spike',channels(ch),loadn);
+		[plottimes{ch}{fnum},header]=LoadSnipTimes(spikefiles{fnum},channels(ch),loadn);
 		plottimes{ch}{fnum}=[plottimes{ch}{fnum}'; 1:size(plottimes{ch}{fnum},1)]; %2nd row is spike index number
 	end
 end
@@ -193,14 +184,14 @@ end
 %Define parameters to be 'globally' available
 g.channels=channels;
 g.ctchannels=[];
-g.snipfiles=spikefiles;
+g.spikefiles=spikefiles;
 g.xc=xc; g.yc=yc; g.nspikes=nspikes;g.rectx=rectx;g.recty=recty;
 g.plottimes=plottimes;
 g.sniprange=sniprange;
 g.nsnips=nsnips;
 if  (pwflag) 
-	setappdata (handles.main,'proj',proj);
-	setappdata(handles.main,'nfiles',1);
+	setuprop (handles.main,'proj',proj);
+	setuprop(handles.main,'nfiles',1);
 else
 	g.noisefiles=noisefiles;
 	g.deffilters=deffilters;
@@ -212,6 +203,6 @@ g.removedCT=removedCT;
 g.allchannels=channels;
 g.pwflag=pwflag;
 g.scanrate=scanrate(1);
-setappdata (handles.main,'g',g);
+setuprop (handles.main,'g',g);
 hmain=handles.main; %Return handle to main array figure
 

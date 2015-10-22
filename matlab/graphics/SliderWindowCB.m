@@ -9,7 +9,7 @@ case 'PlotTop'
 	yd = get(hselrect,'YData');
 	xlim = [min(xd) max(xd)];
 	ylim = [min(yd) max(yd)];
-	haxupd = getappdata(hfig,'UpdAx');
+	haxupd = getuprop(hfig,'UpdAx');
 	set(haxupd,'XLim',xlim);
 	set(haxupd(1),'YLim',ylim);	% Only adjust y scaling on the chosen axis
 % The next 3 allow dragging the viewing rectangle
@@ -70,8 +70,8 @@ case 'ZoomIn'
 	hselax = get(hselrect,'Parent');
 	set(hselax,'XLim',xlim,'YLim',ylim);
 case 'ZoomOut'
-	xlim = getappdata(hfig,'FullXLim');
-	ylim = getappdata(hfig,'FullYLim');
+	xlim = getuprop(hfig,'FullXLim');
+	ylim = getuprop(hfig,'FullYLim');
 	hselax = findobj(hfig,'Type','axes');
 	set(hselax,'XLim',xlim,'YLim',ylim);
 end	

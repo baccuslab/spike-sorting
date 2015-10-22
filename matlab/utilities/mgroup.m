@@ -1,31 +1,16 @@
 function mgroup(hsort,g,sortchannels,selindx)
-% mgroup: has something to do with multichannel clustering
-%
-% INPUT:
-%   hsort               - ?
-%   g.sortchannels      - ?
-%   selindx             - ?
-%
-% (C) 2015 The Baccus Lab
-%
-% History:
-% ?? - Steve Baccus
-%   - wrote it
-%
-% 2015-08-26 - Lane McIntosh
-%   - updating to use HDFIO functions instead of loadaibdata
-%
-if length(sortchannels) < 2
+if (size(sortchannels,2)<2) 
 	return
 end
 figure ('Position',[20 120 1000 680],'doublebuffer','on');
-setappdata (hsort,'selindx',selindx);	
-handles=getappdata(hsort,'handles');
-spindx=getappdata(hsort,'spindx');
-nfiles=length(g.snipfiles); 
-nch=length(sortchannels); %was chindices
-chindices=sortchannels;
-%chindices=getappdata(hsort,'chindices');
+setuprop (hsort,'selindx',selindx);	
+handles=getuprop(hsort,'handles');
+chindices=getuprop(hsort,'chindices');
+spindx=getuprop(hsort,'spindx');
+nfiles=size(g.spikefiles,2); 
+hdr=readsnipheader (g.spikefiles{1});
+nch=length(chindices);
+[chans,numproj,sniprange] = GetSnipNums(g.spikefiles);
 if g.pwflag
 	global proj
 	projch=proj(chindices);
@@ -35,35 +20,31 @@ else
 	for fn=1:nfiles
 		spindxsel{1,fn}=spindx{fn}(1,selindx{fn});
 	end
-	projsp=loadprojindexed('proj.bin',chindices(1),length(g.channels),length(g.ctfiles),spindxsel);
+	projsp=loadprojindexed('proj.bin',chindices(1),size(g.channels,2),size(g.ctfiles,2),spindxsel);
 	%Load crosstalk projections
 	%Get times
-	t = getappdata(hsort,'t');
+	t = getuprop(hsort,'t');
 	tsel=cell(1,nfiles);				
-	for fnum = 1:length(g.snipfiles)
+	for fnum = 1:size(g.spikefiles,2)
 		tsel{1,fnum} = t{fnum}(selindx{fnum});
 	end
 	%Load ct snippets and calculate projections
-	if (getappdata(hsort,'Storestatus'))
+	if (getuprop(hsort,'Storestatus'))
 		snipsct=getsnipsfrommem(selindx,hsort,g.sniprange); %crosstalk is the previously loaded snippets
 	else
-        % loadRawData takes snip start and length
-        snip_start_offset = g.sniprange(1);
-        snip_length = abs(g.sniprange(2)-snip_start_offset) + 1;
-        snip_start = cellfun(@(x) x + snip_start_offset, tsel, 'UniformOutput', false);
-		snipsct=loadRawData(g.ctfiles, sortchannels(2:end), snip_start, snip_length); %crosstalk is a list of files
+		snipsct=loadaibdata (g.ctfiles,sortchannels(2:end),tsel,g.sniprange); %crosstalk is a list of files
 	end
-	projct=cell(length(sortchannels)-1,length(g.ctfiles));
-	for f=1:length(g.ctfiles)
-		for ch=1:(length(sortchannels)-1)
-			projct{ch,f}=g.deffilters{sortchannels(ch+1)}'*snipsct{ch,f}';
-			amp=range(snipsct{ch,f},2);
-			projct{ch,f}=[projct{ch,f}; amp'];
+	projct=cell(size(sortchannels,2)-1,size(g.ctfiles,2));
+	for f=1:size(g.ctfiles,2)
+		for ch=1:(size(sortchannels,2)-1)
+			projct{ch,f}=g.deffilters{chindices(ch+1)}'*snipsct{ch,f};
+			amp=max(snipsct{ch,f})-min(snipsct{ch,f});
+			projct{ch,f}=[projct{ch,f};amp];
 		end
 	end
 	projch=cat(1,projsp,projct);
 end
-t=getappdata(hsort,'t');
+t=getuprop(hsort,'t');
 if (g.pwflag)
 	p1=1;p2=2;p3=2;
 else
@@ -187,35 +168,35 @@ for ch1=1:nch
 	end
 end
 axes ('Position',[0.03 0.8 0.11 0.11]);
-setappdata (gcf,'acaxis1',gca);
+setuprop (gcf,'acaxis1',gca);
 axes ('Position',[0.03 0.65 0.11 0.11]);
-setappdata (gcf,'acaxis2',gca);
+setuprop (gcf,'acaxis2',gca);
 axes ('Position',[0.03 0.5 0.11 0.11]);
-setappdata (gcf,'acaxis3',gca);
-setappdata (gcf,'xall',x);
-setappdata (gcf,'yall',y);
-setappdata (gcf,'axh',axh);
-setappdata (gcf,'rectx',rectx);
-setappdata (gcf,'recty',recty);
-setappdata (gcf,'n',n);
-setappdata (gcf,'ix',ix);
-setappdata (gcf,'xc',xc);
-setappdata (gcf,'yc',yc);
-setappdata (gcf,'xchs',xchs);
-setappdata (gcf,'ychs',ychs);
-setappdata (gcf,'hsort',hsort);
-setappdata (gcf,'displaymode',1);
-setappdata (gcf,'nfiles',nfiles);
+setuprop (gcf,'acaxis3',gca);
+setuprop (gcf,'xall',x);
+setuprop (gcf,'yall',y);
+setuprop (gcf,'axh',axh);
+setuprop (gcf,'rectx',rectx);
+setuprop (gcf,'recty',recty);
+setuprop (gcf,'n',n);
+setuprop (gcf,'ix',ix);
+setuprop (gcf,'xc',xc);
+setuprop (gcf,'yc',yc);
+setuprop (gcf,'xchs',xchs);
+setuprop (gcf,'ychs',ychs);
+setuprop (gcf,'hsort',hsort);
+setuprop (gcf,'displaymode',1);
+setuprop (gcf,'nfiles',nfiles);
 nsel=cell(length(axh),nfiles);
 hfig=gcf;
-setappdata (gcf,'handles',handles);
+setuprop (gcf,'handles',handles);
 MultiClusterFunctions ('displayall',hfig);
 %MultiClusterFunctions ('grayscale',hfig);
 
 
 function len=totlength (arr)
 len=0;
-for f=1:length(arr)
+for f=1:size(arr,2)
 	len=len+length(arr{f});
 end
 function [nx,ny]=bins(rectx,recty)
@@ -235,13 +216,12 @@ ylim(recty);
 clear n;
 for f=1:length(x)
 	if (length(x{f})>1)
-		[n1,xc,yc] = hist2d(x{f},y{f},100, 100);
+		[n1,xc,yc] = hist2d(x{f},y{f},[rectx recty],100,100);
 		if (exist('n')) n=n+n1; else n=n1; end
 	end
 end
 n=n/max(max(n));
-% first two arguments to imagesc must be vectors
-himage = imagesc(xc(1,:),yc(:,1),log(n+1)');
+himage = imagesc(xc,yc,log(n+1)');
 set(h,'YDir','normal');
 colormap(1-gray);
 set(h,'XTickLabel',{''},'xtick',[],'YTickLabel',{''},'Ytick',[]);

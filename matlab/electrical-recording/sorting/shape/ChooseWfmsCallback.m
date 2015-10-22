@@ -56,10 +56,10 @@ case 'ThreshStop'
 	set(gcbf,'WindowButtonUpFcn','');
 	currPt = get(gca,'CurrentPoint');
 	thresh = currPt(1,1);	% Determine new thresh
-	oldthresh = getappdata(hfig,'oldthresh');		% Look up old threshold
-	%rmappdata(hfig,'oldthresh');				% It's not clear why this is nec., but it seems to be
-	setappdata(hfig,'oldthresh',thresh);			% Record for next time
-	x0 = getappdata(hfig,'PeakPos');
+	oldthresh = getuprop(hfig,'oldthresh');		% Look up old threshold
+	clruprop(hfig,'oldthresh');				% It's not clear why this is nec., but it seems to be
+	setuprop(hfig,'oldthresh',thresh);			% Record for next time
+	x0 = getuprop(hfig,'PeakPos');
 	% If the threshold increases, lines below thresh need to be turned off
 	if (thresh > oldthresh)
 		hlines = findobj(hfig,'Tag','wfm','Visible','on');
@@ -97,13 +97,13 @@ case 'Done'
 	hlines = findobj(hfig,'Tag','wfm','Visible','on');
 	indx = get(hlines,'UserData');
 	indx = cat(1,indx{:});
-	setappdata(hfig,'GoodSpikes',indx);
+	setuprop(hfig,'GoodSpikes',indx);
 	% Find out the width coordinates
 	hwidth = findobj(hfig,'Tag','WidthLine');
 	xd = get(hwidth,'XData');
 	xloc = [xd{1}(1),xd{2}(1)];
 	xloc = round(sort(xloc));
-	setappdata(hfig,'NewRange',xloc);
+	setuprop(hfig,'NewRange',xloc);
 	set(hfig,'UserData','done');	% Let other programs know we're done (through waitfor)
 otherwise
 	error(['Do not know about action ',action]);

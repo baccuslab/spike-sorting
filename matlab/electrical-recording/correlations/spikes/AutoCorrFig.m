@@ -59,7 +59,7 @@ hedit = uicontrol('Parent',hfig, ...
 	'HorizontalAlignment','right', ...
 	'Callback','AutoCorrFigCallback replot',...
 	'Tag','EditText1');
-setappdata(hfig,'t',t);
-setappdata(hfig,'textunits',units);
+setuprop(hfig,'t',t);
+setuprop(hfig,'textunits',units);
 AutoCorrFigCallback('replot',hedit,hfig);
 if nargout > 0, fig = hfig; end

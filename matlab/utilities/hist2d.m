@@ -1,70 +1,34 @@
-function [counto,xco,yco] = hist2d(x,y,nx,ny)
-% HIST2D calculates a 2-dimensional histogram
-%    N = HIST2D(X,Y) bins the X and Y data into 10 equally spaced bins in
-%    both dimension
-%
-%    N = HIST2D(X,Y,M), where M is a scalar, bins the data into M equally
-%    spaced bins in both dimensions
-%
-%    N = HIST2D(X,Y,B), where B is a vector, bins the data with centers
-%    specified by B
-%
-%    The number of bins or centers can be specified individually for either
-%    dimension using N = HIST2D(X,Y,NX,NY) or N = HIST2D(X,Y,BX,BY)
-%
-%    [N,BX,BY] = HIST2D(...) also returns the positions of the bin centers
-%    as two matrices in BX and BY
-%
-%    HIST2D(...) without output arguments produces a colormapped image plot
-%    of the 2d histogram
-%
-% EXAMPLE
-%   yin = randn(1,1000);
-%   xin = randn(1,1000);
-%   [n,x,y] = hist2d(xin,yin,11);
-%   imagesc(x(1,:),y(:,1),n); hold on; plot(xin,yin,'y.'); colorbar
-%   set(gca, 'Ydir', 'normal');
-%
-%   Author David Dean
-
-if ~exist('nx')
-   nx = 10;
+function [n,xcenter,ycenter] = hist2d(xin,yin,rect,nx,ny)
+% [nout,xcenter,ycenter] = hist2d(xin,yin,rect,nx,ny)
+% Bin data points given by (xin,yin)
+% into bins with centered on xcenter,ycenter
+% rect determines the exterior range:
+% rect = [xmin xmax ymin ymax]
+if (length(xin) ~= length(yin))
+	error('x & y must have the same length!');
 end
-
-if ~exist('ny')
-   ny = nx;
+if ((rect(1)>=rect(2))|(rect(3)>=rect(4)))
+	return
 end
-
-if length(x) ~= length(y)
-   error(sprintf('x and y must be same size ( %g ~= %g )',length(x),length(y)));
-end
-
-[dummy,xc] = hist(x,nx);
-[dummy,yc] = hist(y,ny);
-
-count = [];
-
-for i = 1:length(yc)
-   if i == 1
-      lbound = -Inf;
-   else
-      lbound = (yc(i-1) + yc(i)) / 2;
-   end
-   if i == length(yc)
-      ubound = Inf;
-   else
-      ubound = (yc(i) + yc(i+1)) /2;
-   end
-   count(i,:) = hist(x((y >= lbound) & (y < ubound)),xc);
-end
-
-[xc, yc] = meshgrid(xc, yc);
-
-if nargout == 0
-   imagesc(xc(1,:), yc(:,1),count); colorbar;
-   set(gca, 'Ydir', 'normal');
-else
-   counto = count;
-   xco = xc;
-   yco = yc;
+	
+dx = (rect(2)-rect(1))/(nx-1);
+dy = (rect(4)-rect(3))/(ny-1);
+xcenter = linspace(rect(1),rect(2),nx);
+ycenter= linspace(rect(3),rect(4),ny);
+xi = round((xin-xcenter(1))/dx)+1;
+%xok = find(xi <= nx & xi >= 1);
+yi = round((yin-ycenter(1))/dy)+1;
+%yok = find(yi <= ny & yi >= 1);
+%indx = intersect(xok,yok);
+n = zeros(nx,ny);
+%for i=1:length(indx)
+%for i = 1:length(xi)
+%	n(xi(i),yi(i)) = n(xi(i),yi(i))+1;
+%end
+n=hist2dfast(xi,yi,nx,ny);
+%n(xi(indx(i)),yi(indx(i))) = n(xi(indx(i)),yi(indx(i)))+1;
+if (nargout == 0)
+	imagesc(ycenter,xcenter,log(n+1));
+	set(gca,'YDir','normal');
+	colormap(1-gray);
 end

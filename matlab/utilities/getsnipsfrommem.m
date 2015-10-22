@@ -1,7 +1,7 @@
 function snipctcell=getsnipsfrommem(indxsel,hsort,sniprange);
-storedsnips=getappdata(hsort,'storedsnips');
-storedindx=getappdata(hsort,'storedindx');
-storedsniprange=getappdata(hsort,'storedsniprange');
+storedsnips=getuprop(hsort,'storedsnips');
+storedindx=getuprop(hsort,'storedindx');
+storedsniprange=getuprop(hsort,'storedsniprange');
 if (~exist('sniprange'))
 	range=1:(storedsniprange(2)-storedsniprange(1)+1);
 elseif (or(sniprange(1)<storedsniprange(1),sniprange(2)>storedsniprange(2)))

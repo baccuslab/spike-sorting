@@ -22,7 +22,7 @@ delete(hmembership);
 switch(action)
 case 'DoPolygon'
 	hax = gcbo;
-	%mode = getappdata(hfig,'mode');
+	%mode = getuprop(hfig,'mode');
 	% Prevent resizing of plot during polygon drawing
 	xlm = get(hax,'XLimMode'); ylm = get(hax,'YLimMode');
 	set(hax,'XLimMode','manual'); set(hax,'YLimMode','manual');
@@ -35,7 +35,7 @@ case 'DoPolygon'
 		replace = 1;
 	end
 	% Make sure only one cluster is selected if replacing
-	selvec = getappdata(hfig,'selectflag');
+	selvec = getuprop(hfig,'selectflag');
 	selclust = find(selvec);
 	if (isempty(selclust) && replace == 1)
 		errordlg('Must select a cluster to replace it','SelectionError','modal');
@@ -46,7 +46,7 @@ case 'DoPolygon'
 		return;
 	end
 	% Load up on necessary data
-	polygons = getappdata(hfig,'polygons');
+	polygons = getuprop(hfig,'polygons');
 	% If replacing, delete the old cluster
 	if (replace == 1)
 		oldpolygon = polygons{selclust};	% Remember it, in case user cancels during drawing
@@ -60,22 +60,14 @@ case 'DoPolygon'
 	%   in the middle of forming a polygon
 	DisableClusterSelCb(hfig);
 	% Determine the new cluster number
-	clustnums = getappdata(hfig,'clustnums');
+	clustnums = getuprop(hfig,'clustnums');
 	if (replace)
 		clustnum = selclust;
 	else
 		clustnum = GetNextClust(clustnums);
 	end
 	%   Get selection polygon
-    hpoly = impoly(hax);
-    % save vertices
-    vertices = hpoly.getPosition;
-    pvx = vertices(:,1);
-    pvy = vertices(:,2);
-    % computeMembership requires last vertex to equal first vertex
-    pvx(end+1) = pvx(1);
-    pvy(end+1) = pvy(1);
-
+	[pvx,pvy] = GetSelPolygon('go',GetClustCol(clustnum));
 	if (isempty(pvx) && replace == 1)
 		pvx = oldpolygon.x;
 		pvy = oldpolygon.y;
@@ -85,9 +77,9 @@ case 'DoPolygon'
 		%   record polygon information and clustered pts
 		polygons{clustnum}.x = pvx;
 		polygons{clustnum}.y = pvy;
-		setappdata(hfig,'polygons',polygons);
+		setuprop(hfig,'polygons',polygons);
 		clustnums(clustnum) = clustnum;
-		setappdata(hfig,'clustnums',clustnums);
+		setuprop(hfig,'clustnums',clustnums);
 		% Plot the new polygon in an appropriate color
 		PlotPolygons(hfig);
 		% Leave this new cluster selected
@@ -100,7 +92,7 @@ case 'DoPolygon'
 	end
 case 'DoBox'
 	hax = gcbo;
-	%mode = getappdata(hfig,'mode');
+	%mode = getuprop(hfig,'mode');
 	% Prevent resizing of plot during polygon drawing
 	xlm = get(hax,'XLimMode'); ylm = get(hax,'YLimMode');
 	set(hax,'XLimMode','manual'); set(hax,'YLimMode','manual');
@@ -113,7 +105,7 @@ case 'DoBox'
 		replace = 1;
 	end
 	% Make sure only one cluster is selected if replacing
-	selvec = getappdata(hfig,'selectflag');
+	selvec = getuprop(hfig,'selectflag');
 	selclust = find(selvec);
 	if (isempty(selclust) && replace == 1)
 		errordlg('Must select a cluster to replace it','SelectionError','modal');
@@ -124,7 +116,7 @@ case 'DoBox'
 		return;
 	end
 	% Load up on necessary data
-	polygons = getappdata(hfig,'polygons');
+	polygons = getuprop(hfig,'polygons');
 	% If replacing, delete the old cluster
 	if (replace == 1)
 		oldpolygon = polygons{selclust};	% Remember it, in case user cancels during drawing
@@ -138,7 +130,7 @@ case 'DoBox'
 	%   in the middle of forming a polygon
 	DisableClusterSelCb(hfig);
 	% Determine the new cluster number
-	clustnums = getappdata(hfig,'clustnums');
+	clustnums = getuprop(hfig,'clustnums');
 	if (replace)
 		clustnum = selclust;
 	else
@@ -166,9 +158,9 @@ case 'DoBox'
 	%   record polygon information and clustered pts
 	polygons{clustnum}.x = pvx;
 	polygons{clustnum}.y = pvy;
-	setappdata(hfig,'polygons',polygons);
+	setuprop(hfig,'polygons',polygons);
 	clustnums(clustnum) = clustnum;
-	setappdata(hfig,'clustnums',clustnums);
+	setuprop(hfig,'clustnums',clustnums);
 	% Plot the new polygon in an appropriate color
 	PlotPolygons(hfig);
 	% Leave this new cluster selected
@@ -190,21 +182,21 @@ case 'SelectCluster'
 	end
 	% If not appending, de-select old selected cluster(s)
 	if (~append)
-		selvec = getappdata(hfig,'selectflag');
+		selvec = getuprop(hfig,'selectflag');
 		selclust = find(selvec);
 		Unselect(hfig,selclust);
 	end
 	% Select new cluster
-	hlines = getappdata(hfig,'hlines');
+	hlines = getuprop(hfig,'hlines');
 	clustnum = find(hlines == hclustline);	% Figure out the corresponding cluster number
 	Select(hfig,clustnum);
 case 'ScatterPlot'
 	hax = findobj(hfig,'Tag','ClustAx');
 	axes(hax);
-	setappdata(hfig,'mode','scatter');
+	setuprop(hfig,'mode','scatter');
 	% First plot all the points
-	x = getappdata(hfig,'x');
-	y = getappdata(hfig,'y');
+	x = getuprop(hfig,'x');
+	y = getuprop(hfig,'y');
 	h = plot(x,y,'Color','k','LineStyle','none','Marker','.','MarkerSize',6,'HitTest','off');
 	%set(h,'Color','k','LineStyle','none','Marker','.','MarkerSize',6,'HitTest','off');
 	axis tight
@@ -229,7 +221,7 @@ case 'ScatterPlot'
 case 'DensityPlot'
 	hax = findobj(hfig,'Tag','ClustAx');
 	axes(hax);
-	setappdata(hfig,'mode','density');
+	setuprop(hfig,'mode','density');
 	% Determine bin sizes
 	hslider = findobj(hfig,'Tag','Slider');
 	%STEVE 01/19/01 Added /10 because the bins were too big
@@ -238,12 +230,12 @@ case 'DensityPlot'
 	nx = max(2,round((rectx(2)-rectx(1))/binsize));
 	ny = max(2,round((recty(2)-recty(1))/binsize));
 	% Generate & plot histogram
-	x = getappdata(hfig,'x');
-	y = getappdata(hfig,'y');
-	[n,xc,yc] = hist2d(x,y,nx,ny);
-	himage = imagesc(xc(1,:),yc(:,1),log(n+1));
+	x = getuprop(hfig,'x');
+	y = getuprop(hfig,'y');
+	[n,xc,yc] = hist2d(x,y,[rectx recty],nx,ny);
+	himage = imagesc(xc,yc,log(n+1)');
 	set(gca,'YDir','normal');
-	%colormap(1-gray);
+	colormap(1-gray);
 	axis([rectx recty]);
 	set(himage,'HitTest','off');
 	if (get(findobj(hfig,'Tag','clustmode'),'Value') == 1)
@@ -262,45 +254,42 @@ case 'DensityPlot'
 	hbutton = findobj(hfig,'Tag','ShowClustsButton');
 	set(hbutton,'Visible','off');
 case 'Replot'
-	mode = getappdata(hfig,'mode');
+	mode = getuprop(hfig,'mode');
 	if (strcmp(mode,'scatter'))
 		ClusterFunctions('ScatterPlot',hfig);
 	else
 		ClusterFunctions('DensityPlot',hfig);
 	end
 case 'ShowMembership'
-	mode = getappdata(hfig,'mode');
+	mode = getuprop(hfig,'mode');
 	hax = findobj(hfig,'Tag','ClustAx');
 	if (strcmp(mode,'density'))
 		ClusterFunctions('ScatterPlot',hfig);
 	end
-	x = getappdata(hfig,'x');
-	y = getappdata(hfig,'y');
-	polygons = getappdata(hfig,'polygons');
+	x = getuprop(hfig,'x');
+	y = getuprop(hfig,'y');
+	polygons = getuprop(hfig,'polygons');
 	indxs = ClusterMembers(ComputeMembership(x,y,polygons));
 	for i = 1:length(indxs)
-        % get color corresponding to cluster
 		clustcol = GetClustCol(i);
-        %hold on;
-        %scatter(x(indxs), y(indxs), 'Color', clustcol);
 		line(x(indxs{i}),y(indxs{i}),'Marker','.','LineStyle','none','MarkerSize',12,'Color',clustcol,'Tag','memberline');
 	end
 case 'Clear'
-	setappdata(hfig,'polygons',{});
-	setappdata(hfig,'clustnums',[]);
-	setappdata(hfig,'hlines',[]);
-	setappdata(hfig,'selectflag',[]);
-	if (strcmp(getappdata(hfig,'mode'),'density'))
+	setuprop(hfig,'polygons',{});
+	setuprop(hfig,'clustnums',[]);
+	setuprop(hfig,'hlines',[]);
+	setuprop(hfig,'selectflag',[]);
+	if (strcmp(getuprop(hfig,'mode'),'density'))
 		ClusterFunctions('DensityPlot',hfig);
 	else
 		ClusterFunctions('ScatterPlot',hfig);
 	end
 case 'Revert'
-	setappdata(hfig,'polygons',getappdata(hfig,'polygons0'));
-	clustnums = getappdata(hfig,'clustnums0');
-	setappdata(hfig,'clustnums',clustnums);
-	setappdata(hfig,'selectflag',zeros(size(clustnums)));
-	if (strcmp(getappdata(hfig,'mode'),'density'))
+	setuprop(hfig,'polygons',getuprop(hfig,'polygons0'));
+	clustnums = getuprop(hfig,'clustnums0');
+	setuprop(hfig,'clustnums',clustnums);
+	setuprop(hfig,'selectflag',zeros(size(clustnums)));
+	if (strcmp(getuprop(hfig,'mode'),'density'))
 		ClusterFunctions('DensityPlot',hfig);
 	else
 		ClusterFunctions('ScatterPlot',hfig);
@@ -321,59 +310,59 @@ return
 
 function Select(hfig,clustnum)
 global selWidth
-selvec = getappdata(hfig,'selectflag');
+selvec = getuprop(hfig,'selectflag');
 if (nargin < 2)
 	clustnum = find(selvec);	% Will update graphical display for selected clusters
 end
 selvec(clustnum) = 1;
-setappdata(hfig,'selectflag',selvec);
-hlines = getappdata(hfig,'hlines');
+setuprop(hfig,'selectflag',selvec);
+hlines = getuprop(hfig,'hlines');
 hlines = hlines(clustnum);
 set(hlines,'LineWidth',selWidth);
 return
 
 function Unselect(hfig,clustnum)
 global unselWidth
-selvec = getappdata(hfig,'selectflag');
+selvec = getuprop(hfig,'selectflag');
 if (nargin < 2)
 	clustnum = find(selvec);	% Will unselect all clusters
 end
 selvec(clustnum) = 0;
-setappdata(hfig,'selectflag',selvec);
-hlines = getappdata(hfig,'hlines');
+setuprop(hfig,'selectflag',selvec);
+hlines = getuprop(hfig,'hlines');
 hlines = hlines(clustnum);
 set(hlines,'LineWidth',unselWidth);
 return
 
 function DisableClusterSelCb(hfig)
-hlines = getappdata(hfig,'hlines');
+hlines = getuprop(hfig,'hlines');
 indx = ishandle(hlines);
 set(hlines(indx),'ButtonDownFcn','');
 set(hlines(indx),'HitTest','off');
 return
 
 function EnableClusterSelCb(hfig)
-hlines = getappdata(hfig,'hlines');
-SelCb = getappdata(hfig,'SelCb');
+hlines = getuprop(hfig,'hlines');
+SelCb = getuprop(hfig,'SelCb');
 indx = ishandle(hlines);
 set(hlines(indx),'ButtonDownFcn',SelCb);
 set(hlines(indx),'HitTest','on');
 return
 
 function DeleteClusts(hfig)
-selvec = getappdata(hfig,'selectflag');
+selvec = getuprop(hfig,'selectflag');
 selclust = find(selvec);
 selvec(selclust) = 0;
-setappdata(hfig,'selectflag',selvec);
-clustnums = getappdata(hfig,'clustnums');
+setuprop(hfig,'selectflag',selvec);
+clustnums = getuprop(hfig,'clustnums');
 clustnums(selclust) = 0;
-setappdata(hfig,'clustnums',clustnums);
-polygons = getappdata(hfig,'polygons');
+setuprop(hfig,'clustnums',clustnums);
+polygons = getuprop(hfig,'polygons');
 for i = 1:length(selclust)
 	polygons{selclust(i)} = [];
 end
-setappdata(hfig,'polygons',polygons);
-%hlines = getappdata(hfig,'hlines');
+setuprop(hfig,'polygons',polygons);
+%hlines = getuprop(hfig,'hlines');
 %delete(hlines(selclust));
 PlotPolygons(hfig);
 return
@@ -394,7 +383,7 @@ return
 %return
 
 %function clustnum = GetNextClust(clustnums)
-%firstclnum = getappdata(gcf,'firstclnum');
+%firstclnum = getuprop(gcf,'firstclnum');
 %if (isempty(firstclnum))
 %	firstclnum = 1;
 %end
@@ -405,11 +394,11 @@ clustnum = length(clustnums)+1;
 return
 
 function PlotPolygons(hfig)
-clustnums = getappdata(hfig,'clustnums');
-clustlabels = getappdata(hfig,'ClusterLabels');
-polygons = getappdata(hfig,'polygons');
-SelCb = getappdata(hfig,'SelCb');
-hlines = getappdata(hfig,'hlines');
+clustnums = getuprop(hfig,'clustnums');
+clustlabels = getuprop(hfig,'ClusterLabels');
+polygons = getuprop(hfig,'polygons');
+SelCb = getuprop(hfig,'SelCb');
+hlines = getuprop(hfig,'hlines');
 isnr = find(hlines);
 ish = ishandle(hlines(isnr));
 delete(hlines(isnr(ish)));
@@ -422,7 +411,7 @@ for i = 1:length(clustnums)
 		text(polygons{i}.x(1),polygons{i}.y(1),num2str(GetClustLabel(clustnums(i),clustlabels)));
 	end
 end
-setappdata(hfig,'hlines',hlines);
+setuprop(hfig,'hlines',hlines);
 Select(hfig)
 
 function clustcol = GetClustCol(clustnum)

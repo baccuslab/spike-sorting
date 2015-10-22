@@ -49,8 +49,8 @@ h1 = uicontrol('Parent',hfig, ...
 	'Tag','ClearButton');
 if (nargin == 4)
 	set(h1,'String','Revert','Callback','ClusterFunctions Revert');
-	setappdata(hfig,'clustnums0',clustnums);
-	setappdata(hfig,'polygons0',polygons);
+	setuprop(hfig,'clustnums0',clustnums);
+	setuprop(hfig,'polygons0',polygons);
 end
 h1 = uicontrol('Parent',hfig, ...
 	'Units','points', ...
@@ -91,14 +91,14 @@ h1 = uicontrol('Parent',hfig, ...
 	'Position',[318 19.5 76 30], ...
 	'String','Show Clusts', ...
 	'Tag','ShowClustsButton');
-setappdata(hfig,'x',x);
-setappdata(hfig,'y',y);
-setappdata(hfig,'clustnums',clustnums);
-setappdata(hfig,'polygons',polygons);
-setappdata(hfig,'hploygons',[]);
-setappdata(hfig,'hclustpts',[]);
-setappdata(hfig,'selectflag',[]);
-setappdata(hfig,'membership',zeros(size(x)));
-setappdata(hfig,'SelCb','ClusterFunctions SelectCluster');
+setuprop(hfig,'x',x);
+setuprop(hfig,'y',y);
+setuprop(hfig,'clustnums',clustnums);
+setuprop(hfig,'polygons',polygons);
+setuprop(hfig,'hploygons',[]);
+setuprop(hfig,'hclustpts',[]);
+setuprop(hfig,'selectflag',[]);
+setuprop(hfig,'membership',zeros(size(x)));
+setuprop(hfig,'SelCb','ClusterFunctions SelectCluster');
 ClusterFunctions('ScatterPlot',hfig);
 if nargout > 0, fig = hfig; end

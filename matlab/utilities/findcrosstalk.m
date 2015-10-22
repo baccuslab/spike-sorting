@@ -3,8 +3,8 @@ function findcrosstalk
 fid = fopen([ctpath,ctfile],'at');
 cancel = 0;
 while (cancel ~= 1)
-	[datafiles,datapath] = uigetfile('*','Pick raw data file');
-	if (datafiles == 0)	% User hit cancel
+	[datafile,datapath] = uigetfile('*','Pick raw data file');
+	if (datafile == 0)	% User hit cancel
 		fclose(fid);
 		return;
 	end
@@ -15,7 +15,7 @@ while (cancel ~= 1)
 	%ach:array channels
 	clear ldata
 	tstart=1;tend=3;
-	[ldata,hdr] = loadmc([datapath,datafiles],[tstart,tend]);
+	[ldata,hdr] = loadmc([datapath,datafile],[tstart,tend]);
 	ach=find(hdr.channels>=3);
 	
 	% Set the thresholds
@@ -31,7 +31,7 @@ while (cancel ~= 1)
 	%Load data for threshold crossings and crosstalk
 	clear ldata
 	tstart=1;tend=8;
-	[ldata,hdr] = loadmc([datapath,datafiles],[tstart,tend]);
+	[ldata,hdr] = loadmc([datapath,datafile],[tstart,tend]);
 	ach=find(hdr.channels>=3);
 	
 	d1=ldata(ach,1:end -1); 
@@ -90,7 +90,7 @@ while (cancel ~= 1)
 	if (size(find(hdr.channels==2),2)>0)
 		ct=[2 -1 -1 -1;ct];
 	end
-	fname = datafiles(1:findstr(datafile,'.bin')-1);
+	fname = datafile(1:findstr(datafile,'.bin')-1);
 	fprintf(fid,'%s {',fname);
 	%size(hdr.channels(ach))
 	%size(thresh)

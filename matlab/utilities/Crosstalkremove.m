@@ -196,18 +196,18 @@ h1 = uicontrol('Parent',hfig, ...
 	'Callback','CTremovefunctions Done',...
 	'Tag','DoneButton');
 % Set the data that the callbacks will need
-setappdata(hfig,'params',params);
-setappdata(hfig,'SpikeFiles',spikefiles);
-setappdata(hfig,'CellDefFile',outfile);
-setappdata(hfig,'channels',channels);
-setappdata(hfig,'haxc',haxc);
-setappdata(hfig,'hctext',hctext);
-setappdata(hfig,'time',time);
-%setappdata(hfig,'peak',peak);
-setappdata(hfig,'pairtime',{});
-setappdata(hfig,'fracspikes',fracspikes);
-setappdata(hfig,'ShowRange',[1 16]);
-setappdata(hfig,'KillMode',0);
+setuprop(hfig,'params',params);
+setuprop(hfig,'SpikeFiles',spikefiles);
+setuprop(hfig,'CellDefFile',outfile);
+setuprop(hfig,'channels',channels);
+setuprop(hfig,'haxc',haxc);
+setuprop(hfig,'hctext',hctext);
+setuprop(hfig,'time',time);
+%setuprop(hfig,'peak',peak);
+setuprop(hfig,'pairtime',{});
+setuprop(hfig,'fracspikes',fracspikes);
+setuprop(hfig,'ShowRange',[1 16]);
+setuprop(hfig,'KillMode',0);
 CTremovefunctions('RecalculatePairs',hfig);
 CTremovefunctions('UpdateDisplay',hfig);
 %CTremovefunctions('SetCAxProp',hfig);

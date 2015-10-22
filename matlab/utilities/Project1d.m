@@ -1,5 +1,5 @@
 function proj =Project1d(g,channels,filters,snipindx,spindx,hsort)
-spikefiles=g.snipfiles;
+spikefiles=g.spikefiles;
 ctfiles=g.ctfiles;
 for i = 1:length(snipindx)
 	nsnips(i) = length(snipindx{i});
@@ -16,7 +16,7 @@ while (outrange == 0)
 		if (max(range(2,:))>0)
 			blkindx = BuildIndexMF(range,snipindx);
 			% Load in the snippets
-			[snips,f1]= MultiLoadIndexSnippetsMF(spikefiles,'spike',ctfiles,channels,blkindx,spindx,hsort);
+			[snips,f1,header]= MultiLoadIndexSnippetsMF(spikefiles,ctfiles,channels,blkindx,spindx,hsort);
 			proj1 = filters'*snips;
 			if (lstart==start)
 				proj=proj1;

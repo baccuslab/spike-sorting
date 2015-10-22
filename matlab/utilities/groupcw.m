@@ -1,5 +1,4 @@
-function groupcw(outfile,snipfiles,datafiles)
-%function groupcw(outfile,datafiles,snipfiles,channels)
+function groupcw(outfile,datafiles,spikefiles,noisefiles,channels)
 % groupcw: shape sorting of snippet waveforms
 % written by Tim Holy and Stephen Baccus 1999-2004
 %
@@ -10,51 +9,35 @@ function groupcw(outfile,snipfiles,datafiles)
 %	- Removing support for peak-width data
 %
 % Three calling modes:
-%	groupcw(outfilename, snipfiles, datafiles)
+%	groupcw(outfilename, snipfile)
 %		outfilename: name of sorted output .mat file
-%		snipfiles: Name of HDF snippet file, output from extract
+%		snipfile: Name of HDF snippet file, output from extract
 %	groupcw(outfilename) 
 %		Use this mode when you've sorted previously, and want
 %		to continue where you left off. outfilename must already exist.
 
-% Check if snipfiles and datafiles is a single string
-if ischar(snipfiles)
-    snipfiles = {snipfiles};
-end
-
-if ischar(datafiles)
-    datafiles = {datafiles};
-end
-
-if length(snipfiles) ~= length(datafiles)
-    error('Need to have the same number of snipfiles as datafiles!')
-end
 % Find out if output file already exists.
 % If it does, load it in and start appending	
 if (exist(outfile, 'file'))		% If file already exists
 
 	fprintf(sprintf('Continuing to sort file %s...\n', outfile));
 	load(outfile)
-	nfiles = size(g.snipfiles, 2);
+	nfiles = size(g.spikefiles, 2);
 	nchans = size(g.channels, 2);
 	g.ctchannels = [];
 	if (~exist('removedCT', 'var'))
 		removedCT = cell(nchans, nfiles);
 	end
 	%Setup array window
-    if strcmp(g.array, 'hidens')
-        handles = makearraywindow(g.channels, g.array, g.x_coordinates, g.y_coordinates);
-    else
-        handles = makearraywindow(g.channels, g.array);
-    end
-    Arrayplot(g.channels, handles.ch, g.xc, g.yc, g.nspikes);
-	setappdata(handles.main, 'g', g);		
+	handles = makearraywindow(g.channels);
+	arrayplot(g.channels, handles.ch, g.xc, g.yc, g.nspikes);
+	setuprop(handles.main, 'g', g);		
 
 else % File does not yet exist
 
 	pwflag = 0;
-	hmain = setup(outfile, snipfiles, datafiles);
-	g = getappdata(hmain, 'g');
+	hmain = setup(outfile, snipfile);
+	g = getuprop(hmain, 'g');
 	save(outfile, 'g');
 
 end 

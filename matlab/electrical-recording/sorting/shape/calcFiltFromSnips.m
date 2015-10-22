@@ -11,7 +11,7 @@ spikes = SubtractMean(spikes);
 nonspikes = SubtractMean(nonspikes);
 nspikes = size(spikes,2);
 nnonspikes = size(nonspikes,2);
-[U,V,X,C,S] = gsvd(spikes',nonspikes',0);
+[U,V,X,C,S] = GSVD(spikes',nonspikes',0);
 % The filters are the inv(X'), except we normalize
 % so that the noise is white
 filtsout = sqrt(nnonspikes)*inv(S*X');

@@ -11,7 +11,7 @@ function fig = DoChannel(spikefiles,noisefiles,channel,deffilters,subrange,param
 %	See DCDefParams for default values.
 %
 % Ouput:
-%	The sorting data is stored as user properties of the figure (see getappdata).
+%	The sorting data is stored as user properties of the figure (see getuprop).
 %	The indices of
 %	the spikes belonging to cluster clustnum in file spikefiles{filenum} are stored
 %	as clflindx{clustnum,filenum}. The times (in scan #) of all the spikes are
@@ -254,25 +254,25 @@ ylabel('# spikes/file');
 
 % Set the data that the callbacks will need
 if (nargin >= 4)
-	setappdata(hfig,'DefaultFilters',deffilters);
-	setappdata(hfig,'DefaultSubrange',subrange);
+	setuprop(hfig,'DefaultFilters',deffilters);
+	setuprop(hfig,'DefaultSubrange',subrange);
 else
 	set(hdeffltbox,'Enable','off');
 end
-setappdata(hfig,'params',params);
-setappdata(hfig,'spikefiles',spikefiles);
-setappdata(hfig,'noisefiles',noisefiles);
-setappdata(hfig,'channel',channel);
-setappdata(hfig,'haxc',haxc);
-setappdata(hfig,'hctext',hctext);
-setappdata(hfig,'nsnips',nsnips(chindx,:));
+setuprop(hfig,'params',params);
+setuprop(hfig,'spikefiles',spikefiles);
+setuprop(hfig,'noisefiles',noisefiles);
+setuprop(hfig,'channel',channel);
+setuprop(hfig,'haxc',haxc);
+setuprop(hfig,'hctext',hctext);
+setuprop(hfig,'nsnips',nsnips(chindx,:));
 for i = 1:size(nsnips,2)
 	clflindx{1,i} = 1:nsnips(chindx,i);
 end
-setappdata(hfig,'clflindx',clflindx);
-setappdata(hfig,'t',t);
-setappdata(hfig,'scanrate',scanrate);		% For converting times to seconds in autocorrelation
-setappdata(hfig,'rectime',rectime);
+setuprop(hfig,'clflindx',clflindx);
+setuprop(hfig,'t',t);
+setuprop(hfig,'scanrate',scanrate);		% For converting times to seconds in autocorrelation
+setuprop(hfig,'rectime',rectime);
 set(haxc(:,1),'Selected','on');	% Start with the unassigned cluster selected
 DoChanFunctions('UpdateDisplay',hfig);
 if nargout > 0, fig = hfig; end

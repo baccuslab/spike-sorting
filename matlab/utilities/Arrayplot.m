@@ -1,24 +1,16 @@
 function Arrayplot(channels,hch,xc,yc,nspikes) 
-    tmp = [xc{:}];
-    maxx = max(tmp(:));
-    minx = min(tmp(:));
-    tmp = [yc{:}];
-    maxy = max(tmp(:));
-    miny = min(tmp(:));
-	for chindx=1:size(channels,1)
+	maxx=0;minx=0;maxy=0;miny=0;
+	for chindx=1:size(channels,2)
+		maxx=max([maxx xc{chindx}]);
+		minx=min([minx xc{chindx}]);
+		maxy=max([maxy yc{chindx}]);
+		miny=min([miny yc{chindx}]);
+	end
+	for chindx=1:size(channels,2)
 		axes(hch(chindx));
 		hold off
-        yc_arr = [yc{chindx}];
-        xc_arr = [xc{chindx}];
-        if(~(isempty(xc_arr) && isempty(yc_arr)))
-            sp_arr = log(nspikes{chindx});
-            h=imagesc(xc_arr(1,:), yc_arr(:,1),sp_arr);
-            set(h,'UserData',chindx,'ButtonDownFcn','startsort');
-        else
-            % empty (no spikes recorded)
-            empty_size = 100;
-            h=imagesc(1:empty_size, 1:empty_size, zeros(empty_size,empty_size));
-        end
+		h=imagesc(yc{chindx},xc{chindx},log(nspikes{chindx}+1));
+		set(h,'UserData',chindx,'ButtonDownFcn','startsort');
 		colormap(1-gray);
 		set(gca,'XTickLabel',{''},'xtick',[],'YTickLabel',{''},'Ytick',[],'XColor',[0.8 0.8 0.8],'YColor',[0.8 0.8 0.8])
 		set(gca,'Ydir','normal')
@@ -27,4 +19,5 @@ function Arrayplot(channels,hch,xc,yc,nspikes)
 		vx=xlim; %vx used because xlim(1) tries to set the xlim instead of returning a value
 		vy=ylim;
 		text(vx(2)-(vx(2)-vx(1))/4,vy(2)-(vy(2)-vy(1))/8,num2str(channels(chindx)));	
-    end
+	end
+

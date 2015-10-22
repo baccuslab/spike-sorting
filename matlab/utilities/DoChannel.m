@@ -11,20 +11,11 @@ function fig = DoChannel(spikefiles,noisefiles,channel,deffilters,subrange,param
 %	See DCDefParams for default values.
 %
 % Ouput:
-%	The sorting data is stored as user properties of the figure (see getappdata).
+%	The sorting data is stored as user properties of the figure (see getuprop).
 %	The indices of
 %	the spikes belonging to cluster clustnum in file spikefiles{filenum} are stored
 %	as clflindx{clustnum,filenum}. The times (in scan #) of all the spikes are
 %	in t{filenum}. The scanrate for each file is stored in the vector scanrate.
-% (C) 2015 The Baccus Lab
-%
-% History:
-% ?? - Tim Holy
-%   - wrote it
-%
-% 2015-09-02 - Lane McIntosh
-%   - updating to use HDF snippet file format
-%
 if (nargin < 6)
 	params = [];
 end
@@ -39,11 +30,9 @@ if (isempty(chindx))		% Was this channel recorded?
 end
 % Get spike times
 for fnum= 1:length(spikefiles)
-    [~, t{fnum}] = loadSnip(spikefiles{fnum},'spike',channel);
-    scanrate(fnum) = g.scanrate;
-	%[t{fnum},header{fnum}] = LoadSnipTimes(spikefiles{fnum},channel);
-	%scanrate(fnum) = header{fnum}.scanrate;
-	%rectime(fnum) = header{fnum}.nscans/header{fnum}.scanrate;
+	[t{fnum},header{fnum}] = LoadSnipTimes(spikefiles{fnum},channel);
+	scanrate(fnum) = header{fnum}.scanrate;
+	rectime(fnum) = header{fnum}.nscans/header{fnum}.scanrate;
 end
 hfig = figure('Units','points', ...
 	'Color',[0.8 0.8 0.8], ...
@@ -300,41 +289,41 @@ ylabel('# spikes/file');
 
 % Set the data that the callbacks will need
 if (nargin >= 4)
-	setappdata(hfig,'DefaultFilters',deffilters);
-	setappdata(hfig,'DefaultSubrange',subrange);
+	setuprop(hfig,'DefaultFilters',deffilters);
+	setuprop(hfig,'DefaultSubrange',subrange);
 else
 	set(hdeffltbox,'Enable','off');
 end
-setappdata(hfig,'params',params);
-setappdata(hfig,'spikefiles',spikefiles);
-setappdata(hfig,'noisefiles',noisefiles);
-setappdata(hfig,'channel',channel);
-setappdata(hfig,'allchannels',g.channels);
-setappdata(hfig,'chindx',chindx);
-setappdata(hfig,'haxc',haxc);
-setappdata(hfig,'hctext',hctext);
-setappdata(hfig,'hctlist',hctlist);
-setappdata(hfig,'nsnips',nsnips(chindx,:));
+setuprop(hfig,'params',params);
+setuprop(hfig,'spikefiles',spikefiles);
+setuprop(hfig,'noisefiles',noisefiles);
+setuprop(hfig,'channel',channel);
+setuprop(hfig,'allchannels',g.channels);
+setuprop(hfig,'chindx',chindx);
+setuprop(hfig,'haxc',haxc);
+setuprop(hfig,'hctext',hctext);
+setuprop(hfig,'hctlist',hctlist);
+setuprop(hfig,'nsnips',nsnips(chindx,:));
 for fnum= 1:length(spikefiles)
 	clflindx{1,fnum} =g.times{chindx}{fnum}(2,:);
 end
-setappdata(hfig,'clflindx',clflindx);
-setappdata(hfig,'t',t);
-setappdata(hfig,'alltimes',g.times);
-setappdata(hfig,'hch',g.hch);
-setappdata(hfig,'hcc',g.hcc);
-setappdata(hfig,'hmain',g.hmain);
-setappdata(hfig,'proj',g.proj);
-setappdata(hfig,'xc',g.xc);
-setappdata(hfig,'yc',g.yc);
-setappdata(hfig,'nspikes',g.nspikes);
-setappdata(hfig,'scanrate',scanrate);		% For converting times to seconds in autocorrelation
-%setappdata(hfig,'rectime',rectime);
+setuprop(hfig,'clflindx',clflindx);
+setuprop(hfig,'t',t);
+setuprop(hfig,'alltimes',g.times);
+setuprop(hfig,'hch',g.hch);
+setuprop(hfig,'hcc',g.hcc);
+setuprop(hfig,'hmain',g.hmain);
+setuprop(hfig,'proj',g.proj);
+setuprop(hfig,'xc',g.xc);
+setuprop(hfig,'yc',g.yc);
+setuprop(hfig,'nspikes',g.nspikes);
+setuprop(hfig,'scanrate',scanrate);		% For converting times to seconds in autocorrelation
+setuprop(hfig,'rectime',rectime);
 idxrem=cell(1,length(g.channels));					%For indexes of crosstalk
 for ch = 1:length(g.channels)
 	idxrem{ch}=cell(1,length(spikefiles));
 end
-setappdata(hfig,'idxrem',idxrem);
+setuprop(hfig,'idxrem',idxrem);
 set(haxc(:,1),'Selected','on');	% Start with the unassigned cluster selected
 DoChanFunctions('UpdateDisplay',hfig);
 if nargout > 0, fig = hfig; end

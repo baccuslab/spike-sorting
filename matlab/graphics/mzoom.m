@@ -94,7 +94,7 @@ if strcmp(zoomCommand,'off'),
    %
    % turn off zoom, and take a hike
    %
-   state = getappdata(fig,'ZOOMFigureState');
+   state = getuprop(fig,'ZOOMFigureState');
    if ~isempty(state),
       uirestore(state);
       clruprop(fig,'ZOOMFigureState');
@@ -115,7 +115,7 @@ if ~isempty(ax) & any(get(ax,'view')~=[0 90]) & ...
 end
 
 if strcmp(zoomCommand,'toggle'),
-   state = getappdata(fig,'ZOOMFigureState');
+   state = getuprop(fig,'ZOOMFigureState');
    if isempty(state)
       mzoom(fig,'on');
    else
@@ -271,10 +271,10 @@ elseif strcmp(zoomCommand,'scale'),
    limits = mzoom(fig,'getlimits');
    
 elseif strcmp(zoomCommand,'on'),
-   state = getappdata(fig,'ZOOMFigureState');
+   state = getuprop(fig,'ZOOMFigureState');
    if isempty(state),
       state = uisuspend(fig);
-      setappdata(fig,'ZOOMFigureState',state);
+      setuprop(fig,'ZOOMFigureState',state);
    end
    set(fig,'windowbuttondownfcn','mzoom down', ...
       'windowbuttonupfcn','ones;', ...

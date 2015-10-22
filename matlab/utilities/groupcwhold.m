@@ -28,25 +28,21 @@ if (~pwflag) %Continuous waveform data
 	% If it does, load it in and start appending	
  	if (isempty(dir(outfile)))		% If file doesn't already exist		
 		hmain=setup(outfile,spikefiles,noisefiles,channels,pwflag);		
-		g=getappdata(hmain,'g');
+		g=getuprop(hmain,'g');
 		save (outfile,'g');
 	else	% Output file already exists, new results will be appended
 		fprintf(sprintf('Continuing to sort file %s...\n',outfile));
 		load (outfile)
-		nfiles=size(g.snipfiles,2);
+		nfiles=size(g.spikefiles,2);
 		nchans=size(g.channels,2);
 		g.ctchannels=[];
 		if (~exist('removedCT'))
 			removedCT=cell(nchans,nfiles);
 		end
 		%Setup array window
-        if strcmp(g.array, 'hidens')
-            handles = makearraywindow(g.channels, g.array, g.x_coordinates, g.y_coordinates);
-        else
-            handles = makearraywindow(g.channels, g.array);
-        end
-		Arrayplot(g.channels, handles.ch, g.xc, g.yc, g.nspikes) ;
-		setappdata(handles.main, 'g', g);		
+		handles = makearraywindow (g.channels);
+		arrayplot (g.channels,handles.ch,g.xc,g.yc,g.nspikes) ;
+		setuprop (handles.main,'g',g);		
 	end %end continuous waveform case
 else %peak-width
 	nfiles=1;
@@ -56,7 +52,7 @@ else %peak-width
 		fprintf(sprintf('Continuing where we left off with file %s...\n',outfile));
 		load(outfile)
 		%Remove spikes already in clusters and the removed crosstalk
-		sptimes=removetimes(sptimes, chanclust, removedCT, 1:nchans );
+		sptimes=removetimes (sptimes,chanclust,removedCT,1:nchans );
 	end
 end
 

@@ -7,16 +7,16 @@ threshfact=str2num(answer{1});
 fid = fopen([threshpath,threshfile],'at');
 cancel = 0;
 while (cancel ~= 1)
-	[datafiles,datapath] = uigetfile('*','Pick raw data file');
-	if (datafiles == 0)	% User hit cancel
+	[datafile,datapath] = uigetfile('*','Pick raw data file');
+	if (datafile == 0)	% User hit cancel
 		fclose(fid);
 		return;
 	end
 	clear dtemp
-	[header,headersize] = ReadFileType(datafiles);
+	[header,headersize] = ReadFileType(datafile);
 	if (header.type==1)
-		[htemp,headersize] = ReadAIHeader(datafiles);
-		[dtemp,htemp] = loadmc([datapath,datafiles],[1,6]);
+		[htemp,headersize] = ReadAIHeader(datafile);
+		[dtemp,htemp] = loadmc([datapath,datafile],[1,6]);
 		prompt = {'Select active channels (default is all >= 2):'};
 		def = {num2str(htemp.channels(find(htemp.channels>=2)))};
 		answer = inputdlg(prompt,'Channel data',1,def);
@@ -27,7 +27,7 @@ while (cancel ~= 1)
 		activechan = str2num(answer{1});
 	end
 	if(header.type==2)
-		[htemp,headersize] = ReadAIBHeader(datafiles);
+		[htemp,headersize] = ReadAIBHeader(datafile);
 		prompt = {'Select active channels (default is all >= 2):'};
 		def = {num2str(htemp.channels(find(htemp.channels>=2)))};
 		answer = inputdlg(prompt,'Channel data',1,def);
@@ -35,7 +35,7 @@ while (cancel ~= 1)
 			fclose(fid);
 			return;
 		end
-		dtempcell= loadaibdata({datafiles},htemp.channels,{htemp.scanrate},[0 htemp.scanrate*5-1]);
+		dtempcell= loadaibdata({datafile},htemp.channels,{htemp.scanrate},[0 htemp.scanrate*5-1]);
 		activechan = str2num(answer{1});
 		dtemp=cat(2,dtempcell{:})';
 	end
@@ -48,7 +48,7 @@ while (cancel ~= 1)
 		thresh=thresh/htemp.scalemult;
 	end
 	% Write the thresholds to file
-	fname = datafiles(1:findstr(datafile,'.bin')-1);
+	fname = datafile(1:findstr(datafile,'.bin')-1);
 	fprintf(fid,'%s {',fname);
 	%size(htemp.channels(irec))
 	%size(thresh)

@@ -1,11 +1,10 @@
 function loc=findlocation (sptimes)
 	for ch=1:57
-		%filename='1.ssnp';
-        filename = 'tmp.snip';
-        [snips,t1] = LoadSnip(filename,'spike',ch,10000);
-		%[t1,h1] = LoadSnipTimes(filename,ch,10000);
+		filename='1.ssnp';
+        %[snips,t] = LoadSnip(filename,'spike',ch,10000);
+		[t1,h1] = LoadSnipTimes(filename,ch,10000);
 		[c,ia,idxtimes]=intersect(sptimes,t1);
-		[snips,filenum,t] = LoadIndexSnippetsMF({filename},'spike',ch,{idxtimes});
+		[snips,filenum,t,header] = LoadIndexSnippetsMF({filename},ch,{idxtimes});
 		if size(snips,2)>=1
 			smean=mean(snips');
 			samp=max(smean)-min(smean);

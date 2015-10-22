@@ -11,8 +11,8 @@ function CrossCorrone(tmax)
 %			cell array of related spike times, i.e. same channel or same cell.
 % 		hcc:array of axis handles to the main cross-correlation plots
 h=gcbf;
-handles=getappdata (h,'handles');
-g=getappdata(handles.main,'g');
+handles=getuprop (h,'handles');
+g=getuprop(handles.main,'g');
 if (g.pwflag)
 	%Fix this to be g.times
 	global times;
@@ -35,7 +35,7 @@ for ch = 1:nchans
 	npbtemp = CrossCorrRecRow1(g.plottimes{chindx},g.plottimes{ch},tmax,nbins); %CrossCorrRecRow1 this file below
 	[~,idxc{ch}] = CrossCorrRecRow1(g.plottimes{chindx},g.plottimes{ch},ctsamp); %coincident spikes
 	%Keep only the 2nd channel
-	for fnum=1:length(g.snipfiles)
+	for fnum=1:length(g.spikefiles)
 		if (size(idxc{ch}{fnum},2)>0)
 			idxc{ch}{fnum}=idxc{ch}{fnum}(2,:);%keep only the 2nd channel
 		end
@@ -62,10 +62,10 @@ for chindx = 1:nchans
 	xax = linspace(-tmax+binwidth/2,tmax-binwidth/2,nbins);
 	bar(xax,npb{chindx},1,'k')
 	set(hax,'Color',[0.8 1 1])
-	setappdata(hax,'CTselected',0);
+	setuprop(hax,'CTselected',0);
 	ylim([0 ymax])
-	setappdata(hax,'cc',npb{chindx});
-	setappdata(hax,'xax',xax);
+	setuprop(hax,'cc',npb{chindx});
+	setuprop(hax,'xax',xax);
 	set(hax,'XTickLabel',{''},'xtick',[],'YTickLabel',{''},'Ytick',[])
 	set(hax,'box','off')
 	set(hax,'XColor',[0.8 0.8 0.8])
@@ -79,7 +79,7 @@ for chindx = 1:nchans
 end
 ctchannels=setdiff(ctchannels,ch1);
 g.ctchannels=ctchannels;
-setappdata(h,'g',g)
+setuprop(h,'g',g)
 
 
 function [tccout,indxout] = CrossCorrRecRow1(t1,allt,tmax,nbins)
@@ -109,17 +109,13 @@ end
 if (binning)
 	tccout = zeros(1,nbins);
 	for i = 1:length(t1)
-        if and(size(t1{i},2)>0, size(t2{i},2)>0)
-		  tccout = tccout + CrossCorr(t1{i}(1,:),allt{i}(1,:),tmax,nbins);
-        end
+		tccout = tccout + CrossCorr(t1{i}(1,:),allt{i}(1,:),tmax,nbins);
 	end
 else
 	tccout = [];
 	for i = 1:length(t1)
-        if and(size(t1{i},2)>0, size(allt{i},2)>0)
-          [tcctemp,indxout{i}] = CrossCorr(t1{i}(1,:),allt{i}(1,:),tmax);
-          tccout(end+1:end+length(tcctemp)) = tcctemp;
-        end
+		[tcctemp,indxout{i}] = CrossCorr(t1{i}(1,:),allt{i}(1,:),tmax);
+		tccout(end+1:end+length(tcctemp)) = tcctemp;
 	end
 end
 

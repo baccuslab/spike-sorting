@@ -1,27 +1,26 @@
 function [remtimes,remidx]= RemoveCrosstalk(g,ch1,ctchannels,h)
-sortchannels=getappdata(h,'sortchannels');
-handles = getappdata(h,'handles');
-nfiles=size(g.snipfiles,2);
+sortchannels=getuprop(h,'sortchannels');
+handles = getuprop(h,'handles');
+nfiles=size(g.spikefiles,2);
 chindices=find(ismember(g.channels,ctchannels));
 if g.pwflag
 	global sptimes
 else
 	%Load in times
-	for ch=1:length(ctchannels)
+	for ch=1:size(ctchannels,2)
 		for fnum=1:nfiles;
-            [~, sptimes{ch}{fnum}] = loadSnip(g.snipfiles{fnum},'spike',ctchannels(ch));
-			%[sptimes{ch}{fnum},hdr]=LoadSnipTimes(g.snipfiles{fnum},ctchannels(ch));
+			[sptimes{ch}{fnum},hdr]=loadsniptimes(g.spikefiles{fnum},ctchannels(ch));
 			sptimes{ch}{fnum}=[sptimes{ch}{fnum}';1:length(sptimes{ch}{fnum})];
 		end
 	end
 	sptimes=removetimes (sptimes,g.chanclust(chindices),g.removedCT(chindices,:),1:size(chindices,2));
 end
-nctchans = length(ctchannels);
+nctchans = size(ctchannels,2);
 cpdf = [];
 npb = {};
 pair = zeros(0,2);
 cttime=0.4;
-ctsamp=0.5+cttime*double(g.scanrate(1))/1000;
+ctsamp=0.5+cttime*g.scanrate(1)/1000;
 idxc=cell(1,nctchans);
 remtimes=idxc;
 remidx=idxc;
@@ -31,9 +30,9 @@ for ch=1:nctchans
 end
 for ch = 1:nctchans
 	if g.pwflag
-		[~,idxc{ch}] = CrossCorrRecRow1(ch1(1,:),sptimes{ctchannels(ch)},ctsamp); %coincident spikes
+		[placeholder,idxc{ch}] = CrossCorrRecRow1(ch1(1,:),sptimes{ctchannels(ch)},ctsamp); %coincident spikes
 	else
-		[~,idxc{ch}] = CrossCorrRecRow1(ch1(1,:),sptimes{ch},ctsamp); %coincident spikes
+		[placeholder,idxc{ch}] = CrossCorrRecRow1(ch1(1,:),sptimes{ch},ctsamp); %coincident spikes
 	end
 	%Keep only the 2nd channel
 	for fnum=1:nfiles
@@ -71,19 +70,13 @@ end
 if (binning)
 	tccout = zeros(1,nbins);
 	for i = 1:length(t1)
-        if and(size(t1{i},2)>0, size(allt{i},2)>0)
-          tccout = tccout + CrossCorr(t1{i},allt{i}(1,:),tmax,nbins);
-        end
+		tccout = tccout + CrossCorr(t1{i},allt{i}(1,:),tmax,nbins);
 	end
 else
 	tccout = [];
 	for i = 1:length(t1)
-        if and(size(t1{i},2)>0, size(allt{i},2)>0)
-          [tcctemp,indxout{i}] = CrossCorr(t1{i},allt{i}(1,:),tmax);
-          tccout(end+1:end+length(tcctemp)) = tcctemp;
-        else
-          indxout{i} = [];
-        end
+		[tcctemp,indxout{i}] = CrossCorr(t1{i},allt{i}(1,:),tmax);
+		tccout(end+1:end+length(tcctemp)) = tcctemp;
 	end
 end
 

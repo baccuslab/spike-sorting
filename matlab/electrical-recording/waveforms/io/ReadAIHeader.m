@@ -9,7 +9,7 @@ function [header,headersize] = ReadAIHeader(file)
 % If "file" is a string, it's treated as a filename
 % If "file" is numeric, it's treated as a file identifier
 if (ischar(file))
-	[fid,message] = fopen(file,'r');
+	[fid,message] = fopen(file,'r', 'b');
 	if (fid < 1)
 		error(message);
 	end
@@ -59,9 +59,9 @@ else
 	header.scanrate = fread(fid,1,'float32');
 	header.scalemult = fread(fid,1,'float32');
 	header.scaleoff = fread(fid,1,'float32');
-	header.date = readLVstring(fid);
-	header.time = readLVstring(fid);
-	header.usrhdr = readLVstring(fid);
+	header.date = ReadLVString(fid);
+	header.time = ReadLVString(fid);
+	header.usrhdr = ReadLVString(fid);
 end	
 if (ischar(file))
 	fclose(fid);

@@ -286,9 +286,9 @@ case 'Cluster'
 			updatearr(1:3,elim)=0;
 		end
 		if (getappdata(h,'Sortstatus'))
-			newclflindx(1,:) = RebuildUnassigned(getappdata(h,'clflindxall'),newclflindx);
+			newclflindx(1,:) = rebuildunassigned(getappdata(h,'clflindxall'),newclflindx);
 		else
-			newclflindx(1,:) = RebuildUnassigned(getappdata(h,'clflindxsub'),newclflindx);
+			newclflindx(1,:) = rebuildunassigned(getappdata(h,'clflindxsub'),newclflindx);
 		end
 		% Store the new assignments
 		setappdata(h,'clflindx',newclflindx);
@@ -740,7 +740,7 @@ case 'Done'
 		g.chanclust{sortchidx} = newclusts;
 	end
 	if (length (ctchannels)>0)
-		[tmpremCT,tmpremidx] = removecrosstalk(g,newclusts,ctchannels,h);
+		[tmpremCT,tmpremidx] = RemoveCrosstalk(g,newclusts,ctchannels,h);
 	else
 		tmpremCT=[];
 	end
@@ -771,7 +771,7 @@ case 'Done'
 			for fnum = 1:nfiles
 				if (size(tmpremCT{c}{fnum},2)>0)
 					ch=ctindices(c);
-					[alltimes{fnum},hdr]=loadsniptimes(g.spikefiles{fnum},ch);
+					[alltimes{fnum},hdr]=LoadSnipTimes(g.spikefiles{fnum},ch);
 					alltimes{fnum}=[alltimes{fnum}';1:length(alltimes{fnum})];
 					remidx{c+1,fnum}=tmpremidx{c}{fnum};
 				end
@@ -795,7 +795,7 @@ case 'Done'
 	% Go on to the next cell #s on the next channel
 	set(handles.main,'UserData',''); 
 	setappdata (handles.main,'g',g);
-	arrayplot (g.channels,handles.ch,g.xc,g.yc,g.nspikes)
+	Arrayplot (g.channels,handles.ch,g.xc,g.yc,g.nspikes)
 	set(findobj(handles.main,'Tag','Quit'),'Enable','on'); %Enable main window quit button  
 	setappdata (handles.main,'SortEnable','on');%Enable channel sorting in main window
 	delete(h); 

@@ -93,7 +93,7 @@ if (~pwflag)
 		ylabel('Filters');
 		set(gca,'XLim',[1 size(deffiltersall,1)]);
 		set(gca,'Tag','FiltAxes');
-		[fid,message] = fopen(spikefiles{1},'r'); %sorting continuous waveform data
+		[fid,message] = fopen(spikefiles{1},'r', 'b'); %sorting continuous waveform data
 		if (fid < 1)
 			error(message)
 		end

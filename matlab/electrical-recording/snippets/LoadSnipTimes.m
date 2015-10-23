@@ -1,7 +1,7 @@
 function [time,header] = LoadSnipTimes(filename,channel,nsnips)
 % LoadSnipTimes: load the snippet times from a given channel in one file
 % [time,header] = LoadSnipTimes(filename,channel)
-[fid,message] = fopen(filename,'r');
+[fid,message] = fopen(filename,'r', 'b');
 if (fid < 1)
 	error(message)
 end

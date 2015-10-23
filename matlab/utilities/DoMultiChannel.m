@@ -24,7 +24,7 @@ else
 		chindices(ch)=find(sortchannels(ch)==g.channels);
 	end
 	for fnum= 1:nfiles
-		[fid,message] = fopen(g.spikefiles{fnum},'r');
+		[fid,message] = fopen(g.spikefiles{fnum},'r', 'b');
 		header{fnum} = ReadSnipHeader(fid);
 		scanrate(fnum) = header{fnum}.scanrate;
 		rectime(fnum) = header{fnum}.nscans/header{fnum}.scanrate;

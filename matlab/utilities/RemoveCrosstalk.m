@@ -9,7 +9,7 @@ else
 	%Load in times
 	for ch=1:size(ctchannels,2)
 		for fnum=1:nfiles;
-			[sptimes{ch}{fnum},hdr]=loadsniptimes(g.spikefiles{fnum},ctchannels(ch));
+			[sptimes{ch}{fnum},hdr]=LoadSnipTimes(g.spikefiles{fnum},ctchannels(ch));
 			sptimes{ch}{fnum}=[sptimes{ch}{fnum}';1:length(sptimes{ch}{fnum})];
 		end
 	end

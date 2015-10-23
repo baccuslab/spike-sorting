@@ -35,7 +35,15 @@ for chindx=1:nch
 	nspikes{chindx}(nx,ny)=0;	
 	for fnum=1:nfiles
 		% Generate 2d-histogram
-		if (nx>2 & ny>2 & size(proj{chindx,fnum},2)>0)
+		%if (nx>2 & ny>2 & size(proj{chindx,fnum},2)>0)
+		if (nx>2 & ny>2 & size(proj{chindx,fnum},2)>1)
+% 			xc{chindx} = linspace(rectx(chindx, 1), rectx(chindx, 2), nx);
+% 			yc{chindx} = linspace(recty(chindx, 1), recty(chindx, 2), ny);
+% 			xcIn = [xc{chindx} xc{chindx}(end) + mean(diff(xc{chindx}))];
+% 			ycIn = [yc{chindx} yc{chindx}(end) + mean(diff(yc{chindx}))];
+% 			nspikesfiles{chindx, fnum} = hist2d_new(proj{chindx, fnum}(1:2, :)', ...
+% 				xcIn, ycIn);
+				
 			[nspikesfiles{chindx,fnum},xc{chindx},yc{chindx}] =  ... 
 			hist2d(proj{chindx,fnum}(1,:),proj{chindx,fnum}(2,:),[rectx(chindx,:) recty(chindx,:)],nx,ny);
 			nspikes{chindx}=nspikes{chindx}+nspikesfiles{chindx,fnum};

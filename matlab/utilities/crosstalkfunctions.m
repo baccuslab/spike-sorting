@@ -6,7 +6,7 @@ if (nargin < 3)
 	h = gcbf;
 end
 g=getappdata (h,'g');
-hdr=readsnipheader(g.spikefiles{1});
+hdr=ReadSnipHeader(g.spikefiles{1});
 handles = getappdata(h,'handles');
 switch(action)
 case 'calculate'

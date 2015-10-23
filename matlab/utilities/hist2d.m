@@ -25,7 +25,10 @@ n = zeros(nx,ny);
 %for i = 1:length(xi)
 %	n(xi(i),yi(i)) = n(xi(i),yi(i))+1;
 %end
-n=hist2dfast(xi,yi,nx,ny);
+% n=hist2dfast(xi,yi,nx,ny);
+
+n=hist2d_new([xi' yi'],1:nx+1,1:ny+1);
+
 %n(xi(indx(i)),yi(indx(i))) = n(xi(indx(i)),yi(indx(i)))+1;
 if (nargout == 0)
 	imagesc(ycenter,xcenter,log(n+1));

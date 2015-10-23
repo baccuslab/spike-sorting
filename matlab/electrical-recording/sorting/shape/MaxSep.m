@@ -54,6 +54,10 @@ lambda = abs(real(diag(lambda)));
 f = real(f);
 normf = diag(f'*denom*f)/nclust;	% Change default normalization so that
 f = f/diag(sqrt(normf));			% f'*Cnoise*f = identity
+
+f = fliplr(f);
+lambda = flipud(lambda);
+
 %lambda = diag(lambda)/(nclust-1);
 %[U,V,X,C,S] = gsvd(chol(num),chol(denom),0);	% This version assures it's real
 %f = sqrt(width)*inv(S*X');

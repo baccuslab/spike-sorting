@@ -41,7 +41,7 @@ if (~pwflag) %Continuous waveform data
 		end
 		%Setup array window
 		handles = makearraywindow (g.channels);
-		arrayplot (g.channels,handles.ch,g.xc,g.yc,g.nspikes) ;
+		Arrayplot (g.channels,handles.ch,g.xc,g.yc,g.nspikes) ;
 		setappdata (handles.main,'g',g);		
 	end %end continuous waveform case
 else %peak-width

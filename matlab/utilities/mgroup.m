@@ -8,7 +8,7 @@ handles=getappdata(hsort,'handles');
 chindices=getappdata(hsort,'chindices');
 spindx=getappdata(hsort,'spindx');
 nfiles=size(g.spikefiles,2); 
-hdr=readsnipheader (g.spikefiles{1});
+hdr=ReadSnipHeader (g.spikefiles{1});
 nch=length(chindices);
 [chans,numproj,sniprange] = GetSnipNums(g.spikefiles);
 if g.pwflag

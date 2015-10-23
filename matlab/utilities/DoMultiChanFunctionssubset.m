@@ -771,7 +771,7 @@ case 'Done'
 			for fnum = 1:nfiles
 				if (size(tmpremCT{c}{fnum},2)>0)
 					ch=ctindices(c);
-					[alltimes{fnum},hdr]=loadsniptimes(g.spikefiles{fnum},ch);
+					[alltimes{fnum},hdr]=LoadSnipTimes(g.spikefiles{fnum},ch);
 					alltimes{fnum}=[alltimes{fnum}';1:length(alltimes{fnum})];
 					remidx{c+1,fnum}=tmpremidx{c}{fnum};
 				end
@@ -795,7 +795,7 @@ case 'Done'
 	% Go on to the next cell #s on the next channel
 	set(handles.main,'UserData',''); 
 	setappdata (handles.main,'g',g);
-	arrayplot (g.channels,handles.ch,g.xc,g.yc,g.nspikes)
+	Arrayplot (g.channels,handles.ch,g.xc,g.yc,g.nspikes)
 	set(findobj(handles.main,'Tag','Quit'),'Enable','on'); %Enable main window quit button  
 	setappdata (handles.main,'SortEnable','on');%Enable channel sorting in main window
 	delete(h); 
@@ -877,7 +877,7 @@ case 'DoneUnassigned'
 			for fnum = 1:nfiles
 				if (size(tmpremCT{c}{fnum},2)>0)
 					ch=ctindices(c);
-					[alltimes{fnum},hdr]=loadsniptimes(g.spikefiles{fnum},ch);
+					[alltimes{fnum},hdr]=LoadSnipTimes(g.spikefiles{fnum},ch);
 					alltimes{fnum}=[alltimes{fnum}';1:length(alltimes{fnum})];
 					remidx{c+1,fnum}=tmpremidx{c}{fnum};
 				end
@@ -901,7 +901,7 @@ case 'DoneUnassigned'
 	% Go on to the next cell #s on the next channel
 	set(handles.main,'UserData',''); 
 	setappdata (handles.main,'g',g);
-	arrayplot (g.channels,handles.ch,g.xc,g.yc,g.nspikes)
+	Arrayplot (g.channels,handles.ch,g.xc,g.yc,g.nspikes)
 	set(findobj(handles.main,'Tag','Quit'),'Enable','on'); %Enable main window quit button  
 	setappdata (handles.main,'SortEnable','on');%Enable channel sorting in main window
 	delete(h); 

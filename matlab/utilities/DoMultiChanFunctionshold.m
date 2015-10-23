@@ -790,7 +790,7 @@ case 'Done'
 	setappdata (hmain,'removedCT',removedCT);
 	setappdata (hmain,'chanclust',chanclust);
 	setappdata(hmain,'plottimes',plottimes);
-	makearrayplot (hmain)
+	makeArrayplot (hmain)
 	set(findobj(hmain,'Tag','SortButton'),'Enable','on');
 	close(h)
 	

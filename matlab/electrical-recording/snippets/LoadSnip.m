@@ -5,7 +5,7 @@ function [snip,time,header] = LoadSnip(filename,channel,maxsnip)
 %	will be read, with the default behavior to read all the snippets
 % snip is returned in units of volts. This is the only reliable choice for sorting, as
 %	the user might change the A/D scaling between files.
-[fid,message] = fopen(filename,'r');
+[fid,message] = fopen(filename,'r', 'b');
 if (fid < 1)
 	error(message)
 end

@@ -446,9 +446,9 @@ case 'Done'
 		newclflindx(elim,:) = [];
 	end
 	if (getappdata(h,'Sortstatus'))
-		newclflindx(1,:) = RebuildUnassigned(getappdata(h,'clflindxall'),newclflindx);
+		newclflindx(1,:) = rebuildunassigned(getappdata(h,'clflindxall'),newclflindx);
 	else
-		newclflindx(1,:) = RebuildUnassigned(getappdata(h,'clflindxsub'),newclflindx);
+		newclflindx(1,:) = rebuildunassigned(getappdata(h,'clflindxsub'),newclflindx);
 	end
 	% Store the new assignments
 	setappdata(h,'clflindx',newclflindx);

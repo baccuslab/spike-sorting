@@ -54,17 +54,17 @@ for fi = 1:nfiles
 		error(msg);
 	end
 	dataOffset = fread(fid, 1, 'uint32');
-	fseek(fid, dataOffset, 'bof');
 
 	ntimes = length(times{fi});
 	for ci = 1:nchannels
 		data{ci, fi} = zeros(sz, ntimes);
 		for ti = 1:ntimes
-			blockIdx = floor(times{fi}(ti) / header.windowsize);
-			timeInBlock = times{fi}(ti) - header.windowsize * blockIdx;
-			fseek(fid, (blockIdx * blockSize + ...
-				 + channels(ci) * header.windowsize + ...
-				 timeInBlock  - range(1)) * 2 + dataOffset, 'bof');
+			block = floor(times{fi}(ti) / header.windowsize);
+            idx = mod(times{fi}(ti), header.windowsize);
+            fseek(fid, dataOffset + ...
+                (block * blockSize + ...
+                (channels(ci) - 1) * header.windowsize + ...
+                idx - range(1)) * 2, 'bof');
 			data{ci, fi}(:, ti) = double(fread(fid, sz, 'int16'));
 		end
 	end

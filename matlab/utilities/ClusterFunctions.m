@@ -67,7 +67,8 @@ case 'DoPolygon'
 		clustnum = GetNextClust(clustnums);
 	end
 	%   Get selection polygon
-	[pvx,pvy] = GetSelPolygon('go',GetClustCol(clustnum));
+% 	[pvx,pvy] = GetSelPolygon('go',GetClustCol(clustnum));
+    [pvx, pvy] = GetNewPolygon(GetClustCol(clustnum));
 	if (isempty(pvx) && replace == 1)
 		pvx = oldpolygon.x;
 		pvy = oldpolygon.y;
@@ -355,15 +356,15 @@ selclust = find(selvec);
 selvec(selclust) = 0;
 setappdata(hfig,'selectflag',selvec);
 clustnums = getappdata(hfig,'clustnums');
-clustnums(selclust) = 0;
+clustnums(selclust) = [];
 setappdata(hfig,'clustnums',clustnums);
 polygons = getappdata(hfig,'polygons');
 for i = 1:length(selclust)
 	polygons{selclust(i)} = [];
 end
 setappdata(hfig,'polygons',polygons);
-%hlines = getappdata(hfig,'hlines');
-%delete(hlines(selclust));
+hlines = getappdata(hfig,'hlines');
+delete(hlines(selclust));
 PlotPolygons(hfig);
 return
 
@@ -407,8 +408,10 @@ txth = findobj(hfig,'Type','text');
 delete(txth);			% Get rid of cluster # markers
 for i = 1:length(clustnums)
 	if (clustnums(i) > 0)
-		hlines(i) = line(polygons{i}.x,polygons{i}.y,'Color',GetClustCol(clustnums(i)),'ButtonDownFcn',SelCb);
-		text(polygons{i}.x(1),polygons{i}.y(1),num2str(GetClustLabel(clustnums(i),clustlabels)));
+		hlines(i) = line(polygons{clustnums(i)}.x,polygons{clustnums(i)}.y, ...
+            'Color',GetClustCol(clustnums(i)),'ButtonDownFcn',SelCb);
+		text(polygons{clustnums(i)}.x(1),polygons{clustnums(i)}.y(1), ...
+            num2str(GetClustLabel(clustnums(i),clustlabels)));
 	end
 end
 setappdata(hfig,'hlines',hlines);

@@ -52,7 +52,8 @@ case 'DoPolygon'
 	%   in the middle of forming a polygon
 	DisableClusterSelCb(hfig);
 	%   Get selection polygon
-	[pvx,pvy] = GetSelPolygon('go',color);
+	%[pvx,pvy] = GetSelPolygon('go',color);
+	[pvx, pvy] = GetNewPolygon(color);
 	
 	if (~isempty(pvx))
 		%   Assign cluster number to selected points, and
@@ -60,7 +61,7 @@ case 'DoPolygon'
 		polygons{1}.x = pvx;
 		polygons{1}.y = pvy;
 		setappdata(hfig,'polygons',polygons);
-		Multiclusterfunctions ('showselected');
+		MultiClusterFunctions ('showselected');
 	end
 	if (ishandle(hfig))	% User might have hit cancel during polygon drawing
 		%   Re-enable cluster selection callbacks

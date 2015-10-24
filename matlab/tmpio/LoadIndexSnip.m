@@ -50,7 +50,7 @@ if isempty(chindx)
 end
 snipsize = -hdr.snipbeginoffset + hdr.snipendoffset + 1;
 nsnips = length(indices);
-snips = zeros(snipsize, nsnips, 'int16');
+snips = zeros(snipsize, nsnips);
 times = zeros(nsnips, 1);
 
 [fid, msg] = fopen(file, 'r', 'b');
@@ -59,11 +59,10 @@ if fid == -1
 end
 fseek(fid, hdr.snipsfpos(chindx), 'bof');
 for i = 1:nsnips
-	times(i) = hdr.snipsfpos(chindx) + ...
-		snipsize * 2 * (indices(i) - 1);
-	fseek(fid, times(i), 'bof');
-	snips(:, i) = fread(fid, snipsize, 'int16');
+    times(i) = hdr.timesfpos(chindx) + 4 * (indices(i) - 1);
+	fseek(fid, hdr.snipsfpos(chindx) + ...
+        2 * snipsize * (indices(i) - 1), 'bof');
+	snips(:, i) = double(fread(fid, snipsize, 'int16'));
 end
 fclose(fid);
-snips = double(snips);
 

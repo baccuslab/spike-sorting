@@ -4,8 +4,7 @@ function [filters,subrange,sv,wave] = multiBFI(snipfiles,ctfiles,nspikes,nnoise,
 % First figure out how many snippets we have/channel in each file
 nchans=size(channels,2);
 % [chans,mnsnips,ssniprange] = GetSnipNums(spikefiles);		%This is here solely to set ssniprange
-ssniprange = double([h5readatt(snipfiles{1}, '/', 'nsamples-before') ...
-    h5readatt(snipfiles{1}, '/', 'nsamples-after')]);
+ssniprange = getSnipRange(snipfiles);
 for i = 1:length(snipindx)
 	nsnips(i) = length(snipindx{i});
 end

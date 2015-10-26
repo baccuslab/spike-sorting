@@ -7,8 +7,7 @@ if (nargin < 3)
 end
 g=getappdata (h,'g');
 % hdr=ReadSnipHeader(g.spikefiles{1});
-hdr.sniprange = double([h5readatt(g.snipfiles{1}, '/', 'nsamples-before') ...
-    h5readatt(g.snipfiles{1}, '/', 'nsamples-after')]);
+hdr.sniprange = getSnipRange(g.snipfiles{1});
 handles = getappdata(h,'handles');
 switch(action)
 case 'calculate'

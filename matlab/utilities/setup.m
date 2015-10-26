@@ -10,58 +10,44 @@ if (~pwflag)
 		deffiltbutton='calculate';
 		switch deffiltbutton
 		case 'load',
-			[deffiltname,deffiltpath]=uigetfile ('*.mat','Load default filters');
+			[deffiltname,~]=uigetfile ('*.mat','Load default filters');
 			load (deffiltname);
 		case 'calculate',
 			% Step 1: load in representatives of all channels
 			fprintf('Building default filters:\n  Reading sample spike snippets from all channels...\n');
-% 			numperfile = 50000/numfiles;
-            numperfile = 5000;
-			spikes = [];
-			for i = 1:numfiles
-% 				[newspikes,ssniprange] = ReadFromAllChannels(spikefiles{i},numperfile,channels(find(channels~=2)));
-                [newspikes, ssniprange] = readFromAllChannels(snipfiles{i}, ...
+			numperfile = 50000/numfiles;
+            spikes = cell(numfiles, 1);
+            for i = 1:numfiles
+                [spikes{i}, ssniprange] = readFromAllChannels(snipfiles{i}, ...
                     'spike', numperfile, channels);
-				spikes = [spikes,newspikes];
-			end
+            end
+            spikes = [spikes{:}];
+            
 			% Step 2: do the same for noise
 			fprintf('  Reading noise snippets from all channels...\n');
-% 			noiseperfile = 5000/length(noisefiles);
             noiseperfile = 5000 / length(snipfiles);
-			noise=[];
-% 			for i = 1:length(noisefiles)
+            noise = cell(numfiles, 1);
             for i = 1 : length(snipfiles)
-% 				newnoise = ReadFromAllChannels(noisefiles{i},noiseperfile,channels);
-                newnoise = readFromAllChannels(snipfiles{i}, 'noise', ...
+                noise{i} = readFromAllChannels(snipfiles{i}, 'noise', ...
                     noiseperfile, channels);
-				noise = [noise,newnoise];
-			end
+            end
+            noise = [noise{:}];
+            
 			% Step 3: let user set sniprange
 			deffilters=cell(1,numch);
-			sv=cell(1,numch);
-			wave=cell(1,numch);
             
-			%Preprocess the spikes for building default filters
-			for i=1:size(spikes,2) %subtract the mean
-				spikes(:,i)=spikes(:,i)-mean(spikes(:,i));
-            end
-
-%             spikes = spikes - (ones(size(spikes, 1), 1) * mean(spikes));
+			% Preprocess the spikes for building default filters, mean
+			% subtract from each spike
+            spikes = spikes - ones(size(spikes, 1), 1) * mean(spikes, 1);
             
 			%take only the snippets that have the peak at time 0. Because the crosstalk snippet cutter
 			%writes coincident snippets, the peak may be elsewhere, or there may not even be a spike.
 			%spikes=spikes(:,find(max(spikes)==spikes(-ssniprange(1)+1,:)));
 			%take only the biggest 50% of the spikes
 			peakval=spikes(-ssniprange(1)+1,:); 
-			peakval=[peakval;1:size(peakval,2)];
-			peakval=sortrows(peakval')';
-			peakval=peakval(:,floor(end-size(peakval,2)/2):end);
-			spikes=spikes(:,peakval(2,:));
-            % Many more spikes when using HDF5 files (think comes from
-            % fracsnips issue in ReadFromAllChannels.
-            spikes = fliplr(spikes); % Not sure why we need to flip
-            maxsnips = 10000;
-			hfig = ChooseWaveforms(spikes(:, 1:maxsnips), ssniprange);
+            [~, peakIdx] = sort(peakval);
+            spikes = spikes(:, floor(end - length(peakIdx) / 2) : end);
+			hfig = ChooseWaveforms(spikes, ssniprange);
 			alldone = 0;
 			while (alldone == 0)
 				waitfor(hfig,'UserData','done');
@@ -109,16 +95,11 @@ if (~pwflag)
 		ylabel('Filters');
 		set(gca,'XLim',[1 size(deffiltersall,1)]);
 		set(gca,'Tag','FiltAxes');
-% 		[fid,message] = fopen(spikefiles{1},'r', 'b'); %sorting continuous waveform data
-% 		if (fid < 1)
-% 			error(message)
-% 		end
-% 		header = ReadSnipHeader(fid);
-% 		scanrate=header.scanrate;
         scanrate = double(h5readatt(snipfiles{1}, '/', 'sample-rate'));
+        
 		%Calculate default filter projections for all channels
-% 		calcproj (spikefiles,'proj.bin',channels,subrange,deffilters);
         calcproj(snipfiles, 'proj.bin', channels, subrange, deffilters);
+        
 	end %If proj.bin does not exist
 else
 	global proj;
@@ -146,7 +127,6 @@ pos=get(handles.ch(1),'Position');
 nx=floor(pos(3));ny=floor(pos(4));
 for ch=1:numch
 	if (~pwflag)
-% 		[placeholder,nsnips,placeholder] = GetSnipNums(spikefiles);
         nsnips = getNumSnips(snipfiles);
 		proj=loadproj('proj.bin',ch,numch,numfiles,nsnips(ch,:));
 		[xc(ch),yc(ch),nspikes(ch),rectx(ch,:),recty(ch,:)]=Hist2dcalc(proj(1,:),nx,ny); 
@@ -180,7 +160,6 @@ if  (pwflag)
 	setappdata (handles.main,'proj',proj);
 	setappdata(handles.main,'nfiles',1);
 else
-% 	g.noisefiles=noisefiles;
 	g.deffilters=deffilters;
 	g.subrange=subrange;
 end
@@ -198,20 +177,17 @@ function calcproj (files,outfile,channels,subrange,deffilters)
 numch=length(channels);
 numfiles = length(files);
 projfp=zeros(numch, numfiles);
-% [placeholder,nsnips,sniprange] = GetSnipNums(files);
 nsnips = getNumSnips(files, 'spike', channels);
 loadn=50000;
 fid=fopen(outfile,'w');
 fwrite(fid,projfp,'int32');
 for ch=1:numch
-	ch
+	fprintf('  Computing projection for channel %d\n', ch);
 	for fnum=1:numfiles
 		startn=1;
 		endn=min(loadn,nsnips(ch,fnum));
 		while (startn<=nsnips(ch,fnum))
-% 			[snips,sptimes] = LoadIndexSnip(files{fnum},channels(ch),startn:endn);
             [snips, ~] = loadIndexSnip(files{fnum}, 'spike', channels(ch), startn:endn);
-%             [snips, ~] = loadSnip(files{fnum}, 'spike', channels(ch), endn); % MUCH FASTER
 			proj(1:2,startn:endn)=deffilters{ch}'*snips(subrange(1):subrange(2),:);
 			proj(3,startn:endn)=max(snips(subrange(1):subrange(2),:))-min(snips(subrange(1):subrange(2),:));
 			startn=startn+loadn;

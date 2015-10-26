@@ -91,7 +91,9 @@ end
 
 
 %Load in full recording
-data=loadaibdata(datafname,channels,{scanrange(1)},[0 scanrange(2)-scanrange(1)]);
+% data=loadaibdata(datafname,channels,{scanrange(1)},[0 scanrange(2)-scanrange(1)]);
+data = loadRawData(datafname, channels, {scanrange(1)}, ...
+    [0, scanrange(2) - scanrange(1)]);
 offset(1)=0;
 for ch=2:size(channels,2)
 	data{ch}=data{ch}-max(data{ch})+min(data{ch-1});

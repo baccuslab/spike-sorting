@@ -76,8 +76,10 @@ case 'SortSubset'
 		clflindxnew(1,:)={[]};
 		clflindxnew(2:end,:)=clflindx(selclust,:);
 		setappdata (h,'clflindx',clflindxnew);
-		clflindxsub=cell(1,size(g.spikefiles,2));
-		for fnum = 1:size(g.spikefiles,2)
+% 		clflindxsub=cell(1,size(g.spikefiles,2));
+        clflindxsub = cell(1, length(g.snipfiles));
+% 		for fnum = 1:size(g.spikefiles,2)
+        for fnum = 1 : length(g.snipfiles)
 			clflindxsub{fnum} = sort(cat(2,clflindxnew{2:end,fnum}));
 		end
 		setappdata(h,'clflindxsub',clflindxsub);
@@ -113,17 +115,23 @@ case 'Storeinmem'
 		else
 			wvindx=getappdata (h,'clflindxsub');
 		end
-		[storedsnips,header]  = MultiLoadIndexCTMF(g.spikefiles,g.ctfiles,sortchannels,wvindx,spindx);
+% 		[storedsnips,header]  = MultiLoadIndexCTMF(g.spikefiles,g.ctfiles,sortchannels,wvindx,spindx);
+        [storedsnips, ~] = MultiLoadIndexCTMF(g.snipfiles, g.ctfiles, ...
+            sortchannels, wvindx, spindx);
 		setappdata (h,'storedsnips',storedsnips); clear storedsnips
 		setappdata (h,'storedindx',wvindx); clear wvindx
-		hdr = ReadSnipHeader(g.spikefiles{1});
-		setappdata (h,'storedsniprange',hdr.sniprange);
+% 		hdr = ReadSnipHeader(g.spikefiles{1});
+% 		setappdata (h,'storedsniprange',hdr.sniprange);
+        sniprange = getSnipRange(g.snipfiles{1});
+        setappdata(h, 'storedsniprange', sniprange);
 	else
 		setappdata (h,'Storestatus',0);
 		set(findobj(h,'Tag','Storeinmem'),'BackgroundColor',[0.8 0.8 0.8]);
-		clruprop (h,'storedsnips');
-		clruprop (h,'storedindx');
-		clruprop (h,'storedsniprange');
+        try
+            rmappdata (h,'storedsnips');
+            rmappdata (h,'storedindx');
+            rmappdata (h,'storedsniprange');
+        end
 	end
 
 case 'BuildFilters'
@@ -194,7 +202,6 @@ case 'DiscrimFilters'
 	spindx=getappdata(h,'spindx');
 	spikes = cell(nsel,1);
 	for i = 1:nsel
-% 		spikes{i} = MultiLoadIndexSnippetsMF(g.spikefiles,g.ctfiles,sortchannels,wvindx(i,:),spindx,h);
         spikes{i} = MultiLoadIndexSnippetsMF(g.snipfiles, 'spike', g.ctfiles, ...
             sortchannels, wvindx(i, :), spindx, h);
 	end
@@ -370,12 +377,9 @@ case 'UpdateDisplay'
 					flist=find(snum==max(snum));flist=flist(1);%Choose file with the most snips for each cluster
 					subindx=cell(1,nfiles);
 					subindx(flist)=getsubset (clflindx(c,flist),loadnsnips);		
-				end
-% 				display.snips{c} = MultiLoadIndexSnippetsMF(g.spikefiles,g.ctfiles,sortchannels,subindx,spindx,h);
+                end
                 display.snips{c} = MultiLoadIndexSnippetsMF(g.snipfiles, ...
                     'spike', g.ctfiles,sortchannels,subindx,spindx,h);
-				%subindx=getsubset (clflindx(c,:),loadnsnips);
-				% display.snips{c} = MultiLoadIndexSnippetsMF(g.spikefiles,g.ctfiles,sortchannels,subindx,spindx,h);
 			else %Updatearr(1,c)>0 ,transfer clusters to different number,
 				%as occurs during cluster deletion
 				display.snips{c}=display.snips{updatearr(1,c)};
@@ -585,9 +589,11 @@ case 'CrossCorr'
 
 case 'Clear'
 	% Delete current clusters and make all spikes unassigned
-	newclflindx=cell(size(g.spikefiles,2));
+% 	newclflindx=cell(size(g.spikefiles,2));
+    numfiles = length(g.snipfiles);
+    newclflindx = cell(numfiles);
 	clflindx=getappdata (h,'clflindx');
-	for fnum = 1:size(g.spikefiles,2)
+	for fnum = 1:numfiles
 		newclflindx{fnum} = sort(cat(2,clflindx{1:end,fnum}));
 	end
 	setappdata (gcf,'clflindx',newclflindx);
@@ -651,7 +657,9 @@ case 'Recon'
 	spindx=getappdata (h,'spindx');
 	clflindx = getappdata(h,'clflindx');
 	sortchannels = getappdata(h,'sortchannels');
-	[flindx,v] = listdlg('ListString',g.spikefiles,'SelectionMode','single','PromptString','Select a file:');
+% 	[flindx,v] = listdlg('ListString',g.spikefiles,'SelectionMode','single','PromptString','Select a file:');
+    [flindx,v] = listdlg('ListString', g.snipfiles, 'SelectionMode', 'single', ...
+        'PromptString', 'Select a file:');
 	if (~v)
 		return;
 	end
@@ -659,10 +667,13 @@ case 'Recon'
 	sptimes=cell(size(clflindx,1),1);
 	for c=1:size(clflindx,1)
 		if (size(clflindx{c,flindx},2)>0)
-			[snips{c},sptimes{c}] = LoadIndexSnip(g.spikefiles{flindx},sortchannels(1),spindx{flindx}(clflindx{c,flindx}));
+% 			[snips{c},sptimes{c}] = LoadIndexSnip(g.spikefiles{flindx},sortchannels(1),spindx{flindx}(clflindx{c,flindx}));
+            [snips{c}, sptimes{c}] = loadIndexSnip(g.snipfiles{flindx}, ...
+                'spike', sortchannels(1), spindx{flindx}(clflindx{c, flindx}));
 		end
 	end
-	[time,hdr]=LoadSnipTimes(g.spikefiles{flindx},sortchannels(1),1);
+% 	[time,hdr]=LoadSnipTimes(g.spikefiles{flindx},sortchannels(1),1);
+    hdr = makeSnipHeader(g.snipfiles{1}, 'spike');
 	%ViewReconstruction(sortchannels,snip,tsnip,clflindx(:,flindx),h.sniprange,[1 h.nscans]);
 	ViewReconstruction([1 50000],g.ctfiles(flindx),sortchannels,sptimes,hdr);
 case 'Crosstalk'

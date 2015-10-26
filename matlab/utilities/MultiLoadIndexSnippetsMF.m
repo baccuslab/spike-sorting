@@ -5,8 +5,7 @@ function [snips,filenum,header]  = MultiLoadIndexSnippetsMF(spfiles,sniptype,ctf
 %it is constructed from the spike times of the group of channels
 % subset of snippets
 % h = ReadSnipHeader(spfiles{1});
-h.sniprange = double([h5readatt(spfiles{1}, '/', 'nsamples-before') ...
-    h5readatt(spfiles{1}, '/', 'nsamples-after')]);
+h.sniprange = getSnipRange(spfiles{1});
 snipsize=h.sniprange(2)-h.sniprange(1)+1;
 nfiles=length(spfiles);nchans=length(channels);
 t=cell(1,nfiles);

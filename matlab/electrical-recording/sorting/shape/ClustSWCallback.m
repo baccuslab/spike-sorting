@@ -38,7 +38,8 @@ case 'Revert'
 		ClusterFunctions('ScatterPlot',hfig);
 	end
 case 'Waveforms'
-	spikefiles=getappdata(gcf,'spikefiles');
+% 	spikefiles=getappdata(gcf,'spikefiles');
+    snipfiles = getappdata(gcf, 'snipfiles');
 	ctfiles=getappdata(gcf,'ctfiles');
 	channels=getappdata(gcf,'channels');
 	snipindx=getappdata(gcf,'snipindx');
@@ -49,7 +50,8 @@ case 'Waveforms'
 		wvfig = figure;
 	end
 	setappdata(wvfig,'ctfiles',ctfiles);
-	setappdata(wvfig,'spikefiles',spikefiles);
+% 	setappdata(wvfig,'spikefiles',spikefiles);
+    setappdata(wvfig, 'snipfiles', snipfiles);
 	setappdata(wvfig,'channels',channels);
 	setappdata(wvfig,'snipindx',snipindx);
 	setappdata(wvfig,'multiindx',multiindx);
@@ -76,12 +78,15 @@ case 'ShowWaveform'
 	pdist=d1.*d1+d2.*d2;
 	snidx=f(:,find (pdist==min(pdist)));
 	ctfiles=getappdata(gcbf,'ctfiles');
-	spikefiles=getappdata(gcbf,'spikefiles');
+% 	spikefiles=getappdata(gcbf,'spikefiles');
+    snipfiles = getappdata(gcbf, 'snipfiles');
 	channels=getappdata(gcbf,'channels');
 	snipindx=getappdata(gcbf,'snipindx');
 	multiindx=getappdata(gcbf,'multiindx');
 	fnum=snidx(1);
-	snip = MultiLoadIndexSnippetsMF(spikefiles(fnum),ctfiles(fnum),channels,{snipindx{fnum}(snidx(2))},multiindx(fnum));
+% 	snip = MultiLoadIndexSnippetsMF(spikefiles(fnum),ctfiles(fnum),channels,{snipindx{fnum}(snidx(2))},multiindx(fnum));
+    snip = MultiLoadIndexSnippetsMF(snipfiles(fnum), 'spike', ...
+        ctfiles(fnum), channels, {snipindx{fnum}(snidx(2))}, multiindx(fnum));
 	plot(snip);
 case 'Clustmodebox'
 	if (get(findobj(hfig,'Tag','clustmode'),'Value') == 1)

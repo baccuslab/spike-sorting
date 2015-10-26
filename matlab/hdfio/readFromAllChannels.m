@@ -7,7 +7,8 @@ function [snips, range] = readFromAllChannels(snipfile, sniptype, num, channels)
 % INPUT:
 % 	snipfiles	- String giving the file from which to read data
 % 	sniptype	- Read 'spike' or 'noise' snippets
-%	num			- Maximum number of snippets to read per channel, defaults to all
+%	num			- Maximum number of snippets to read across all channels.
+%                   Defaults to all snippets from each channel.
 %	channels	- Channels from which data is to be read
 %
 % OUTPUT:
@@ -47,9 +48,14 @@ elseif nargin == 3
 end
 chans = intersect(fileChannels, channels);
 
+numSnips = getNumSnips(snipfile, sniptype, channels);
+totalNumSnips = sum(numSnips);
+fracSnips = min(1, num / totalNumSnips);
+
 snips = cell(length(chans), 1);
 for i = 1:length(chans)
-	snips{i} = loadSnip(snipfile, sniptype, chans(i), num);
+	snips{i} = loadSnip(snipfile, sniptype, chans(i), ...
+        floor(fracSnips * numSnips(i)));
 end
 snips = cat(2, snips{:});
 range = getSnipRange(snipfile);

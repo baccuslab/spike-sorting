@@ -1,4 +1,4 @@
-function handles = makearraywindow (channels);
+function handles = makearraywindow (channels)
 numch=length(channels);
 %SETUP ARRAY CHANNEL PLOT
 figure ('Name','Array','Position', [150 50 1050 750],'NumberTitle','off');%,'doublebuffer','on');

@@ -69,9 +69,11 @@ case 'BuildFilters'
 	g=getappdata(hmain,'g');
 	channels = getappdata(h,'channels');
 	multiindx=getappdata(h,'multiindx');
-	noisefiles=getappdata(h,'noisefiles');
-	[filters,subrange,sv,wave] = multiBFI(getappdata(h,'spikefiles'),noisefiles,...
-	nspikes,nnoise,channels,wvindx,multiindx);
+% 	noisefiles=getappdata(h,'noisefiles');
+% 	[filters,subrange,sv,wave] = multiBFI(getappdata(h,'spikefiles'),noisefiles,...
+%         nspikes,nnoise,channels,wvindx,multiindx);
+    [filters, subrange, sv, wave] = multiBFI(g.snipfiles, g.ctfiles, ...
+        nspikes, nnoise, channels, wvindx, multiindx);
 	if (length(filters) == 0)
 		return;
 	end
@@ -124,10 +126,13 @@ case 'DiscrimFilters'
 	end
 	channels = getappdata(h,'channels');
 	multiindx=getappdata(h,'multiindx');
-	spikefiles = getappdata(h,'spikefiles');
+% 	spikefiles = getappdata(h,'spikefiles');
+    snipfiles = getappdata(h, 'snipfiles');
 	spikes = cell(nsel,1);
 	for i = 1:nsel
-		spikes{i} = MultiLoadIndexSnippetsMF(spikefiles,channels,wvindx(i,:),multiindx);
+% 		spikes{i} = MultiLoadIndexSnippetsMF(spikefiles,channels,wvindx(i,:),multiindx);
+        spikes{i} = MultiLoadIndexSnippetsMF(snipfiles, 'spike', ...
+            channels, wvindx(i, :), multiindx);
 	end
 	[filt,lambda] = MaxSep(spikes);
 	sv = sqrt(lambda);
@@ -240,7 +245,8 @@ case 'Sep'
 	selindx
 	nclust = size(clflindx,1);
 	nfiles = size(clflindx,2);
-	spikefiles = getappdata(h,'spikefiles');
+% 	spikefiles = getappdata(h,'spikefiles');
+    snipfiles = getappdata(h, 'snipfiles');
 	channels = getappdata(h,'channels');
 	multiindx=getappdata(h,'multiindx');
 	dispnsnips = str2num(get(findobj(h,'Tag','DispNumSnips'),'String'));
@@ -296,8 +302,11 @@ case 'Sep'
 	nspikes = str2num(get(findobj(h,'Tag','NumSpikes'),'String'));
 	nnoise = str2num(get(findobj(h,'Tag','NumNoise'),'String'));
 	% Get the waveforms
-	[filters,subrange,sv,wave] = multiBFI(getappdata(h,'spikefiles'),getappdata(h,'noisefiles'),...
-	nspikes,nnoise,channels,closeindx,multiindx);
+% 	[filters,subrange,sv,wave] = multiBFI(getappdata(h,'spikefiles'),getappdata(h,'noisefiles'),...
+%         nspikes,nnoise,channels,closeindx,multiindx);
+    % BN: Not sure why the old version used noisefiles
+    [filters, subrange, sv, wave] = multiBFI(snipfiles, getappdata(h, 'ctfiles'), ... 
+        nspikes, nnoise, channels, closeindx, multiindx);
 	if (length(filters) == 0)
 		return;
 	end
@@ -331,7 +340,8 @@ case 'UpdateDisplay'
 	clflindx = getappdata(h,'clflindx');
 	nclust = size(clflindx,1);
 	nfiles = size(clflindx,2);
-	spikefiles = getappdata(h,'spikefiles');
+% 	spikefiles = getappdata(h,'spikefiles');
+    snipfiles = getappdata(h, 'snipfiles');
 	channels = getappdata(h,'channels');
 	multiindx=getappdata(h,'multiindx');
 	dispnsnips = str2num(get(findobj(h,'Tag','DispNumSnips'),'String'));
@@ -339,10 +349,12 @@ case 'UpdateDisplay'
 	% Peak histogram
 	if (~pwflag)
 		for i = 1:min(nclust,7)
-			for f=1:length(spikefiles)
+			for f=1:length(snipfiles)
 				loadindx{f} = clflindx{i,f}(1:min(500,length(clflindx{i,f})));
 			end
-			snips{i} = MultiLoadIndexSnippetsMF(spikefiles,channels(1),loadindx,multiindx);
+% 			snips{i} = MultiLoadIndexSnippetsMF(spikefiles,channels(1),loadindx,multiindx);
+            snips{i} = MultiLoadIndexSnippetsMF(snipfiles, 'spike', ...
+                channels(1), loadindx, multiindx);
 			amp{i}=max(snips{i})-min(snips{i});
 		end	
 	else
@@ -384,7 +396,7 @@ case 'UpdateDisplay'
 		%snips=cell(1,min(nclust,7));
 		nsubsnips=zeros(nclust);
 		for i = 1:min(nclust,7)
-			for f=1:length(spikefiles)
+			for f=1:length(snipfiles)
 		%		if (dispnsnips==0)
 		%			loadindx{f} = clflindx{i,f}(1:min(200,length(clflindx{i,f})));
 		%		else

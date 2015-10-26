@@ -7,10 +7,11 @@ setappdata (hsort,'selindx',selindx);
 handles=getappdata(hsort,'handles');
 chindices=getappdata(hsort,'chindices');
 spindx=getappdata(hsort,'spindx');
-nfiles=size(g.spikefiles,2); 
-hdr=ReadSnipHeader (g.spikefiles{1});
+% nfiles=size(g.spikefiles,2); 
+nfiles = length(g.snipfiles);
+% hdr=ReadSnipHeader (g.spikefiles{1});
 nch=length(chindices);
-[chans,numproj,sniprange] = GetSnipNums(g.spikefiles);
+% [chans,numproj,sniprange] = GetSnipNums(g.spikefiles);
 if g.pwflag
 	global proj
 	projch=proj(chindices);
@@ -25,14 +26,17 @@ else
 	%Get times
 	t = getappdata(hsort,'t');
 	tsel=cell(1,nfiles);				
-	for fnum = 1:size(g.spikefiles,2)
+% 	for fnum = 1:size(g.spikefiles,2)
+    for fnum = 1:nfiles;
 		tsel{1,fnum} = t{fnum}(selindx{fnum});
 	end
 	%Load ct snippets and calculate projections
 	if (getappdata(hsort,'Storestatus'))
 		snipsct=getsnipsfrommem(selindx,hsort,g.sniprange); %crosstalk is the previously loaded snippets
 	else
-		snipsct=loadaibdata (g.ctfiles,sortchannels(2:end),tsel,g.sniprange); %crosstalk is a list of files
+% 		snipsct=loadaibdata (g.ctfiles,sortchannels(2:end),tsel,g.sniprange); %crosstalk is a list of files
+        snipsct = loadRawData(g.ctfiles, sortchannels(2 : end), ...
+            tsel, g.sniprange);
 	end
 	projct=cell(size(sortchannels,2)-1,size(g.ctfiles,2));
 	for f=1:size(g.ctfiles,2)

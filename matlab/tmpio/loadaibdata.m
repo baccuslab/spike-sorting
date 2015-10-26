@@ -10,7 +10,7 @@ function data = loadaibdata(files, channels, times, range)
 % INPUT:
 % 	files		- Cell array of filenames from which data will be loaded
 %	channels	- A single array of channels from which data will be loaded.
-%					This is the same across all files.
+%					This is the same across all files. Indexing is ZERO-BASED.
 %	times		- A cell array of arrays, one for each file. Each array gives
 % 					the time points in the file from which raw data is to be
 %					loaded. These are integer indices, in samples. Note that 
@@ -63,11 +63,13 @@ for fi = 1:nfiles
             idx = mod(times{fi}(ti), header.windowsize);
             fseek(fid, dataOffset + ...
                 (block * blockSize + ...
-                (channels(ci) - 1) * header.windowsize + ...
+                channels(ci) * header.windowsize + ...
                 idx - range(1)) * 2, 'bof');
 			data{ci, fi}(:, ti) = double(fread(fid, sz, 'int16'));
 		end
 	end
+	data(:, fi) = cellfun(@(x) x * header.scalemult + header.scaleoff, ...
+		data(:, fi), 'UniformOutput', false);
 	fclose(fid);
 end
 

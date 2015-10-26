@@ -6,7 +6,7 @@ function Arrayplot(channels,hch,xc,yc,nspikes)
 		maxy=max([maxy yc{chindx}]);
 		miny=min([miny yc{chindx}]);
 	end
-	for chindx=1:size(channels,2)
+	for chindx=1:length(channels)
 		axes(hch(chindx));
 		hold off
 		h=imagesc(yc{chindx},xc{chindx},log(nspikes{chindx}+1));

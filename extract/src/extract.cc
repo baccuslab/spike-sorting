@@ -12,28 +12,20 @@ void extract::randsample(std::vector<arma::uvec>& out, size_t min, size_t max)
 {
 	size_t min_size = arma::datum::inf;
 	for (auto& each : out) {
-		if ( each.n_elem < min )
-			min = each.n_elem;
+		if (each.n_elem < min_size)
+			min_size = each.n_elem;
 	}
-
-	if ( min_size > (max - min))
+	if (min_size > (max - min))
 		throw std::logic_error(
 				"Number of requested elems must be less than (max - min)");
-	/* Create uniform distribution on [max, min) */
+
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	std::uniform_int_distribution<> dist(0, max - min - 1);
-
-	/* Shuffle each column (channel) independently, draw value from it */
-	std::vector<size_t> pop(max - min);
-	std::iota(pop.begin(), pop.end(), min);
+	std::uniform_int_distribution<> dist(min, max - 1);
 	for (decltype(out.size()) c = 0; c < out.size(); c++) {
 		auto& v = out.at(c);
-		for (arma::uword i = 0; i < v.n_elem; i++) {
-			auto idx = dist(gen);
-			std::swap(pop[i], pop[idx]);
-			v(i) = pop[idx];
-		}
+		for (arma::uword i = 0; i < v.n_elem; i++)
+			v(i) = dist(gen);
 	}
 }
 

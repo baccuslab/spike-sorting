@@ -364,7 +364,8 @@ case 'showselected'
 	if g.pwflag
 		nfiles=1;
 	else
-		nfiles=size(g.spikefiles,2);
+% 		nfiles=size(g.spikefiles,2);
+        nfiles = length(g.snipfiles);
 	end
 	tsecs=cell(1,nfiles);
 	for fn = 1:nfiles
@@ -446,9 +447,9 @@ case 'Done'
 		newclflindx(elim,:) = [];
 	end
 	if (getappdata(h,'Sortstatus'))
-		newclflindx(1,:) = rebuildunassigned(getappdata(h,'clflindxall'),newclflindx);
+		newclflindx(1,:) = RebuildUnassigned(getappdata(h,'clflindxall'),newclflindx);
 	else
-		newclflindx(1,:) = rebuildunassigned(getappdata(h,'clflindxsub'),newclflindx);
+		newclflindx(1,:) = RebuildUnassigned(getappdata(h,'clflindxsub'),newclflindx);
 	end
 	% Store the new assignments
 	setappdata(h,'clflindx',newclflindx);

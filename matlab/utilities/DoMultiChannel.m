@@ -19,15 +19,21 @@ else
 		return;
 	end
 	nchans=length(sortchannels);
-	nfiles=length(g.spikefiles);
+% 	nfiles=length(g.spikefiles);
+    nfiles = length(g.snipfiles);
 	for ch=1:nchans
 		chindices(ch)=find(sortchannels(ch)==g.channels);
 	end
 	for fnum= 1:nfiles
-		[fid,message] = fopen(g.spikefiles{fnum},'r', 'b');
-		header{fnum} = ReadSnipHeader(fid);
-		scanrate(fnum) = header{fnum}.scanrate;
-		rectime(fnum) = header{fnum}.nscans/header{fnum}.scanrate;
+% 		[fid,message] = fopen(g.spikefiles{fnum},'r', 'b');
+% 		header{fnum} = ReadSnipHeader(fid);
+% 		scanrate(fnum) = header{fnum}.scanrate;
+% 		rectime(fnum) = header{fnum}.nscans/header{fnum}.scanrate;
+        info = h5info(g.snipfiles{fnum});
+        scanrate(fnum) = ...
+            double(info.Attributes(strcmp('sample-rate', {info.Attributes.Name})).Value);
+        rectime(fnum) = ...
+            info.Groups(1).Datasets(3).Dataspace.Size / scanrate(fnum);
 	end
 end
 %Get times of spikes on first channel and coincident spikes on other channels
@@ -370,7 +376,8 @@ ylabel('# spikes/file');
 if (~g.pwflag)
 	set(hdeffltbox,'Enable','on');
 	setappdata(hfig,'snipsize',g.sniprange(2)-g.sniprange(1)+1);
-	setappdata(hfig,'nfiles',size(g.spikefiles,2));
+% 	setappdata(hfig,'nfiles',size(g.spikefiles,2));
+    setappdata(hfig, 'nfiles', size(g.snipfiles, 2));
 else
 	setappdata (hfig,'snipsize',30);
 	setappdata (hfig,'nfiles',1);

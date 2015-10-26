@@ -1,7 +1,8 @@
 function [tout,indexout] = GroupMultiChannel(g,channels,filters,subrange,blocksize,useclnums,snipindx,spindx,sptimes,hsort)
 % tout{clustnum,filenum} = Times of spikes of cell # clustnum, in the file spikefiles{filenum}
 % indexout: same as tout except it's the index # of the snippet rather than the time
-spikefiles=g.spikefiles;
+% spikefiles=g.spikefiles;
+snipfiles = g.snipfiles;
 ctfiles=g.ctfiles;
 for i = 1:length(snipindx)
 	nsnips(i) = length(snipindx{i});
@@ -12,31 +13,34 @@ outrange = 0;
 start = 0;
 clustnums = [];
 polygons = {};
-tout = cell(0,length(spikefiles));
-indexout = cell(0,length(spikefiles));
+tout = cell(0,length(snipfiles));
+indexout = cell(0,length(snipfiles));
 mode = 'scatter';
 slidervalue = 0;
 loadblock=blocksize;
 while (outrange == 0)
 	snips=0;
 	f=0;
-	t=cell(1,length(spikefiles));
-	tsecs=cell(1,length(spikefiles));
+	t=cell(1,length(snipfiles));
+	tsecs=cell(1,length(snipfiles));
 	lstart=start;
 	while (and(outrange== 0,(lstart-start)<blocksize))
 		[range,outrange] = BuildRangeMF(nsnips,[lstart+1,lstart+loadblock]);	% Figure out how to load the next block
 		if (max(range(2,:))>0)
 			blkindx = BuildIndexMF(range,snipindx);
 			% Load in the snippets
-			[snips,f1,header]= MultiLoadIndexSnippetsMF(spikefiles,ctfiles,channels,blkindx,spindx,hsort);
-			for fnum=1:length(spikefiles)
+			[snips,f1,~]= MultiLoadIndexSnippetsMF(snipfiles,'spike', ...
+                ctfiles,channels,blkindx,spindx,hsort);
+			for fnum=1:length(snipfiles)
 				t1{fnum}=sptimes{fnum}(blkindx{fnum});
 			end
 			% Convert the times to seconds
-			for i = 1:length(spikefiles)
+			for i = 1:length(snipfiles)
 				if (~isempty(t1{i}))
 					t{i} = [t{i} t1{i}];
-					tsecs{i} = [tsecs{i} t{i}/header{i}.scanrate];
+% 					tsecs{i} = [tsecs{i} t{i}/header{i}.scanrate];
+                    tsecs{i} = [tsecs{i} t{i} / ...
+                        double(h5readatt(snipfiles{i}, '/', 'sample-rate'))];
 				end
 			end
 			proj1 = filters'*snips(subrange(1):subrange(2),:);
@@ -54,7 +58,7 @@ while (outrange == 0)
 	%t = cat(1,t{:});
 	% Cluster their projections:
 	% First, set up the GUI
-	hfig = ClusterSpikeWfms(spikefiles,ctfiles,channels,snipindx,spindx,f,tsecs,proj,clustnums,polygons,hsort);
+	hfig = ClusterSpikeWfms(snipfiles,ctfiles,channels,snipindx,spindx,f,tsecs,proj,clustnums,polygons,hsort);
 	% Modify a couple of the properties of the figure window
 	if (outrange == 0)
 		set(findobj(gcf,'Tag','DoneButton'),'String','Next');
@@ -92,7 +96,7 @@ while (outrange == 0)
 	% Sort this information across clusters & files
 	clusts = unique(clustnums);
 	%fnums = unique(f(1,:));
-	fnums = 1:length(spikefiles);
+	fnums = 1:length(snipfiles);
 	for i = 1:length(clusts)
 		if (clusts(i) ~= 0)
 			indx = find(membership == clusts(i));	% Indices are relative to "start"

@@ -1,10 +1,12 @@
-function [snips,filenum,header]  = MultiLoadIndexSnippetsMF(spfiles,ctfiles,channels,indxsel,fullmultiindx,hsort)
+function [snips,filenum,header]  = MultiLoadIndexSnippetsMF(spfiles,sniptype,ctfiles,channels,indxsel,fullmultiindx,hsort)
 % MultiLoadIndexSnippetsMF: concatenates indexed snippets from sequential files for multiple channels
 % indx is a cell array with one vector/file, where the vector specifies the chosen
 %multiindx is a cell array with a nchannels row array that specifies what snippets are to be chosen
 %it is constructed from the spike times of the group of channels
 % subset of snippets
-h = ReadSnipHeader(spfiles{1});
+% h = ReadSnipHeader(spfiles{1});
+h.sniprange = double([h5readatt(spfiles{1}, '/', 'nsamples-before') ...
+    h5readatt(spfiles{1}, '/', 'nsamples-after')]);
 snipsize=h.sniprange(2)-h.sniprange(1)+1;
 nfiles=length(spfiles);nchans=length(channels);
 t=cell(1,nfiles);
@@ -12,12 +14,15 @@ snipspcell=cell(1,nfiles);
 for fnum = 1:nfiles
 	multiindxsel=fullmultiindx{fnum}(:,indxsel{fnum});
 	if (length(multiindxsel)>0 )
-		[snipspcell{1,fnum},t{fnum}] = LoadIndexSnip(spfiles{fnum},channels(1),multiindxsel);
+% 		[snipspcell{1,fnum},t{fnum}] = LoadIndexSnip(spfiles{fnum},channels(1),multiindxsel);
+        [snipspcell{1, fnum}, t{fnum}] = loadIndexSnip(spfiles{fnum}, sniptype, ...
+            channels(1), multiindxsel);
 	end
 	if (length(indxsel{fnum}>0))
 		fc{fnum}(1,:) = fnum*ones(1,length(indxsel{fnum}));
 		fc{fnum}(2,:) = 1:length(indxsel{fnum});
-		header{fnum} = ReadSnipHeader(spfiles{fnum});
+% 		header{fnum} = ReadSnipHeader(spfiles{fnum});
+        header{fnum} = [];
 	else
 		fc{fnum} = [];
 		header{fnum} = [];	
@@ -43,7 +48,9 @@ if (nchans>1)
 			end
 		end
 		if (~isempty(flist))
-			snipctcell(:,flist)= loadaibdata(ctfiles(flist),channels(2:end),t(flist),h.sniprange); %crosstalk is a list of files
+% 			snipctcell(:,flist)= loadaibdata(ctfiles(flist),channels(2:end),t(flist),h.sniprange); %crosstalk is a list of files
+            snipctcell(:, flist) = loadRawData(ctfiles(flist), channels(2 : end), ...
+                t(flist), h.sniprange);
 		end
 	end
 	snipctchans=cell(nchans-1,1);

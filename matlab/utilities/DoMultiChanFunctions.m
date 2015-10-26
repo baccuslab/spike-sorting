@@ -135,8 +135,10 @@ case 'BuildFilters'
 	hmain=getappdata(h,'hmain');
 	sortchannels = getappdata(h,'sortchannels');
 	spindx=getappdata(h,'spindx');
-	[filters,subrange,sv,wave] = multiBFI(g.spikefiles,g.ctfiles,g.noisefiles,...
-	nspikes,nnoise,sortchannels,wvindx,spindx,h); 
+% 	[filters,subrange,sv,wave] = multiBFI(g.spikefiles,g.ctfiles,g.noisefiles,...
+% 	nspikes,nnoise,sortchannels,wvindx,spindx,h); 
+    [filters, subrange, sv, wave] = multiBFI(g.snipfiles, g.ctfiles, ...
+        nspikes, nnoise, sortchannels, wvindx, spindx, h);
 	setappdata (gcf,'wavehold',wave);
 	if (length(filters) == 0)
 		return;
@@ -192,7 +194,9 @@ case 'DiscrimFilters'
 	spindx=getappdata(h,'spindx');
 	spikes = cell(nsel,1);
 	for i = 1:nsel
-		spikes{i} = MultiLoadIndexSnippetsMF(g.spikefiles,g.ctfiles,sortchannels,wvindx(i,:),spindx,h);
+% 		spikes{i} = MultiLoadIndexSnippetsMF(g.spikefiles,g.ctfiles,sortchannels,wvindx(i,:),spindx,h);
+        spikes{i} = MultiLoadIndexSnippetsMF(g.snipfiles, 'spike', g.ctfiles, ...
+            sortchannels, wvindx(i, :), spindx, h);
 	end
 	[filt,lambda] = MaxSep(spikes);
 	sv = sqrt(lambda);
@@ -367,7 +371,9 @@ case 'UpdateDisplay'
 					subindx=cell(1,nfiles);
 					subindx(flist)=getsubset (clflindx(c,flist),loadnsnips);		
 				end
-				display.snips{c} = MultiLoadIndexSnippetsMF(g.spikefiles,g.ctfiles,sortchannels,subindx,spindx,h);
+% 				display.snips{c} = MultiLoadIndexSnippetsMF(g.spikefiles,g.ctfiles,sortchannels,subindx,spindx,h);
+                display.snips{c} = MultiLoadIndexSnippetsMF(g.snipfiles, ...
+                    'spike', g.ctfiles,sortchannels,subindx,spindx,h);
 				%subindx=getsubset (clflindx(c,:),loadnsnips);
 				% display.snips{c} = MultiLoadIndexSnippetsMF(g.spikefiles,g.ctfiles,sortchannels,subindx,spindx,h);
 			else %Updatearr(1,c)>0 ,transfer clusters to different number,
@@ -661,7 +667,8 @@ case 'Recon'
 	ViewReconstruction([1 50000],g.ctfiles(flindx),sortchannels,sptimes,hdr);
 case 'Crosstalk'
 	t = getappdata(h,'t');
-	nfiles=size(g.spikefiles,2);
+% 	nfiles=size(g.spikefiles,2);
+    nfiles = size(g.snipfiles, 2);
 	[selclust,wvindx] = GetSelClust(h); 	%indices in the selected clusters
 	clflindx=getappdata (h,'clflindx');
 	%Get times for subset
@@ -669,7 +676,8 @@ case 'Crosstalk'
 	tsel=cell(nclust,nfiles);				
 	for cl=1:nclust
 		subindx=getsubset (clflindx(selclust(cl),:),30*nfiles);	%Changed  SAB 10/13/08, Change to smaller  number if too slow
-		for fnum = 1:size(g.spikefiles,2)
+% 		for fnum = 1:size(g.spikefiles,2)
+        for fnum = 1:size(g.snipfiles,2)
 			tsel{cl,fnum} = t{fnum}(subindx{fnum});
 		end
 	end
@@ -771,7 +779,9 @@ case 'Done'
 			for fnum = 1:nfiles
 				if (size(tmpremCT{c}{fnum},2)>0)
 					ch=ctindices(c);
-					[alltimes{fnum},hdr]=LoadSnipTimes(g.spikefiles{fnum},ch);
+% 					[alltimes{fnum},hdr]=LoadSnipTimes(g.spikefiles{fnum},ch);
+                    [~, alltimes{fnum}] = loadSnip(g.snipfiles{fnum}, ...
+                        'spike', ch);
 					alltimes{fnum}=[alltimes{fnum}';1:length(alltimes{fnum})];
 					remidx{c+1,fnum}=tmpremidx{c}{fnum};
 				end

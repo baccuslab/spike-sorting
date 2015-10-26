@@ -21,10 +21,10 @@ using sampleMat = arma::Mat<short>;
 /*! Contains routines for performing actual snippet extraction. */
 namespace extract {
 
-/* Generate random samples without replacement on the interval [min, max).
+/* Generate random samples with replacement on the interval [min, max).
  * Each vector in `out` is an independent resampling of the population
  */
-/*! Generates random samples without replacement on the interval [min, max).
+/*! Generates random samples with replacement on the interval [min, max).
  * \param out A vector of vectors, each of which is loaded with an 
  * independent resample of the population.
  * \param min The minimum value of the range of the random sample

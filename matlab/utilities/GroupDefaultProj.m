@@ -1,7 +1,8 @@
 function [tout,indexout] = GroupDefaultProj(g,sortchannels,chindices,blocksize,useclnums,snipindx,multiindx,multitimes,hsort)
 % tout{clustnum,filenum} = Times of spikes of cell # clustnum, in the file spikefiles{filenum}
 % indexout: same as tout except it's the index # of the snippet rather than the time
-nfiles=size(g.spikefiles,2);
+% nfiles=size(g.spikefiles,2);
+nfiles = size(g.snipfiles, 2);
 for i = 1:length(snipindx)
 	nsnips(i) = length(snipindx{i});
 end
@@ -165,7 +166,8 @@ hclustmodebox = uicontrol('Parent',hfig, ...
 setappdata (hfig,'hsort',hsort);
 setappdata(hfig,'t',t);
 setappdata(hfig,'f',f);
-setappdata(hfig,'spikefiles',g.spikefiles);
+% setappdata(hfig,'spikefiles',g.spikefiles);
+setappdata(hfig, 'snipfiles', g.snipfiles);
 setappdata(hfig,'ctfiles',g.ctfiles);
 setappdata(hfig,'channels',sortchannels);
 setappdata(hfig,'snipindx',snipindx);

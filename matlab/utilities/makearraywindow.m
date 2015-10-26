@@ -1,8 +1,8 @@
 function handles = makearraywindow (channels);
-numch=size(channels,2);
+numch=length(channels);
 %SETUP ARRAY CHANNEL PLOT
 figure ('Name','Array','Position', [150 50 1050 750],'NumberTitle','off');%,'doublebuffer','on');
-set (gcf,'CloseRequestFcn','')
+% set (gcf,'CloseRequestFcn','')
 %Plot box for all channels
 for chan=0:63	
 	pos=GetPosition(chan);

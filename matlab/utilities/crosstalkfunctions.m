@@ -6,7 +6,9 @@ if (nargin < 3)
 	h = gcbf;
 end
 g=getappdata (h,'g');
-hdr=ReadSnipHeader(g.spikefiles{1});
+% hdr=ReadSnipHeader(g.spikefiles{1});
+hdr.sniprange = double([h5readatt(g.snipfiles{1}, '/', 'nsamples-before') ...
+    h5readatt(g.snipfiles{1}, '/', 'nsamples-after')]);
 handles = getappdata(h,'handles');
 switch(action)
 case 'calculate'
@@ -19,7 +21,9 @@ case 'calculate'
 			nspikes(f)=size(sptimes{cl,f},2);
 		end
 		lf=find(nspikes==max(nspikes));lf=lf(1);
-		snips.data(cl,:)=loadaibdata(g.ctfiles(lf),g.allchannels,sptimes(cl,lf),snips.size);	
+% 		snips.data(cl,:)=loadaibdata(g.ctfiles(lf),g.allchannels,sptimes(cl,lf),snips.size);	
+        snips.data(cl, :) = loadRawData(g.ctfiles(lf), g.allchannels, ...
+            sptimes(cl, lf), snips.size);
 	end
 	for chindx=1:size(g.channels,2)
 		snipmax=max(max(max(snips.data{chindx})),snipmax);

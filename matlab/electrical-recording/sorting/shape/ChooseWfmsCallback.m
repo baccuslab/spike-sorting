@@ -57,7 +57,7 @@ case 'ThreshStop'
 	currPt = get(gca,'CurrentPoint');
 	thresh = currPt(1,1);	% Determine new thresh
 	oldthresh = getappdata(hfig,'oldthresh');		% Look up old threshold
-	clruprop(hfig,'oldthresh');				% It's not clear why this is nec., but it seems to be
+% 	rmappdata(hfig,'oldthresh');				% It's not clear why this is nec., but it seems to be
 	setappdata(hfig,'oldthresh',thresh);			% Record for next time
 	x0 = getappdata(hfig,'PeakPos');
 	% If the threshold increases, lines below thresh need to be turned off

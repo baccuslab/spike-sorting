@@ -16,8 +16,7 @@ function [snips, times] = LoadIndexSnip(file, channel, indices)
 % OUTPUT:
 %	snips		- An array of snippets, shaped as 
 %					(snipSize, min(length(indices), nSnippetsInFile)).
-%					The snippets have datatype int16, but the array is 
-%					returned as a double array.
+%					Snippets are returned in true voltage values.
 %	times		- An array listing the start time (in samples) of
 %					each snippet returned in snips
 %
@@ -65,4 +64,5 @@ for i = 1:nsnips
 	snips(:, i) = double(fread(fid, snipsize, 'int16'));
 end
 fclose(fid);
+snips = snips * hdr.scalemult + hdr.scaleoff;
 

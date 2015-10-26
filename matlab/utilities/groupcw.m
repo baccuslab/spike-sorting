@@ -1,12 +1,11 @@
-function groupcw(outfile,datafiles,spikefiles,noisefiles,channels)
+function groupcw(outfile,datafiles,snipfiles,channels)
 % groupcw: shape sorting of snippet waveforms
 % written by Tim Holy and Stephen Baccus 1999-2004
 % Three calling modes:
 %	groupcw(outfilename,spikefiles,noisefiles,channels)
 %		outfilename: name of sorted output .mat file
-%		spikefiles: cell array of spike snippet filenames
-%		datafiles: cell array of spike snippet filenames
-%		noisefiles: cell array of noise snippet filenames
+%		datafiles: cell array of raw data filenames
+%		snipfiles: cell array of snippet filenames
 %		channels (optional): set of channels to analyze. Default all.
 %		EXAMPLE: groupcw ('01/01/00.mat',{'1.ssnp','2.ssnp','3.ssnp'},{'1.rsnp'})
 %	groupcw(outfilename) 
@@ -16,26 +15,32 @@ function groupcw(outfile,datafiles,spikefiles,noisefiles,channels)
 %		For sorting peak-width data. 'proj.mat' is a list of peaks and times
 
 %Determine sorting mode, continuous waveform, or peak-width 
-if( (nargin==2) & (length(spikefiles)==1 )& (strmatch(spikefiles{1},'proj.mat'))) %sorting peak width data
-	pwflag=1;
-	channels=1:63;
-else
-	if (nargin == 4)
-		[channels,nsnips,sniprange] = GetSnipNums(spikefiles); 	% Do all the channels
-	end
-	pwflag=0;
-end
+% if( (nargin==2) & (length(spikefiles)==1 )& (strmatch(spikefiles{1},'proj.mat'))) %sorting peak width data
+% 	pwflag=1;
+% 	channels=1:63;
+% else
+% 	if (nargin == 4)
+% 		[channels,nsnips,sniprange] = GetSnipNums(spikefiles); 	% Do all the channels
+% 	end
+% 	pwflag=0;
+% end
+
+channels = double(h5read(snipfiles{1}, '/extracted-channels'));
+channels = channels(:)'; % Most code expects row vector
+pwflag = false; % Never sort this way anymore, will be removed in future
+
 if (~pwflag) %Continuous waveform data
 	% Find out if output file already exists.
 	% If it does, load it in and start appending	
  	if (isempty(dir(outfile)))		% If file doesn't already exist		
-		hmain=setup(outfile,datafiles,spikefiles,noisefiles,channels,pwflag);		
+		hmain=setup(outfile,datafiles,snipfiles,channels,pwflag);		
 		g=getappdata(hmain,'g');
 		save (outfile,'g');
 	else	% Output file already exists, new results will be appended
 		fprintf(sprintf('Continuing to sort file %s...\n',outfile));
 		load (outfile)
-		nfiles=size(g.spikefiles,2);
+% 		nfiles=size(g.spikefiles,2);
+        nfiles = size(g.snipfiles, 2);
 		nchans=size(g.channels,2);
 		g.ctchannels=[];
 		if (~exist('removedCT'))

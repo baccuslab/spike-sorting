@@ -11,4 +11,5 @@ function proj=loadproj(projfile,chindices,numchannels,numfiles,numproj)
 				[proj{ch,fnum},count]=fread(fid,[3,numproj(ch,fnum)],'float32');
 			end
 		end
-	end
+    end
+    fclose(fid);

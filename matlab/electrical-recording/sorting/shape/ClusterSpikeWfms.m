@@ -1,4 +1,4 @@
-function fig = ClusterSpikeWfms(spikefiles,ctfiles,channels,snipindx,multiindx,f,t,proj,clustnums,polygons,hsort)
+function fig = ClusterSpikeWfms(snipfiles,ctfiles,channels,snipindx,multiindx,f,t,proj,clustnums,polygons,hsort)
 % Compute their projections on the filters
 hfig = Cluster(proj(2,:),proj(1,:));
 h1 = uicontrol('Parent',hfig, ...
@@ -25,7 +25,7 @@ setappdata (hfig,'hsort',hsort);
 setappdata(hfig,'t',t);
 setappdata(hfig,'f',f);
 setappdata(hfig,'ctfiles',ctfiles);
-setappdata(hfig,'spikefiles',spikefiles);
+setappdata(hfig,'snipfiles',snipfiles);
 setappdata(hfig,'channels',channels);
 setappdata(hfig,'snipindx',snipindx);
 setappdata(hfig,'multiindx',multiindx);

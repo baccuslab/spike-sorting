@@ -13,7 +13,7 @@ CXX = g++
 LINK = ln -sf
 
 # General compilation flags
-CXXFLAGS = -I. -Iinclude -std=c++11
+CXXFLAGS = -I. -Iinclude -std=c++11 -m64
 CXXFLAGS_RELEASE = -O3 -I.
 CXXFLAGS_DEBUG = -O0 -g -Wall -Wextra -I. -DDEBUG
 LIB_CXXFLAGS = -fPIC
@@ -31,7 +31,7 @@ OBJECTS = $(LIB_OBJECTS) $(BIN_SOURCES:%.cc=%.o)
 
 # Flags and options for building shared library
 LIB_BASE_NAME = extract
-LIBS = -lhdf5_cpp -lhdf5
+LIBS = -larmadillo -lhdf5_cpp -lhdf5
 OS := $(shell uname -s)
 ifeq ($(OS),Darwin)
 	LIB_EXT = dylib

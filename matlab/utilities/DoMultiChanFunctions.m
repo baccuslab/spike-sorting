@@ -789,8 +789,9 @@ case 'Done'
 		for c = 1:length(ctchannels)
 			for fnum = 1:nfiles
 				if (size(tmpremCT{c}{fnum},2)>0)
-					ch=ctindices(c);
+% 					ch=ctindices(c);
 % 					[alltimes{fnum},hdr]=LoadSnipTimes(g.spikefiles{fnum},ch);
+                    ch = ctchannels(c);
                     [~, alltimes{fnum}] = loadSnip(g.snipfiles{fnum}, ...
                         'spike', ch);
 					alltimes{fnum}=[alltimes{fnum}';1:length(alltimes{fnum})];

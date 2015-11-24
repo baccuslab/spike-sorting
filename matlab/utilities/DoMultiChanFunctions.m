@@ -791,10 +791,12 @@ case 'Done'
 				if (size(tmpremCT{c}{fnum},2)>0)
 % 					ch=ctindices(c);
 % 					[alltimes{fnum},hdr]=LoadSnipTimes(g.spikefiles{fnum},ch);
-                    ch = ctchannels(c);
-                    [~, alltimes{fnum}] = loadSnip(g.snipfiles{fnum}, ...
-                        'spike', ch);
-					alltimes{fnum}=[alltimes{fnum}';1:length(alltimes{fnum})];
+                    %ch = ctchannels(c);
+                    %[~, alltimes{fnum}] = loadSnip(g.snipfiles{fnum}, ...
+                        %'spike', ch);
+					%alltimes{fnum}=[alltimes{fnum}';1:length(alltimes{fnum})];
+					% NOTE: the `alltimes` variable was in the original version of the
+					% code, but never used.
 					remidx{c+1,fnum}=tmpremidx{c}{fnum};
 				end
 			end

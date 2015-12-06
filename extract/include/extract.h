@@ -9,6 +9,10 @@
 #ifndef EXTRACT_EXTRACT_H_
 #define EXTRACT_EXTRACT_H_
 
+#ifndef NOTHREAD
+#define WITH_THREADS
+#endif
+
 #include <vector>
 #include <random>
 #include <numeric>

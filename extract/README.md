@@ -61,6 +61,11 @@ To build it, do this:
 	$ make # Makes the library and executable
 	$ doxygen Doxyfile # Builds the HTML documentation
 
+By default, `extract` uses multi-threading to improve performance. This can be
+disabled by compiling as follows:
+	
+	$ make CXXFLAGS=-DNOTHREAD
+
 Library
 -------
 

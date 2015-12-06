@@ -13,7 +13,7 @@ CXX = g++
 LINK = ln -sf
 
 # General compilation flags
-CXXFLAGS = -I. -Iinclude -std=c++11 -m64
+local_CXXFLAGS = $(CXXFLAGS) -I. -Iinclude -std=c++11 -m64
 CXXFLAGS_RELEASE = -O3 -I.
 CXXFLAGS_DEBUG = -O0 -g -Wall -Wextra -I. -DDEBUG
 LIB_CXXFLAGS = -fPIC
@@ -48,7 +48,7 @@ else
 	BIN_LDFLAGS = -Wl,-rpath=$(CWD)/$(LIB_DIR)
 endif
 LIB_LINK_NAME = lib$(LIB_BASE_NAME).$(LIB_EXT)
-LDFLAGS = -L$(LIB_DIR) -l$(LIB_BASE_NAME)
+local_LDFLAGS = $(LDFLAGS) -L$(LIB_DIR) -l$(LIB_BASE_NAME)
 
 # Rules
 all: lib extract
@@ -57,11 +57,11 @@ debug: lib-debug extract-debug
 
 extract: $(BUILD_DIR)/main.o lib
 	@mkdir -p bin
-	$(CXX) -o $(BIN_DIR)/$@ $< $(LDFLAGS) $(LIBS) $(BIN_LDFLAGS)
+	$(CXX) -o $(BIN_DIR)/$@ $< $(local_LDFLAGS) $(LIBS) $(BIN_LDFLAGS)
 
 extract-debug: $(BUILD_DIR)/main-debug.o lib-debug
 	@mkdir -p bin
-	$(CXX) -o $(BIN_DIR)/$@ $< $(LDFLAGS) $(LIBS) $(BIN_LDFLAGS)
+	$(CXX) -o $(BIN_DIR)/$@ $< $(local_LDFLAGS) $(LIBS) $(BIN_LDFLAGS)
 
 lib: $(LIB_OBJECTS)
 	@mkdir -p lib
@@ -74,18 +74,18 @@ lib-debug: $(LIB_DEBUG_OBJECTS)
 	$(LINK) $(CWD)/$(LIB_DIR)/$(LIB_NAME) $(CWD)/$(LIB_DIR)/$(LIB_LINK_NAME)
 
 $(BUILD_DIR)/main.o: $(SRC_DIR)/main.cc
-	$(CXX) -c -o $@ $(LIB_CXXFLAGS) $(CXXFLAGS) $(CXXFLAGS_RELEASE) $<
+	$(CXX) -c -o $@ $(LIB_CXXFLAGS) $(local_CXXFLAGS) $(CXXFLAGS_RELEASE) $<
 
 $(BUILD_DIR)/main-debug.o: $(SRC_DIR)/main.cc
-	$(CXX) -c -o $@ $(LIB_CXXFLAGS) $(CXXFLAGS) $(CXXFLAGS_DEBUG) $<
+	$(CXX) -c -o $@ $(LIB_CXXFLAGS) $(local_CXXFLAGS) $(CXXFLAGS_DEBUG) $<
 
 $(BUILD_DIR)/%.o: %.cc %.h
 	@mkdir -p build
-	$(CXX) -c -o $@ $(LIB_CXXFLAGS) $(CXXFLAGS) $(CXXFLAGS_RELEASE) $<
+	$(CXX) -c -o $@ $(LIB_CXXFLAGS) $(local_CXXFLAGS) $(CXXFLAGS_RELEASE) $<
 
 $(BUILD_DIR)/%-debug.o: %.cc %.h
 	@mkdir -p build
-	$(CXX) -c -o $@ $(LIB_CXXFLAGS) $(CXXFLAGS) $(CXXFLAGS_DEBUG) $<
+	$(CXX) -c -o $@ $(LIB_CXXFLAGS) $(local_CXXFLAGS) $(CXXFLAGS_DEBUG) $<
 
 clean:
 	rm -f $(LIB_DIR)/* $(BUILD_DIR)/* $(BIN_DIR)/*

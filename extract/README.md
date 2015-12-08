@@ -51,6 +51,8 @@ Requirements and building
 
 - C++11 or later
 - [HDF5](http://www.hdfgroup.org) version 1.15 or higher
+- [Armadillo C++ linear algebra libraries](http://arma.sourceforge.net), 
+used to simplify data management
 - GNU `make`
 - [Doxygen](http://www.doxygen.org) for making documentation
 
@@ -60,6 +62,15 @@ To build it, do this:
 	$ cd /path/to/extract
 	$ make # Makes the library and executable
 	$ doxygen Doxyfile # Builds the HTML documentation
+
+The Makefile assumes that the header files for the HDF5 and Armadillo libraries are
+somewhere in the standard include list: `/usr/include`, `/usr/local/include`, etc.
+Similarly, the dynamic libraries against which the program links must be in standard
+library directories, such as `/usr/local/lib` or similar. This may not be true for
+some Linux distributions, which often put HDF5 libraries in `/usr/lib/x86_64-linux-gnu/`.
+This path, or any other, can be added using
+
+	$ make LDFLAGS=-L/path/to/library/folder
 
 By default, `extract` uses multi-threading to improve performance. This can be
 disabled by compiling as follows:

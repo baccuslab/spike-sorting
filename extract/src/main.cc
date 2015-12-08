@@ -29,7 +29,7 @@
 #define DEFAULT_THRESHOLD 4.5
 #define DEFAULT_THRESH_STR "4.5"
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 3
+#define VERSION_MINOR 4
 #define HIDENS_CHANNEL_MAX 127
 #define HIDENS_CHANNEL_MIN 1
 #define MCS_CHANNEL_MAX 64
@@ -41,6 +41,7 @@ const char PROGRAM[] = "extract";
 const char AUTHOR[] = "Benajmin Naecker";
 const char AUTHOR_EMAIL[] = "bnaecker@stanford.edu";
 const char YEAR[] = "2015";
+const char SHORT_DESCRIPTION[] = "Candidate spike-snippet extraction program";
 const char USAGE[] = "\n\
  Usage: extract [-v | --version] [-h | --help]\n\
   \t\t[-t | --threshold " UL_PRE "threshold" UL_POST "]\n\
@@ -82,6 +83,7 @@ void print_usage_and_exit()
 void print_version_and_exit()
 {
 	std::cout << PROGRAM << " version " << VERSION_MAJOR << "." << VERSION_MINOR << std::endl;
+	std::cout << SHORT_DESCRIPTION << std::endl;
 	std::cout << "(C) " << YEAR << " " << AUTHOR << " " << AUTHOR_EMAIL << std::endl;
 	exit(EXIT_SUCCESS);
 }

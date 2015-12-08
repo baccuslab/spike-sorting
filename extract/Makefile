@@ -6,7 +6,7 @@ INCLUDE_DIR = include
 BUILD_DIR = build
 LIB_DIR = lib
 BIN_DIR = bin
-VERSION = 0.3
+VERSION = 0.4
 
 # Command-line programs to use
 CXX = g++
@@ -91,4 +91,4 @@ clean:
 	rm -f $(LIB_DIR)/* $(BUILD_DIR)/* $(BIN_DIR)/*
 
 install:
-	ln -sf $(CWD)/$(BIN_DIR)/extract /usr/local/bin/extract
+	$(LINK) $(CWD)/$(BIN_DIR)/extract /usr/local/bin/extract

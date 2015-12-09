@@ -95,7 +95,7 @@ bool extract::isLocalMax(const sampleMat& data, size_t channel,
 
 void extract::extractNoise(const sampleMat& data, const size_t& nrandom_snippets,
 		const int& nbefore, const int& nafter, std::vector<arma::uvec>& idx, 
-		std::vector<sampleMat>& snips)
+		std::vector<sampleMat>& snips, bool verbose)
 {
 	/* Create random indices into each channel */
 	auto nsamples_per_snip = nbefore + nafter + 1;
@@ -104,17 +104,8 @@ void extract::extractNoise(const sampleMat& data, const size_t& nrandom_snippets
 		each.set_size(nrandom_snippets);
 	randsample(idx, nbefore, nsamples - nafter);
 
-#ifdef DEBUG
-	std::cout << "Extracting noise snippets" << std::endl;
-#endif
-
 	/* Extract snippets at those random indices */
 	for (decltype(nchannels) c = 0; c < nchannels; c++) {
-
-#ifdef DEBUG
-		std::cout << " Channel " << c << std::endl;
-#endif
-
 		auto& snip_mat = snips.at(c);
 		snip_mat.set_size(nsamples_per_snip, nrandom_snippets);
 		auto& ix = idx.at(c);
@@ -158,69 +149,42 @@ void _extract_from_channel(const sampleMat& data, size_t chan, double thresh,
 
 void extract::extractSpikes(const sampleMat& data, const arma::vec& thresholds, 
 		const int& nbefore, const int& nafter,
-		std::vector<arma::uvec>& idx, std::vector<sampleMat>& snips)
+		std::vector<arma::uvec>& idx, std::vector<sampleMat>& snips, bool verbose)
 {
 	auto nsamples_per_snip = nbefore + nafter + 1;
 	auto nsamples = data.n_rows, nchannels = data.n_cols;
 
-#ifdef DEBUG
-	std::cout << "Extracting spike snippets" << std::endl;
-#endif 
-
 #ifdef WITH_THREADS
 	std::vector<std::future<void> > futs(data.n_cols);
 #endif
+
 	for (decltype(nchannels) c = 0; c < nchannels; c++) {
+
 #ifdef WITH_THREADS
 		futs[c] = std::async(std::launch::async, _extract_from_channel,
 				std::ref(data), c, thresholds(c), nbefore, nafter,
 				std::ref(idx.at(c)), std::ref(snips.at(c)));
 #else
+
+		if (verbose)
+			std::cout << "  Channel: " << c;
+
 		_extract_from_channel(data, c, thresholds(c), nbefore, nafter,
 				idx.at(c), snips.at(c));
-#endif
+		if (verbose)
+			std::cout << " (" << idx.at(c).size() << " snippets)" << std::endl;
 
-		//auto& idx_vec = idx.at(c);
-		//auto& snip_mat = snips.at(c);
-		//auto& thresh = thresholds(c);
-		//snip_mat.set_size(nsamples_per_snip, snipfile::DEFAULT_NUM_SNIPPETS);
-		//idx_vec.set_size(snipfile::DEFAULT_NUM_SNIPPETS);
-		//size_t snip_num = 0;
-
-		/* Find snippets */
-		//arma::uword i = nbefore;
-		//while (i < nsamples - nafter + 1) {
-			//if (data(i, c) > thresh) {
-				//if (isLocalMax(data, c, i, snipfile::WINDOW_SIZE)) {
-					//if (snip_num >= snip_mat.n_cols) {
-						//snip_mat.resize(snip_mat.n_rows, 2 * snip_mat.n_cols);
-						//idx_vec.resize(2 * snip_mat.n_cols);
-					//}
-					//idx_vec(snip_num) = i;
-					//snip_mat(arma::span::all, snip_num) = data(
-							//arma::span(i - nbefore, i + nafter), c);
-					//snip_num++;
-				//}
-			//}
-			/* XXX: Previous versions set this jump size as the smoothing window
-			 * size if current sample was considered a local maximum, and one
-			 * otherwise. Keeping it at 1 increases the number of snippets extracted
-			 * by about 1%, but these extra snippets are probably doubly-counted
-			 * versions of the same snippet.
-			 */
-			//i += 1;
-		//}
-		//snip_mat.resize(snip_mat.n_rows, snip_num);
-		//idx_vec.resize(snip_num);
-
-#ifdef DEBUG
-		std::cout << " Channel " << c << ": " << snip_num << " snippets" << std::endl;
 #endif
 
 	}
+
 #ifdef WITH_THREADS
-	for (decltype(nchannels) c = 0; c < nchannels; c++)
+	for (decltype(nchannels) c = 0; c < nchannels; c++) {
 		futs[c].wait();
+		if (verbose)
+			std::cout << "  Channel " << c << ": (" << idx.at(c).size() 
+				<< " snippets)" << std::endl;
+	}
 #endif
 }
 

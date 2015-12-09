@@ -29,7 +29,7 @@
 #define DEFAULT_THRESHOLD 4.5
 #define DEFAULT_THRESH_STR "4.5"
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 4
+#define VERSION_MINOR 5
 #define HIDENS_CHANNEL_MAX 127
 #define HIDENS_CHANNEL_MIN 1
 #define MCS_CHANNEL_MAX 64
@@ -44,15 +44,16 @@ const char YEAR[] = "2015";
 const char SHORT_DESCRIPTION[] = "Candidate spike-snippet extraction program";
 const char USAGE[] = "\n\
  Usage: extract [-v | --version] [-h | --help]\n\
+  \t\t[-V | --verbose]\n\
   \t\t[-t | --threshold " UL_PRE "threshold" UL_POST "]\n\
   \t\t[-b | --before " UL_PRE "nbefore" UL_POST "]\n\
   \t\t[-a | --after " UL_PRE "nafter" UL_POST "]\n\
   \t\t[-n | --nrandom " UL_PRE "nrandom" UL_POST "]\n\
   \t\t[-c | --chan " UL_PRE "chan-list" UL_POST "]\n\
-  \t\t[-o | --output " UL_PRE"name" UL_POST "]\n\
-  \t\t" UL_PRE "recording-file" UL_POST "\n\n\
+  \t\t" UL_PRE "recording-file1" UL_POST " [ " UL_PRE "recording-file2" UL_POST "... ]\n\n\
  Extract noise and spike snippets from the given recording file\n\n\
  Parameters:\n\n\
+   " UL_PRE "verbose" UL_POST "\tPrint progress of snippet extraction.\n\n\
    " UL_PRE "threshold" UL_POST "\tThreshold multiplier for determining spike\n\
    \t\tsnippets. The threshold will be set independently for each channel, such\n\
    \t\tthat: " UL_PRE "threshold" UL_POST " * median(abs(v)). Default = %0.1f\n\n\
@@ -68,9 +69,7 @@ const char USAGE[] = "\n\
    \t\tFor MCS data files, the default is \"3-63\", and for Hidens files, the default\n\
    \t\tis \"1-\". Note that ranges are half-open, so that the range specified as \"3-15\"\n\
    \t\twill collect channels 4 through 14, inclusive, but not channel 15. Also note\n\
-   \t\tthat indexing is 0-based.\n\n\
-   " UL_PRE "output" UL_POST "\tThe base-name for the output snippet file, which contains\n\
-   \t\tboth random and noise snippets. It will be named as " UL_PRE "basename" UL_POST ".snip\n\n";
+   \t\tthat indexing is 0-based.\n\n";
 
 void print_usage_and_exit()
 {
@@ -169,13 +168,15 @@ void parse_chan_list(std::string arg, arma::uvec& channels,
 
 void parse_command_line(int argc, char **argv, 
 		double& thresh, size_t& nrandom_snippets, int& nbefore, int& nafter,
-		std::string& chan_arg, std::string& output, std::string& filename)
+		bool& verbose, std::string& chan_arg, 
+		std::vector<std::string>& filenames)
 {
 	if (argc == 1)
 		print_usage_and_exit();
 
 	/* Parse options */
 	struct option options[] = {
+		{ "verbose", 	no_argument,		nullptr, 'V' },
 		{ "threshold", 	required_argument, 	nullptr, 't' },
 		{ "before", 	required_argument, 	nullptr, 'b' },
 		{ "after", 		required_argument, 	nullptr, 'a' },
@@ -183,16 +184,18 @@ void parse_command_line(int argc, char **argv,
 		{ "version", 	no_argument, 		nullptr, 'v' },
 		{ "chan", 		required_argument, 	nullptr, 'c' },
 		{ "nrandom", 	required_argument,  nullptr, 'n' },
-		{ "output", 	required_argument,  nullptr, 'o' },
 		{ nullptr, 		0, 					nullptr, 0 	 }
 	};
 	int opt;
-	while ( (opt = getopt_long(argc, argv, "hvo:t:c:n:", options, nullptr)) != -1 ) {
+	while ( (opt = getopt_long(argc, argv, "hvt:c:n:V", options, nullptr)) != -1 ) {
 		switch (opt) {
 			case 'h':
 				print_usage_and_exit();
 			case 'v':
 				print_version_and_exit();
+			case 'V':
+				verbose = true;
+				break;
 			case 't':
 				try {
 					thresh = std::stof(std::string(optarg));
@@ -210,9 +213,6 @@ void parse_command_line(int argc, char **argv,
 			case 'c':
 				chan_arg = std::string(optarg);
 				break;
-			case 'o':
-				output = std::string(optarg);
-				break;
 			case 'n':
 				nrandom_snippets = std::stoul(std::string(optarg));
 				break;
@@ -222,18 +222,8 @@ void parse_command_line(int argc, char **argv,
 	argc -= optind;
 	if (argc == 0)
 		print_usage_and_exit();
-	filename = std::string(argv[0]);
-	
-	if (output.empty()) {
-		size_t pos = filename.rfind(".");
-		output = filename.substr(0, pos);
-		std::string output_name = output + snipfile::FILE_EXTENSION;
-		struct stat buf;
-		if (stat(output_name.c_str(), &buf) == 0) {
-			std::cerr << "Output file already exists: " + output_name << std::endl;
-			exit(EXIT_FAILURE);
-		}
-	}
+	for (auto i = 0; i < argc; i++)
+		filenames.push_back(std::string(argv[i]));
 }
 
 std::string get_array(std::string filename)
@@ -277,97 +267,133 @@ void verify_snippet_offsets(const std::string& array, int& nbefore, int& nafter)
 	}
 }
 
+std::string create_snipfile_name(const std::string& name)
+{
+	auto pos = name.rfind(".");
+	if (pos == std::string::npos)
+		return name + snipfile::FILE_EXTENSION;
+	return name.substr(0, pos) + snipfile::FILE_EXTENSION;
+}
+
 int main(int argc, char *argv[])
 {	
 	/* Parse input and get the array type */
 	auto thresh = DEFAULT_THRESHOLD;
 	auto nrandom_snippets = snipfile::NUM_RANDOM_SNIPPETS;
-	std::string chan_arg, output, filename;
+	std::string chan_arg;
+	std::vector<std::string> filenames;
+	bool verbose = false;
 	int nbefore = -1, nafter = -1;
-	parse_command_line(argc, argv, thresh, nrandom_snippets, nbefore, nafter,
-			chan_arg, output, filename);
-	std::string array = get_array(filename);
+	parse_command_line(argc, argv, thresh, nrandom_snippets, 
+			nbefore, nafter, verbose, chan_arg, filenames);
 
-	/* Verify the number of samples before/after a spike peak, based on array. */
-	verify_snippet_offsets(array, nbefore, nafter);
+	for (auto& filename : filenames) {
 
-	/* Get channels based on input */
-	arma::uvec channels;
-	if (chan_arg.empty()) {
-		auto min = channel_min(array), max = channel_max(array);
-		channels.set_size(max - min);
-		std::iota(channels.begin(), channels.end(), min);
-	} else
-		parse_chan_list(chan_arg, channels, channel_max(array));
+		if (verbose)
+			std::cout << "Processing data file: " << UL_PRE << filename 
+					<< UL_POST << std::endl;
 
-	/* Open the file and verify the channels requested */
-	datafile::DataFile *file;
-	if (array == "hidens")
-		file = dynamic_cast<datafile::DataFile*>(new hidensfile::HidensFile(filename));
-	else
-		file = new datafile::DataFile(filename);
-	if (!file) {
-		std::cerr << "Could not cast Hidens file to base datafile" << std::endl;
-		exit(EXIT_FAILURE);
+		std::string array = get_array(filename);
+
+		/* Verify the number of samples before/after a spike peak, based on array. */
+		verify_snippet_offsets(array, nbefore, nafter);
+
+		/* Get channels based on input */
+		arma::uvec channels;
+		if (chan_arg.empty()) {
+			auto min = channel_min(array), max = channel_max(array);
+			channels.set_size(max - min);
+			std::iota(channels.begin(), channels.end(), min);
+		} else
+			parse_chan_list(chan_arg, channels, channel_max(array));
+
+		/* Open the file and verify the channels requested */
+		datafile::DataFile *file;
+		if (array == "hidens")
+			file = dynamic_cast<datafile::DataFile*>(new hidensfile::HidensFile(filename));
+		else
+			file = new datafile::DataFile(filename);
+		if (!file) {
+			std::cerr << "Could not cast Hidens file to base datafile" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+		verify_channels(channels, file);
+
+		/* Read all data from the requested channels */
+		if (verbose) {
+			std::cout << " Loading data from " << channels.size() << " channels ... ";
+			std::cout.flush();
+		}
+
+		sampleMat data;
+		if (sequential_channels(channels))
+			file->data(channels.min(), channels.max() + 1, 
+					0, file->nsamples(), data);
+		else
+			file->data(channels, 0, file->nsamples(), data);
+
+		if (verbose)
+			std::cout << "done." << std::endl;
+
+		/* Create snippet file */
+		snipfile::SnipFile *snip_file;
+		std::string snipfile_name = create_snipfile_name(filename);
+		if (array == "hidens")
+			snip_file = dynamic_cast<hidenssnipfile::HidensSnipFile*>(
+					new hidenssnipfile::HidensSnipFile(snipfile_name, 
+						*dynamic_cast<hidensfile::HidensFile*>(file),
+					nbefore, nafter));
+		else
+			snip_file = new snipfile::SnipFile(snipfile_name, 
+					*file, nbefore, nafter);
+
+		/* Compute means and write them to the data file, so they may
+		 * be used later, and channel thresholds.
+		 */
+		if (verbose) {
+			std::cout << " Computing channel thresholds ... "; 
+			std::cout.flush();
+		}
+		auto means = extract::meanSubtract(data);
+		file->writeMeans(means);
+		auto thresholds = extract::computeThresholds(data, thresh);
+		if (verbose)
+			std::cout << "done." << std::endl;
+
+		/* Find noise and spike snippets */
+		if (verbose) {
+			std::cout << " Extracting noise snippets ... ";
+			std::cout.flush();
+		}
+		auto nchannels = channels.size();
+		std::vector<arma::uvec> spike_idx(nchannels), noise_idx(nchannels);
+		std::vector<sampleMat> spike_snips(nchannels), noise_snips(nchannels);
+		extract::extractNoise(data, nrandom_snippets, nbefore, nafter,
+				noise_idx, noise_snips, verbose);
+		if (verbose)
+			std::cout << "done." << std::endl << " Extracting spike snippets ..." 
+					<< std::endl;
+		extract::extractSpikes(data, thresholds, nbefore, nafter, 
+				spike_idx, spike_snips, verbose);
+
+		/* Write snippets to disk */
+		if (verbose) {
+			std::cout << " Writing snippet file ... ";
+			std::cout.flush();
+		}
+		snip_file->setChannels(channels);
+		snip_file->setThresholds(thresholds);
+		snip_file->writeSpikeSnips(spike_idx, spike_snips);
+		snip_file->writeNoiseSnips(noise_idx, noise_snips);
+
+		/* Cleanup */
+		delete file;
+		delete snip_file;
+
+		if (verbose)
+			std::cout << "done.\nFinished processing file: " << UL_PRE << filename 
+				<< UL_POST << std::endl << std::endl;
 	}
-	verify_channels(channels, file);
-
-	/* Read all data from the requested channels */
-#ifdef DEBUG
-	std::cout << "Loading data from channels: " << std::endl << channels;
-#endif
-	sampleMat data;
-	if (sequential_channels(channels))
-		file->data(channels.min(), channels.max() + 1, 
-				0, file->nsamples(), data);
-	else
-		file->data(channels, 0, file->nsamples(), data);
-
-	/* Create snippet file */
-	snipfile::SnipFile *snip_file;
-	if (array == "hidens")
-		snip_file = dynamic_cast<hidenssnipfile::HidensSnipFile*>(
-				new hidenssnipfile::HidensSnipFile(output + 
-				snipfile::FILE_EXTENSION, *dynamic_cast<hidensfile::HidensFile*>(file),
-				nbefore, nafter));
-	else
-		snip_file = new snipfile::SnipFile(
-				output + snipfile::FILE_EXTENSION, *file, nbefore, nafter);
-
-	/* Compute means and write them to the data file, so they may
-	 * be used later.
-	 */
-#ifdef DEBUG
-	std::cout << "Mean-subtracting data" << std::endl;
-#endif
-	auto means = extract::meanSubtract(data);
-	file->writeMeans(means);
-
-	/* Compute thresholds */
-#ifdef DEBUG
-	std::cout << "Computing thresholds" << std::endl;
-#endif
-	auto thresholds = extract::computeThresholds(data, thresh);
-
-	/* Find noise and spike snippets */
-	auto nchannels = channels.size();
-	std::vector<arma::uvec> spike_idx(nchannels), noise_idx(nchannels);
-	std::vector<sampleMat> spike_snips(nchannels), noise_snips(nchannels);
-	extract::extractNoise(data, nrandom_snippets, nbefore, nafter,
-			noise_idx, noise_snips);
-	extract::extractSpikes(data, thresholds, nbefore, nafter, 
-			spike_idx, spike_snips);
-
-	/* Write snippets to disk */
-	snip_file->setChannels(channels);
-	snip_file->setThresholds(thresholds);
-	snip_file->writeSpikeSnips(spike_idx, spike_snips);
-	snip_file->writeNoiseSnips(noise_idx, noise_snips);
-
-	/* Cleanup */
-	delete file;
-	delete snip_file;
-	
 	return 0;
 }
 

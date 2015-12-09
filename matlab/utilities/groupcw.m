@@ -1,29 +1,43 @@
-function groupcw(outfile,datafiles,snipfiles,channels)
-% groupcw: shape sorting of snippet waveforms
-% written by Tim Holy and Stephen Baccus 1999-2004
-% Three calling modes:
-%	groupcw(outfilename,spikefiles,noisefiles,channels)
-%		outfilename: name of sorted output .mat file
-%		datafiles: cell array of raw data filenames
-%		snipfiles: cell array of snippet filenames
-%		channels (optional): set of channels to analyze. Default all.
-%		EXAMPLE: groupcw ('01/01/00.mat',{'1.ssnp','2.ssnp','3.ssnp'},{'1.rsnp'})
-%	groupcw(outfilename) 
-%		Use this mode when you've sorted previously, and want
-%		to continue where you left off. outfilename must already exist.
-%	groupcw (outfilename,'proj.mat') - not implemented
-%		For sorting peak-width data. 'proj.mat' is a list of peaks and times
-
-%Determine sorting mode, continuous waveform, or peak-width 
-% if( (nargin==2) & (length(spikefiles)==1 )& (strmatch(spikefiles{1},'proj.mat'))) %sorting peak width data
-% 	pwflag=1;
-% 	channels=1:63;
-% else
-% 	if (nargin == 4)
-% 		[channels,nsnips,sniprange] = GetSnipNums(spikefiles); 	% Do all the channels
-% 	end
-% 	pwflag=0;
-% end
+function groupcw(outfile, datafiles, snipfiles, channels)
+% groupcw: Shape sorting of snippet waveforms
+%
+% The function groupcw is the entry point for the shape-based spike waveform
+% clustering application, used to sort spikes. 
+%
+% INPUT:
+%	outfile		- Output file, in which the Matlab struct containing information
+%					about the sorting process, as well as sorted spikes, will
+%					be saved.
+%
+%	datafiles	- A single string or cell array of strings, giving the paths
+%					to the HDF5 files containing raw multi-electrode array data.
+%
+% 	snipfiles	- A single string or cell array of strings, giving the paths
+%					to the HDF5 files containing the extracted candidate spike
+%					and noise snippets. These are the outputs of the `extract` program.
+%	
+%	channels	- An array of the channel numbers from which data should be sorted.
+%
+% CALLING:
+%
+% The program may be called in two ways. If just the `outfile` is specified, the
+% application will continue sorting a previous session. The output file given must
+% exist.
+%
+% Alternatively, the first three arguments can be given, in order to start a new
+% sorting session with the given data and snippet files. The final argument, 
+% `channels`, is optional in this case. If not given, all data channels from which
+% snippets were extracted will be included in the sorting.
+%
+% HISTORY:
+%
+% The original version of the application was written by Tim Holy and Stephen 
+% Baccus, between 1999 and 2004. The application was updated in 2015, to operate
+% with a new HDF5 file format adopted in the Baccus lab. Contributors for the 
+% update include: Pablo Jadzinsky, Lane McIntosh, Benjamin Naecker, Aran Nayebi,
+% and Bongsoo Suh.
+%
+% (C) 1999-2015 The Baccus Lab
 
 channels = double(h5read(snipfiles{1}, '/extracted-channels'));
 channels = channels(:)'; % Most code expects row vector

@@ -10,12 +10,12 @@ Usage
 -----
 
 	./extract 	[ -v | --version ] [-h | --help ]
+				[ -V | --verbose ]
 				[ -t | --threshold <threshold> ]
 				[ -a | --after <nafter> ]
 				[ -b | --before <nbefore> ]
 				[ -c | --chan <chanlist> ]
 				[ -n | --nrandom <nrandom> ]
-				[ -o | --output <name> ]
 				<recording>
 
 Parameters
@@ -25,6 +25,8 @@ Parameters
 	- Display version info and exit
 - `-h | --help` 
 	- Display help and exit
+- `-V | --verbose`
+	- Display information about the progress of the extraction process.
 - `-t | --threshold <threshold>` 
 	- Candidate spikes are those sections of the data trace
 which are above a threshold, set as `<threshold> * median(abs(v - mean(v)))`
@@ -42,9 +44,6 @@ These can be composed, e.g., `1,2,3,4-10`. Note that indexing is `0`-based and
 intervals are half-open.
 - `-n | --nrandom <nrandom>`
 	- The number of random snippets to extract from each channel. Defaults to 5000.
-- `-o | --output <basename>` 
-	- A base name for the output file. Snippets will be saved to
-`<basename>.snip`. Defaults to the recording file's base name.
 
 Requirements and building
 -------------------------

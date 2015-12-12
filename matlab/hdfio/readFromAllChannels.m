@@ -55,7 +55,7 @@ fracSnips = min(1, num / totalNumSnips);
 snips = cell(length(chans), 1);
 for i = 1:length(chans)
 	snips{i} = loadSnip(snipfile, sniptype, chans(i), ...
-        floor(fracSnips * numSnips(i)));
+        max(floor(fracSnips * numSnips(i)), 1));
 end
 snips = cat(2, snips{:});
 range = getSnipRange(snipfile);

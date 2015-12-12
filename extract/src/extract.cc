@@ -8,6 +8,11 @@
 #include "extract.h"
 #include "snipfile.h"
 
+#ifdef WITH_THREADS
+#include "semaphore.h"
+#include <thread>
+#endif
+
 #include <future>
 
 void extract::randsample(std::vector<arma::uvec>& out, size_t min, size_t max)
@@ -31,9 +36,12 @@ void extract::randsample(std::vector<arma::uvec>& out, size_t min, size_t max)
 	}
 }
 
-double _mean_subtract(const sampleMat& data, size_t col)
+double _mean_subtract(const sampleMat& data, size_t col, Semaphore& sem)
 {
-	return arma::mean(arma::conv_to<arma::vec>::from(data.col(col)));
+	sem.wait();
+	auto mean = arma::mean(arma::conv_to<arma::vec>::from(data.col(col)));
+	sem.signal();
+	return mean;
 }
 
 arma::vec extract::meanSubtract(sampleMat& data)
@@ -41,9 +49,10 @@ arma::vec extract::meanSubtract(sampleMat& data)
 	arma::vec means(data.n_cols, arma::fill::zeros);
 #ifdef WITH_THREADS
 	std::vector<std::future<double> > futs(data.n_cols);
+	Semaphore sem(std::thread::hardware_concurrency());
 	for (auto i = decltype(data.n_cols){0}; i < data.n_cols; i++)
 		futs[i] = std::async(std::launch::async, _mean_subtract, 
-				std::ref(data), i);
+				std::ref(data), i, std::ref(sem));
 	for (auto i = decltype(data.n_cols){0}; i < data.n_cols; i++) {
 		means(i) = futs[i].get();
 		data.col(i) -= means(i);
@@ -57,9 +66,12 @@ arma::vec extract::meanSubtract(sampleMat& data)
 	return means;
 }
 
-double _compute_median(const sampleMat& data, size_t col)
+double _compute_median(const sampleMat& data, size_t col, Semaphore& sem)
 {
-	return arma::median(arma::abs(data.col(col)));
+	sem.wait();
+	auto median = arma::median(arma::abs(data.col(col)));
+	sem.signal();
+	return median;
 }
 
 arma::vec extract::computeThresholds(const sampleMat& data, double thresh)
@@ -67,9 +79,10 @@ arma::vec extract::computeThresholds(const sampleMat& data, double thresh)
 #ifdef WITH_THREADS
 	arma::vec thresholds(data.n_cols, arma::fill::zeros);
 	std::vector<std::future<double> > futs(data.n_cols);
+	Semaphore sem(std::thread::hardware_concurrency());
 	for (auto i = decltype(data.n_cols){0}; i < data.n_cols; i++)
 		futs[i] = std::async(std::launch::async, _compute_median,
-				std::ref(data), i);
+				std::ref(data), i, std::ref(sem));
 	for (auto i = decltype(data.n_cols){0}; i < data.n_cols; i++)
 		thresholds(i) = thresh * futs[i].get();
 	return thresholds;

@@ -19,7 +19,12 @@ CXXFLAGS_DEBUG = -O0 -g -Wall -Wextra -I. -DDEBUG
 LIB_CXXFLAGS = -fPIC
 
 # Source, include and object file name information
-LIB_SOURCES = datafile.cc hidensfile.cc snipfile.cc hidenssnipfile.cc extract.cc
+LIB_SOURCES = datafile.cc \
+			  hidensfile.cc \
+			  snipfile.cc \
+			  hidenssnipfile.cc \
+			  extract.cc \
+			  semaphore.cc
 BIN_SOURCES = main.cc
 SOURCES = $(LIB_SOURCES) $(BIN_SOURCES)
 vpath %.cc $(SRC_DIR)

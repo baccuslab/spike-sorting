@@ -56,10 +56,20 @@ case 'ThreshStop'
 	set(gcbf,'WindowButtonUpFcn','');
 	currPt = get(gca,'CurrentPoint');
 	thresh = currPt(1,1);	% Determine new thresh
-	oldthresh = getappdata(hfig,'oldthresh');		% Look up old threshold
+    
+    % Get the axes object in which the threshold was saved in
+    % ChooseWaveforms.m. The data was historically stored in the axes
+    % storing the waveforms themselves, but retrieved from the parent
+    % figure. It appears that the new setappdata/getappdata API is more
+    % exacting, in that data is not visible to a parent, but only the
+    % actual object in which it was stored.
+    children = get(hfig, 'Children');
+    axs = children(4);
+	oldthresh = getappdata(axs,'oldthresh');		% Look up old threshold
+    
 % 	rmappdata(hfig,'oldthresh');				% It's not clear why this is nec., but it seems to be
-	setappdata(hfig,'oldthresh',thresh);			% Record for next time
-	x0 = getappdata(hfig,'PeakPos');
+	setappdata(axs,'oldthresh',thresh);			% Record for next time
+	x0 = getappdata(axs,'PeakPos');
 	% If the threshold increases, lines below thresh need to be turned off
 	if (thresh > oldthresh)
 		hlines = findobj(hfig,'Tag','wfm','Visible','on');

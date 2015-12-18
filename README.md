@@ -26,6 +26,16 @@ extract
 Contains source code for C++ application to extract spike and noise snippets
 from raw data HDF5 files.
 
+Making extract requires armadillo, a C++ linear algebra library. If you have homebrew, you can get
+armadillo by
+$ brew install homebrew/science/armadillo 
+
+To install extract,
+$ cd /path/to/extract/
+$ mkdir build
+$ make
+$ make install # optional
+
 wiki
 ----
 

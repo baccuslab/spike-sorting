@@ -28,13 +28,17 @@ from raw data HDF5 files.
 
 Making extract requires armadillo, a C++ linear algebra library. If you have homebrew, you can get
 armadillo by  
-$ brew install homebrew/science/armadillo 
+```bash
+brew install homebrew/science/armadillo 
+```
 
 To install extract,
-$ cd /path/to/extract/  
-$ mkdir build  
-$ make  
-$ make install # optional  
+```bash
+cd /path/to/extract/  
+mkdir build  
+make  
+make install
+```
 
 wiki
 ----

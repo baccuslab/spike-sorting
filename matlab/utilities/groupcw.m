@@ -37,10 +37,13 @@ function groupcw(outfile, datafiles, snipfiles, channels)
 % update include: Pablo Jadzinsky, Lane McIntosh, Benjamin Naecker, Aran Nayebi,
 % and Bongsoo Suh.
 %
-% (C) 1999-2015 The Baccus Lab
+% (C) 1999-2016 The Baccus Lab
 
-channels = double(h5read(snipfiles{1}, '/extracted-channels'));
-channels = channels(:)'; % Most code expects row vector
+if nargin == 3
+    file_channels = double(h5read(snipfiles{1}, '/extracted-channels'));
+    file_channels = file_channels(:)'; % Most code expects row vector
+    channels = intersect(channels, file_channels);
+end
 pwflag = false; % Never sort this way anymore, will be removed in future
 
 if (~pwflag) %Continuous waveform data

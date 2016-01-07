@@ -10,7 +10,7 @@ matlab
 Contains source for Matlab GUI sorting application, and C++ source for some
 compiled mex-functions used by the sorting application
 
-##### Compiling c++ source
+##### Compiling c++ soure
 Include all the names of the source codes in the list `compile_mex.m` matlab code:
 
     source_codes = {'AutoCorr.cpp', 'CrossCorr.cpp'};
@@ -25,6 +25,16 @@ extract
 
 Contains source code for C++ application to extract spike and noise snippets
 from raw data HDF5 files.
+
+Making extract requires armadillo, a C++ linear algebra library. If you have homebrew, you can get
+armadillo by  
+$ brew install homebrew/science/armadillo 
+
+To install extract,
+$ cd /path/to/extract/  
+$ mkdir build  
+$ make  
+$ make install # optional  
 
 wiki
 ----

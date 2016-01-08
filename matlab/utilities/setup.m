@@ -1,4 +1,4 @@
-function hmain=setup(outfile,datafiles,snipfiles,channels,pwflag);
+function hmain=setup(outfile,datafiles,snipfiles,channels, noise_channels,pwflag)
 numch=length(channels);
 numfiles=length(snipfiles);
 if (~pwflag)
@@ -29,7 +29,7 @@ if (~pwflag)
             noise = cell(numfiles, 1);
             for i = 1 : length(snipfiles)
                 noise{i} = readFromAllChannels(snipfiles{i}, 'noise', ...
-                    noiseperfile, channels);
+                    noiseperfile, noise_channels);
             end
             noise = [noise{:}];
             

@@ -1,4 +1,4 @@
-function groupcw(outfile, datafiles, snipfiles, channels)
+function groupcw(outfile, datafiles, snipfiles, channels, noise_channels)
 % groupcw: Shape sorting of snippet waveforms
 %
 % The function groupcw is the entry point for the shape-based spike waveform
@@ -17,6 +17,11 @@ function groupcw(outfile, datafiles, snipfiles, channels)
 %					and noise snippets. These are the outputs of the `extract` program.
 %	
 %	channels	- An array of the channel numbers from which data should be sorted.
+%                   If not given, or given as [], data will be sorted from
+%                   all channels in the files.
+%   
+%   noise_channels - An array of channel numbers from which noise should be
+%                   drawn. Defaults to same as `channels`
 %
 % CALLING:
 %
@@ -37,17 +42,23 @@ function groupcw(outfile, datafiles, snipfiles, channels)
 % update include: Pablo Jadzinsky, Lane McIntosh, Benjamin Naecker, Aran Nayebi,
 % and Bongsoo Suh.
 %
-% (C) 1999-2015 The Baccus Lab
+% (C) 1999-2016 The Baccus Lab
 
-channels = double(h5read(snipfiles{1}, '/extracted-channels'));
-channels = channels(:)'; % Most code expects row vector
+if isempty(channels)
+    channels = double(h5read(snipfiles{1}, '/extracted-channels'));
+    channels = channels(:)';
+end
+if isempty(noise_channels)
+    noise_channels = channels;
+end
+
 pwflag = false; % Never sort this way anymore, will be removed in future
 
 if (~pwflag) %Continuous waveform data
 	% Find out if output file already exists.
 	% If it does, load it in and start appending	
  	if (isempty(dir(outfile)))		% If file doesn't already exist		
-		hmain=setup(outfile,datafiles,snipfiles,channels,pwflag);		
+		hmain=setup(outfile,datafiles,snipfiles,channels,noise_channels,pwflag);		
 		g=getappdata(hmain,'g');
 		save (outfile,'g');
 	else	% Output file already exists, new results will be appended

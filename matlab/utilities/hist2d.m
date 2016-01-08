@@ -8,7 +8,7 @@ if (length(xin) ~= length(yin))
 	error('x & y must have the same length!');
 end
 if ((rect(1)>=rect(2))|(rect(3)>=rect(4)))
-	return
+	return % this is a problem, return values not assigned
 end
 	
 dx = (rect(2)-rect(1))/(nx-1);

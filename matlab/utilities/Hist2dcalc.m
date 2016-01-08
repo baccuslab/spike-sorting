@@ -45,7 +45,8 @@ for chindx=1:nch
 % 				xcIn, ycIn);
 				
 			[nspikesfiles{chindx,fnum},xc{chindx},yc{chindx}] =  ... 
-			hist2d(proj{chindx,fnum}(1,:),proj{chindx,fnum}(2,:),[rectx(chindx,:) recty(chindx,:)],nx,ny);
+                hist2d(proj{chindx,fnum}(1,:),proj{chindx,fnum}(2,:), ...
+                [rectx(chindx,:) recty(chindx,:)],nx,ny);
 			nspikes{chindx}=nspikes{chindx}+nspikesfiles{chindx,fnum};
 		end
 	end

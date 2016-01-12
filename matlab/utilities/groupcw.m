@@ -44,6 +44,13 @@ function groupcw(outfile, datafiles, snipfiles, channels, noise_channels)
 %
 % (C) 1999-2016 The Baccus Lab
 
+if nargin == 3
+    channels = [];
+    noise_channels = [];
+elseif nargin == 4
+    noise_channels = [];
+end
+
 if isempty(channels)
     channels = double(h5read(snipfiles{1}, '/extracted-channels'));
     channels = channels(:)';

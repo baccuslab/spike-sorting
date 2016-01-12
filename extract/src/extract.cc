@@ -141,12 +141,12 @@ void _extract_from_channel(const sampleMat& data, size_t chan, double thresh,
 	size_t snip_num = 0;
 
 	arma::uword i = 0;
-	while (i < nsamples - nafter + 1) {
+	while (i < nsamples - nafter) {
 		if (data(i, chan) > thresh) {
 			if (extract::isLocalMax(data, chan, i, snipfile::WINDOW_SIZE)) {
 				if (snip_num >= snips.n_cols) {
 					snips.resize(snips.n_rows, 2 * snips.n_cols);
-					idx.resize(2 * snips.n_cols);
+					idx.resize(2 * idx.n_rows);
 				}
 				idx(snip_num) = i;
 				snips(arma::span::all, snip_num) = data(

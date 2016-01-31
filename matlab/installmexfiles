@@ -61,7 +61,7 @@ start_message() {
 display_help() {
     echo
     echo "[HELP] installmexfiles"
-    echo "  usage: ./installmexfiles [option]"
+    echo "  usage: ./installmexfiles [OPTION]"
     echo
     echo "  Run this code in the spike-sorting/matlab folder of GroupCW
 
@@ -89,6 +89,7 @@ display_help() {
     echo
     echo "  -h, --help         print a help message, menu and usage."
     echo "  -v, --verbose      print verbose output."
+    echo "  -g, --debug        print verbose output."
     exit 1
 }
 
@@ -113,14 +114,17 @@ find_source_codes() {
     fi
 }
 
+DEBUGMODE=FALSE
+VFLAG=FALSE
 # check usage of the shell script.
 if [ $# -gt 0 ]; then
-    option=$1
-    case "$option" in
+    OPTION=$1
+    case "$OPTION" in
         -h | --help) display_help;;
     #--help) display_help;;
-        -v) vflag=on;;
-        --verbose) vflag=on;;
+        -v) VFLAG=TRUE;;
+        --verbose) VFLAG=TRUE;;
+        -g) DEBUGMODE=TRUE;;
     esac
 else
     start_message
@@ -135,9 +139,13 @@ for file in $(find_all $currdir); do
     filefullname=${file##*/}
     if [ -f "$MEXCODESDIR/$filefullname" ]
     then
-        echo "$filefullname in $MEXCODESDIR folder... not copied"
+        if [ $VFLAG = TRUE ];then
+            echo "$filefullname in $MEXCODESDIR folder... not copied"
+        fi
     else
-        echo "$filefullname not in $MEXCODESDIR folder... copied $filefullname to $MEXCODESDIR folder"
+        if [ $VFLAG = TRUE ];then
+            echo "$filefullname not in $MEXCODESDIR folder... copied $filefullname to $MEXCODESDIR folder"
+        fi
         cp $file ./$MEXCODESDIR/
     fi
 done
@@ -147,7 +155,7 @@ cp $COMPILE ./$MEXCODESDIR/
 cd $MEXCODESDIR
 
 # run matlab, compile source codes into mex files
-$MATLAB -nodisplay -nosplash -nodesktop -nojvm -r ${COMPILE%.*} $MEXCODESDIR #| tail -n 3
+$MATLAB -nodisplay -nosplash -nodesktop -nojvm -r "debugmode='$DEBUGMODE'; ${COMPILE%.*}" $MEXCODESDIR #| tail -n 3
 
 # delete compile.m matlab file and source files
 rm -f $COMPILE
@@ -155,7 +163,9 @@ for file in $(find_all); do
     filefullname=${file##*/}
     if [ -f "$filefullname" ]
     then
-        echo "$filefullname in $MEXCODESDIR deleted..."
+        if [ $VFLAG = TRUE ];then
+            echo "$filefullname in $MEXCODESDIR deleted..."
+        fi
         rm -f $filefullname
     fi
 done
@@ -168,7 +178,9 @@ for file in $(ls); do
     for locs in $(find_source_codes $currdir | grep $filename); do
         fileloc=${locs%/*}
         cp $file $fileloc
-        echo "copied $file to $fileloc"
+        if [ $VFLAG = TRUE ];then
+            echo "copied $file to $fileloc"
+        fi
     done
 done
 

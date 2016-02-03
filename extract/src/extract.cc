@@ -9,11 +9,12 @@
 #include "snipfile.h"
 
 #ifdef WITH_THREADS
-#include "semaphore.h"
-#include <thread>
+# include "semaphore.h"
+# include <thread>
+# include <mutex>
+# include <future>
 #endif
 
-#include <future>
 
 void extract::randsample(std::vector<arma::uvec>& out, size_t min, size_t max)
 {
@@ -36,6 +37,7 @@ void extract::randsample(std::vector<arma::uvec>& out, size_t min, size_t max)
 	}
 }
 
+#ifdef WITH_THREADS
 double _mean_subtract(const sampleMat& data, size_t col, Semaphore& sem)
 {
 	sem.wait();
@@ -43,6 +45,7 @@ double _mean_subtract(const sampleMat& data, size_t col, Semaphore& sem)
 	sem.signal();
 	return mean;
 }
+#endif
 
 arma::vec extract::meanSubtract(sampleMat& data)
 {
@@ -66,6 +69,7 @@ arma::vec extract::meanSubtract(sampleMat& data)
 	return means;
 }
 
+#ifdef WITH_THREADS
 double _compute_median(const sampleMat& data, size_t col, Semaphore& sem)
 {
 	sem.wait();
@@ -73,6 +77,7 @@ double _compute_median(const sampleMat& data, size_t col, Semaphore& sem)
 	sem.signal();
 	return median;
 }
+#endif
 
 arma::vec extract::computeThresholds(const sampleMat& data, double thresh)
 {
@@ -98,17 +103,19 @@ bool extract::isLocalMax(const sampleMat& data, size_t channel,
 	 * and return true if mid-point is a local maximum.
 	 */
 	arma::vec tmp(n);
-	auto mid = std::floor(n / 2);
-	for (decltype(n) k = 0; k < n; k++)
-		tmp(k) = arma::accu(data(
-				arma::span(sample - n + k + 1, sample + k), channel)) / n;
+	for (decltype(n) k = 0; k < n; k++) {
+		tmp(k) = arma::accu(arma::conv_to<arma::vec>::from(
+				data(arma::span(sample - n + k + 1, 
+				sample + k), channel))) / n;
+	}
+	auto mid = std::floor(double(n) / 2);
 	return (arma::all(tmp(arma::span(0, mid - 1)) < tmp(mid)) && 
-			arma::all(tmp(arma::span(mid, n - 1)) <= tmp(mid)));
+			arma::all(tmp(arma::span(mid + 1, n - 1)) <= tmp(mid)));
 }
 
 void extract::extractNoise(const sampleMat& data, const size_t& nrandom_snippets,
 		const int& nbefore, const int& nafter, std::vector<arma::uvec>& idx, 
-		std::vector<sampleMat>& snips, bool verbose)
+		std::vector<sampleMat>& snips, bool /* verbose */)
 {
 	/* Create random indices into each channel */
 	auto nsamples_per_snip = nbefore + nafter + 1;
@@ -134,14 +141,14 @@ void _extract_from_channel(const sampleMat& data, size_t chan, double thresh,
 		int nbefore, int nafter, arma::uvec& idx, sampleMat& snips)
 {
 	auto nsamples_per_snip = nbefore + nafter + 1;
-	auto nsamples = data.n_rows, nchannels = data.n_cols;
+	auto nsamples = data.n_rows;
 
 	snips.set_size(nsamples_per_snip, snipfile::DEFAULT_NUM_SNIPPETS);
 	idx.set_size(snipfile::DEFAULT_NUM_SNIPPETS);
 	size_t snip_num = 0;
 
 	arma::uword i = 0;
-	while (i < nsamples - nafter) {
+	while (i < nsamples - nafter - 1) {
 		if (data(i, chan) > thresh) {
 			if (extract::isLocalMax(data, chan, i, snipfile::WINDOW_SIZE)) {
 				if (snip_num >= snips.n_cols) {
@@ -160,44 +167,51 @@ void _extract_from_channel(const sampleMat& data, size_t chan, double thresh,
 	idx.resize(snip_num);
 }
 
+#ifdef WITH_THREADS
+void _extract_from_channel_multi(const sampleMat& data, size_t chan,
+		double thresh, int nbefore, int nafter, arma::uvec& idx, sampleMat& snips,
+		bool verbose, Semaphore& sem, std::mutex& oslock)
+{
+	sem.wait();
+	_extract_from_channel(data, chan, thresh, nbefore, nafter, idx, snips);
+	sem.signal();
+	std::lock_guard<std::mutex> lock(oslock);
+	std::cout << "  Channel " << chan << ": " << idx.size() 
+		<< " snippets" << std::endl;
+}
+#endif
+
 void extract::extractSpikes(const sampleMat& data, const arma::vec& thresholds, 
 		const int& nbefore, const int& nafter,
 		std::vector<arma::uvec>& idx, std::vector<sampleMat>& snips, bool verbose)
 {
-	auto nsamples_per_snip = nbefore + nafter + 1;
-	auto nsamples = data.n_rows, nchannels = data.n_cols;
+	auto nchannels = data.n_cols;
 
 #ifdef WITH_THREADS
 	std::vector<std::future<void> > futs(data.n_cols);
+	Semaphore sem(std::thread::hardware_concurrency());
+	std::mutex oslock;
 #endif
 
 	for (decltype(nchannels) c = 0; c < nchannels; c++) {
-
 #ifdef WITH_THREADS
-		futs[c] = std::async(std::launch::async, _extract_from_channel,
+		futs[c] = std::async(std::launch::async, _extract_from_channel_multi,
 				std::ref(data), c, thresholds(c), nbefore, nafter,
-				std::ref(idx.at(c)), std::ref(snips.at(c)));
+				std::ref(idx.at(c)), std::ref(snips.at(c)), verbose, 
+				std::ref(sem), std::ref(oslock));
 #else
-
-		if (verbose)
-			std::cout << "  Channel: " << c;
-
 		_extract_from_channel(data, c, thresholds(c), nbefore, nafter,
 				idx.at(c), snips.at(c));
 		if (verbose)
-			std::cout << " (" << idx.at(c).size() << " snippets)" << std::endl;
-
+			std::cout << "  Channel " << c << ": " idx.at(c).size() 
+				<< " snippets" << std::endl;
 #endif
 
 	}
 
 #ifdef WITH_THREADS
-	for (decltype(nchannels) c = 0; c < nchannels; c++) {
+	for (decltype(nchannels) c = 0; c < nchannels; c++)
 		futs[c].wait();
-		if (verbose)
-			std::cout << "  Channel " << c << ": (" << idx.at(c).size() 
-				<< " snippets)" << std::endl;
-	}
 #endif
 }
 

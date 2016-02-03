@@ -71,30 +71,36 @@ void datafile::DataFile::_read_data(
 		throw std::logic_error("Requested sample range invalid");
 	}
 	size_t nreqSamples = end - start;
-	size_t nreqChannels = channels.n_elem;
-	arma::Mat<hsize_t> coords;
-	hsize_t nelem;
-	computeCoords(channels, start, end, &coords, &nelem);
-	out.set_size(nreqSamples, nreqChannels);
+	size_t nreqChannels = channels.size();
+	auto startChan = channels.at(0), endChan = channels.at(nreqChannels - 1) + 1;
+	if (endChan <= startChan) {
+		std::cerr << "Requested sample range is invalid: Channels " 
+			<< startChan << " - " << endChan << std::endl;
+		throw std::logic_error("Requested sample range invalid");
+	}
+	T tmp;
+	tmp.set_size(nreqSamples, endChan);
 
 	/* Select hyperslab from the file */
-	dataspace.selectElements(H5S_SELECT_SET, nelem, coords.memptr());
+	hsize_t spaceOffset[datafile::DATASET_RANK] = {startChan, start};
+	hsize_t spaceCount[datafile::DATASET_RANK] = {endChan, nreqSamples};
+	dataspace.selectHyperslab(H5S_SELECT_SET, spaceCount, spaceOffset);
 	if (!dataspace.selectValid()) {
 		std::cerr << "Dataset selection invalid" << std::endl;
-		std::cerr << "Offset: (0, " << start << ")" << std::endl;
-		std::cerr << "Count: (" << nchannels() << ", " << nreqSamples << ")" << std::endl;
+		std::cerr << "Offset: (, "<< startChan << ", " << start << ")" << std::endl;
+		std::cerr << "Count: (" << endChan << ", " << nreqSamples << ")" << std::endl;
 		throw std::logic_error("Dataset selection invalid");
 	}
 
 	/* Define memory dataspace */
-	hsize_t mdims[datafile::DATASET_RANK] = {nreqChannels, nreqSamples};
+	hsize_t mdims[datafile::DATASET_RANK] = {endChan, nreqSamples};
 	H5::DataSpace mspace(datafile::DATASET_RANK, mdims);
 	hsize_t moffset[datafile::DATASET_RANK] = {0, 0};
-	hsize_t mcount[datafile::DATASET_RANK] = {nreqChannels, nreqSamples};
+	hsize_t mcount[datafile::DATASET_RANK] = {endChan, nreqSamples};
 	mspace.selectHyperslab(H5S_SELECT_SET, mcount, moffset);
 	if (!mspace.selectValid()) {
 		std::cerr << "Memory dataspace selection invalid" << std::endl;
-		std::cerr << "Count: (" << nreqSamples << ", " << nreqChannels << ")" << std::endl;
+		std::cerr << "Count: (" << nreqSamples << ", " << endChan << ")" << std::endl;
 		throw std::logic_error("Memory dataspace selection invalid");
 	}
 
@@ -109,6 +115,13 @@ void datafile::DataFile::_read_data(
 		dtype = H5::PredType::STD_U8LE;
 	else if (hash == typeid(arma::Mat<int8_t>).hash_code())
 		dtype = H5::PredType::STD_I8LE;
-	dataset.read(out.memptr(), dtype, mspace, dataspace);
+	dataset.read(tmp.memptr(), dtype, mspace, dataspace);
+
+	/* Keep only desired data channels.
+	 * This is based on the assumption that we usually load almost all of the data,
+	 * in which case a bulk load and the sub-selecting is much faster than loading
+	 * individual samples one at a time.
+	 */
+	out = tmp.cols(channels);
 }
 

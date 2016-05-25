@@ -289,6 +289,13 @@ int main(int argc, char *argv[])
 
 	for (auto& filename : filenames) {
 
+		struct stat buf;
+		if (stat(filename.c_str(), &buf) != 0) {
+			std::cerr << "The data file '" << filename 
+				<< "' does not exist, skipping." << std::endl;
+			continue;
+		}
+
 		if (verbose)
 			std::cout << "Processing data file: " << UL_PRE << filename 
 					<< UL_POST << std::endl;

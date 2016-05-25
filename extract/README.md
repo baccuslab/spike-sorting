@@ -76,6 +76,12 @@ disabled by compiling as follows:
 	
 	$ make CXXFLAGS=-DNOTHREAD
 
+`extract` will also dynamically disable threading, and process a single channel at a
+time, if the data file to be processed is larger than some fraction of the available
+system physical memory. This fraction is a compile-time constant, and is defined in
+`src/main.cc` as `CONSERVE_MEMORY_FRACTION`. This is used to prevent the huge slowdowns
+that come with moving to swap space.
+
 Library
 -------
 

@@ -23,6 +23,7 @@
 #include "hidensfile.h"
 #include "hidenssnipfile.h"
 #include "extract.h"
+#include "memsize.h"
 
 #define UL_PRE "\033[4m"
 #define UL_POST "\033[0m"
@@ -70,6 +71,13 @@ const char USAGE[] = "\n\
    \t\tis \"1-\". Note that ranges are half-open, so that the range specified as \"3-15\"\n\
    \t\twill collect channels 4 through 14, inclusive, but not channel 15. Also note\n\
    \t\tthat indexing is 0-based.\n\n";
+
+/* If a data file is larger than this fraction of available memory, 
+ * run the extraction on single channels and without threading. This is to avoid
+ * huge slowdowns that come with exhausting memory and using swap, especially
+ * with threading.
+ */
+const double CONSERVE_MEMORY_FRACTION = 0.75;
 
 void print_usage_and_exit()
 {
@@ -289,10 +297,17 @@ int main(int argc, char *argv[])
 
 	for (auto& filename : filenames) {
 
+		/* Verify that data file exists and snippet file doesn't */
 		struct stat buf;
 		if (stat(filename.c_str(), &buf) != 0) {
-			std::cerr << "The data file '" << filename 
-				<< "' does not exist, skipping." << std::endl;
+			std::cerr << "The data file " << UL_PRE << filename 
+				<< UL_POST << " does not exist, skipping." << std::endl;
+			continue;
+		}
+		std::string snipfile_name = create_snipfile_name(filename);
+		if (stat(snipfile_name.c_str(), &buf) == 0) {
+			std::cerr << "The snippet file " << UL_PRE << snipfile_name
+				<< UL_POST << " already exists, skipping data file" << std::endl;
 			continue;
 		}
 
@@ -326,25 +341,98 @@ int main(int argc, char *argv[])
 		}
 		verify_channels(channels, file);
 
-		/* Read all data from the requested channels */
-		if (verbose) {
-			std::cout << " Loading data from " << channels.size() << " channels ... ";
-			std::cout.flush();
+		/* Create data structures to hold snippet extraction information */
+		auto nchannels = channels.size();
+		arma::vec means(nchannels), thresholds(nchannels);
+		std::vector<arma::uvec> spike_idx(nchannels), noise_idx(nchannels);
+		std::vector<sampleMat> spike_snips(nchannels), noise_snips(nchannels);
+
+		/* If the size of the data file is greater than some fraction of the available
+		 * physical memory, read a single file at a time, rather than all at
+		 * once
+		 */
+		if (should_conserve_mem(filename, CONSERVE_MEMORY_FRACTION)) {
+
+			/* Read data from one channel at a time */
+			for (decltype(nchannels) i = 0; i < nchannels; i++) {
+				auto channel = channels(i);
+				if (verbose) {
+					std::cout << " Loading data from channel " << channel << "... ";
+					std::cout.flush();
+				}
+				arma::Col<short> data;
+				file->data(channel, channel + 1, 0, file->nsamples(), data);
+
+				if (verbose) {
+					std::cout << "done." << std::endl << "  Computing thresholds ...";
+					std::cout.flush();
+				}
+				means(i) = arma::mean(arma::conv_to<arma::vec>::from(data));
+				data -= means(i);
+				thresholds(i) = extract::computeThreshold(data, thresh);
+				if (verbose)
+					std::cout << "done." << std::endl << "  Extracting noise snippets ...";
+
+				extract::extractNoiseFromChannel(data, nrandom_snippets, nbefore, nafter,
+						noise_idx.at(i), noise_snips.at(i));
+
+				if (verbose) {
+					std::cout << "done." << std::endl << "  Extracting spike snippets ...";
+					std::cout.flush();
+				}
+				extract::extractSpikesFromSingleChannel(data, thresholds(i), 
+						nbefore, nafter, spike_idx.at(i), spike_snips.at(i));
+				if (verbose) {
+					std::cout << "done. (" << spike_idx.at(i).n_elem << " snippets)" << std::endl;
+				}
+			}
+		} else {
+			/* Read all data from the requested channels */
+			if (verbose) {
+				std::cout << " Loading data from " << channels.size() << " channels ... ";
+				std::cout.flush();
+			}
+
+			sampleMat data;
+			if (sequential_channels(channels))
+				file->data(channels.min(), channels.max() + 1, 
+						0, file->nsamples(), data);
+			else
+				file->data(channels, 0, file->nsamples(), data);
+
+			if (verbose)
+				std::cout << "done." << std::endl;
+
+			/* Compute means and write them to the data file, so they may
+			 * be used later, and channel thresholds.
+			 */
+			if (verbose) {
+				std::cout << " Computing channel thresholds ... "; 
+				std::cout.flush();
+			}
+			means = extract::meanSubtract(data);
+			file->writeMeans(means);
+			thresholds = extract::computeThresholds(data, thresh);
+			if (verbose)
+				std::cout << "done." << std::endl;
+
+			/* Find noise and spike snippets */
+			if (verbose) {
+				std::cout << " Extracting noise snippets ... ";
+				std::cout.flush();
+			}
+			extract::extractNoise(data, nrandom_snippets, nbefore, nafter,
+					noise_idx, noise_snips, verbose);
+			if (verbose)
+				std::cout << "done." << std::endl << " Extracting spike snippets ..." 
+						<< std::endl;
+			extract::extractSpikes(data, thresholds, nbefore, nafter, 
+					spike_idx, spike_snips, verbose);
+
 		}
-
-		sampleMat data;
-		if (sequential_channels(channels))
-			file->data(channels.min(), channels.max() + 1, 
-					0, file->nsamples(), data);
-		else
-			file->data(channels, 0, file->nsamples(), data);
-
-		if (verbose)
-			std::cout << "done." << std::endl;
 
 		/* Create snippet file */
 		snipfile::SnipFile *snip_file;
-		std::string snipfile_name = create_snipfile_name(filename);
 		if (array == "hidens")
 			snip_file = dynamic_cast<hidenssnipfile::HidensSnipFile*>(
 					new hidenssnipfile::HidensSnipFile(snipfile_name, 
@@ -353,35 +441,6 @@ int main(int argc, char *argv[])
 		else
 			snip_file = new snipfile::SnipFile(snipfile_name, 
 					*file, nbefore, nafter);
-
-		/* Compute means and write them to the data file, so they may
-		 * be used later, and channel thresholds.
-		 */
-		if (verbose) {
-			std::cout << " Computing channel thresholds ... "; 
-			std::cout.flush();
-		}
-		auto means = extract::meanSubtract(data);
-		file->writeMeans(means);
-		auto thresholds = extract::computeThresholds(data, thresh);
-		if (verbose)
-			std::cout << "done." << std::endl;
-
-		/* Find noise and spike snippets */
-		if (verbose) {
-			std::cout << " Extracting noise snippets ... ";
-			std::cout.flush();
-		}
-		auto nchannels = channels.size();
-		std::vector<arma::uvec> spike_idx(nchannels), noise_idx(nchannels);
-		std::vector<sampleMat> spike_snips(nchannels), noise_snips(nchannels);
-		extract::extractNoise(data, nrandom_snippets, nbefore, nafter,
-				noise_idx, noise_snips, verbose);
-		if (verbose)
-			std::cout << "done." << std::endl << " Extracting spike snippets ..." 
-					<< std::endl;
-		extract::extractSpikes(data, thresholds, nbefore, nafter, 
-				spike_idx, spike_snips, verbose);
 
 		/* Write snippets to disk */
 		if (verbose) {

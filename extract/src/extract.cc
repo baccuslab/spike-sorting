@@ -36,6 +36,18 @@ void extract::randsample(std::vector<arma::uvec>& out, size_t min, size_t max)
 	}
 }
 
+void extract::randsample(arma::uvec& out, size_t min, size_t max)
+{
+	if (out.n_elem > (max - min))
+		throw std::logic_error("Number of requested elems must be less than (max - min)");
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dist(min, max - 1);
+	for (arma::uword i = 0; i < out.n_elem; i++)
+		out(i) = dist(gen);
+}
+
+#ifdef WITH_THREADS
 double _mean_subtract(const sampleMat& data, size_t col, Semaphore& sem)
 {
 	sem.wait();
@@ -43,6 +55,7 @@ double _mean_subtract(const sampleMat& data, size_t col, Semaphore& sem)
 	sem.signal();
 	return mean;
 }
+#endif
 
 arma::vec extract::meanSubtract(sampleMat& data)
 {
@@ -66,6 +79,7 @@ arma::vec extract::meanSubtract(sampleMat& data)
 	return means;
 }
 
+#ifdef WITH_THREADS
 double _compute_median(const sampleMat& data, size_t col, Semaphore& sem)
 {
 	sem.wait();
@@ -73,6 +87,7 @@ double _compute_median(const sampleMat& data, size_t col, Semaphore& sem)
 	sem.signal();
 	return median;
 }
+#endif
 
 arma::vec extract::computeThresholds(const sampleMat& data, double thresh)
 {
@@ -89,6 +104,11 @@ arma::vec extract::computeThresholds(const sampleMat& data, double thresh)
 #else
 	return thresh * arma::conv_to<arma::vec>::from(arma::median(arma::abs(data)));
 #endif
+}
+
+double extract::computeThreshold(const arma::Col<short>& data, double thresh)
+{
+	return thresh * arma::median(arma::abs(data));
 }
 
 bool extract::isLocalMax(const sampleMat& data, size_t channel, 
@@ -108,7 +128,7 @@ bool extract::isLocalMax(const sampleMat& data, size_t channel,
 
 void extract::extractNoise(const sampleMat& data, const size_t& nrandom_snippets,
 		const int& nbefore, const int& nafter, std::vector<arma::uvec>& idx, 
-		std::vector<sampleMat>& snips, bool verbose)
+		std::vector<sampleMat>& snips, bool /* verbose */)
 {
 	/* Create random indices into each channel */
 	auto nsamples_per_snip = nbefore + nafter + 1;
@@ -130,11 +150,54 @@ void extract::extractNoise(const sampleMat& data, const size_t& nrandom_snippets
 	}
 }
 
-void _extract_from_channel(const sampleMat& data, size_t chan, double thresh,
+void extract::extractNoiseFromChannel(const arma::Col<short>& data, 
+		const size_t& nrandom_snippets, const int& nbefore, const int& nafter,
+		arma::uvec& idx, sampleMat& snips)
+{
+	auto nsamples_per_snip = nbefore + nafter + 1;
+	idx.set_size(nrandom_snippets);
+	randsample(idx, nbefore, data.n_elem - nafter);
+	snips.set_size(nsamples_per_snip, nrandom_snippets);
+	for (auto s = decltype(nrandom_snippets){0}; s < nrandom_snippets; s++) {
+		auto& start = idx.at(s);
+		snips(arma::span::all, s) = data(arma::span(start - nbefore, start + nafter));
+	}
+}
+
+void extract::extractSpikesFromSingleChannel(const arma::Col<short>& data,
+		double thresh, int nbefore, int nafter, arma::uvec& idx, sampleMat& snips)
+{
+	auto nsamples_per_snip = nbefore + nafter + 1;
+	auto nsamples = data.n_elem;
+
+	snips.set_size(nsamples_per_snip, snipfile::DEFAULT_NUM_SNIPPETS);
+	idx.set_size(snipfile::DEFAULT_NUM_SNIPPETS);
+	size_t snip_num = 0;
+
+	arma::uword i = 0;
+	while (i < nsamples - nafter) {
+		if (data(i) > thresh) {
+			if (extract::isLocalMax(data, 0, i, snipfile::WINDOW_SIZE)) {
+				if (snip_num >= snips.n_cols) {
+					snips.resize(snips.n_rows, 2 * snips.n_cols);
+					idx.resize(2 * idx.n_rows);
+				}
+				idx(snip_num) = i;
+				snips(arma::span::all, snip_num) = data(arma::span(i - nbefore, i + nafter));
+				snip_num++;
+			}
+		}
+		i += 1;
+	}
+	snips.resize(snips.n_rows, snip_num);
+	idx.resize(snip_num);
+}
+
+void extract::extractSpikesFromChannel(const sampleMat& data, size_t chan, double thresh,
 		int nbefore, int nafter, arma::uvec& idx, sampleMat& snips)
 {
 	auto nsamples_per_snip = nbefore + nafter + 1;
-	auto nsamples = data.n_rows, nchannels = data.n_cols;
+	auto nsamples = data.n_rows;
 
 	snips.set_size(nsamples_per_snip, snipfile::DEFAULT_NUM_SNIPPETS);
 	idx.set_size(snipfile::DEFAULT_NUM_SNIPPETS);
@@ -164,8 +227,7 @@ void extract::extractSpikes(const sampleMat& data, const arma::vec& thresholds,
 		const int& nbefore, const int& nafter,
 		std::vector<arma::uvec>& idx, std::vector<sampleMat>& snips, bool verbose)
 {
-	auto nsamples_per_snip = nbefore + nafter + 1;
-	auto nsamples = data.n_rows, nchannels = data.n_cols;
+	auto nchannels = data.n_cols;
 
 #ifdef WITH_THREADS
 	std::vector<std::future<void> > futs(data.n_cols);
@@ -174,7 +236,7 @@ void extract::extractSpikes(const sampleMat& data, const arma::vec& thresholds,
 	for (decltype(nchannels) c = 0; c < nchannels; c++) {
 
 #ifdef WITH_THREADS
-		futs[c] = std::async(std::launch::async, _extract_from_channel,
+		futs[c] = std::async(std::launch::async, extractSpikesFromChannel,
 				std::ref(data), c, thresholds(c), nbefore, nafter,
 				std::ref(idx.at(c)), std::ref(snips.at(c)));
 #else
@@ -182,7 +244,7 @@ void extract::extractSpikes(const sampleMat& data, const arma::vec& thresholds,
 		if (verbose)
 			std::cout << "  Channel: " << c;
 
-		_extract_from_channel(data, c, thresholds(c), nbefore, nafter,
+		extractSpikesFromChannel(data, c, thresholds(c), nbefore, nafter,
 				idx.at(c), snips.at(c));
 		if (verbose)
 			std::cout << " (" << idx.at(c).size() << " snippets)" << std::endl;

@@ -5,12 +5,12 @@ function  [record,recfiles,cells,chandef]=ConvertToCell(shapefilename)
 load(shapefilename)
 if (~exist('chanclust'))
 	chanclust=g.chanclust;
-	spikefiles=g.spikefiles;
+	snipfiles=g.snipfiles;
 	channels=g.channels;
 	scanrate=g.scanrate;
 end
 %Loop across files
-for fileno = 1:length(spikefiles)
+for fileno = 1:length(snipfiles)
 	% Convert from channel indexing to cell# indexing
 	%   First delete any empty channels
 	%   Keep track of channel on which cell was defined
@@ -54,8 +54,8 @@ for fileno = 1:length(spikefiles)
 	end
 	%fprintf('\n');
 	%Write cell file
-	sftrunc = strtok(spikefiles{fileno},'.');
-	outfilename=[strtok(shapefilename,'.') '.' strtok(spikefiles{fileno},'.') '.cell' ];
+	sftrunc = strtok(snipfiles{fileno},'.');
+	outfilename=[strtok(shapefilename,'.') '.' strtok(snipfiles{fileno},'.') '.cell' ];
 	WriteCellFile(outfilename,record,chandef,'nowrap')
 	clear record chandef stim
 end %Loop across files

@@ -72,13 +72,21 @@ end
 if (binning)
 	tccout = zeros(1,nbins);
 	for i = 1:length(t1)
-		tccout = tccout + CrossCorr(t1{i},allt{i}(1,:),tmax,nbins);
+		if size(allt{i}, 2) > 0
+			tccout = tccout + CrossCorr(t1{i},allt{i}(1,:),tmax,nbins);
+		else
+			warning('Skipping cross-talk on apparently empty channel');
+		end
 	end
 else
 	tccout = [];
 	for i = 1:length(t1)
-		[tcctemp,indxout{i}] = CrossCorr(t1{i},allt{i}(1,:),tmax);
-		tccout(end+1:end+length(tcctemp)) = tcctemp;
+		if size(allt{i}, 2) > 0
+			[tcctemp,indxout{i}] = CrossCorr(t1{i},allt{i}(1,:),tmax);
+			tccout(end+1:end+length(tcctemp)) = tcctemp;
+		else
+			warning('Skipping cross-talk on apparently empty channel');
+		end
 	end
 end
 

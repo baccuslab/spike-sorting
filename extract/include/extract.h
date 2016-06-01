@@ -35,6 +35,7 @@ namespace extract {
  * \param max The maximum value of the range of the random sample
  */
 void randsample(std::vector<arma::uvec>& out, size_t min, size_t max);
+void randsample(arma::uvec& out, size_t min, size_t max);
 
 /*! Subtract the mean from each column of data, and return them */
 arma::vec meanSubtract(sampleMat& data);
@@ -48,6 +49,16 @@ arma::vec meanSubtract(sampleMat& data);
  * t = thresh * median(abs(meanSubtract(data)))
  */
 arma::vec computeThresholds(const sampleMat& data, double thresh);
+
+/*! Compute the threshold value for the given channel of data.
+ * \param data The single channel vector of data.
+ * \param thresh The threshold multiplier.
+ *
+ * The threshold is actually computed as:
+ *
+ * t = thresh * median(abs(meanSubtract(data)))
+ */
+double computeThreshold(const arma::Col<short>& data, double thresh);
 
 /*! Return true if the given data sample is a local maximum
  * \param data The full matrix of data
@@ -81,6 +92,10 @@ void extractNoise(const sampleMat& data, const size_t& nrandom,
 		std::vector<arma::uvec>& idx, 
 		std::vector<sampleMat>& snips, bool verbose);
 
+void extractNoiseFromChannel(const arma::Col<short>& data, 
+		const size_t& nrandom_snippets, const int& nbefore, const int& nafter,
+		arma::uvec& idx, sampleMat& snips);
+
 /*! Extract all spikes from the raw data.
  * \param data The data matrix from which to extract.
  * \param thresholds An array of thresholds for each channel.
@@ -107,6 +122,11 @@ void extractSpikes(const sampleMat& data, const arma::vec& thresholds,
 		std::vector<arma::uvec>& idx, std::vector<sampleMat>& snips, 
 		bool verbose);
 
+void extractSpikesFromChannel(const sampleMat& data, size_t chan, double thresh,
+		int nbefore, int nafter, arma::uvec& idx, sampleMat& snips);
+
+void extractSpikesFromSingleChannel(const arma::Col<short>& data, double thresh,
+		int nbefore, int nafter, arma::uvec& idx, sampleMat& snips);
 };
 
 #endif

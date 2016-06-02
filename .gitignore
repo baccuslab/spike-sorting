@@ -18,3 +18,4 @@ extract/bin/*
 extract/build/*
 *.snip
 *.bin
+*.o

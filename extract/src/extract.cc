@@ -37,6 +37,17 @@ void extract::randsample(std::vector<arma::uvec>& out, size_t min, size_t max)
 	}
 }
 
+void extract::randsample(arma::uvec& out, size_t min, size_t max)
+{
+	if (out.n_elem > (max - min))
+		throw std::logic_error("Number of requested elems must be less than (max - min)");
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dist(min, max - 1);
+	for (arma::uword i = 0; i < out.n_elem; i++)
+		out(i) = dist(gen);
+}
+
 #ifdef WITH_THREADS
 double _mean_subtract(const sampleMat& data, size_t col, Semaphore& sem)
 {
@@ -96,6 +107,11 @@ arma::vec extract::computeThresholds(const sampleMat& data, double thresh)
 #endif
 }
 
+double extract::computeThreshold(const arma::Col<short>& data, double thresh)
+{
+	return thresh * arma::median(arma::abs(data));
+}
+
 bool extract::isLocalMax(const sampleMat& data, size_t channel, 
 		size_t sample, size_t n)
 {
@@ -137,7 +153,50 @@ void extract::extractNoise(const sampleMat& data, const size_t& nrandom_snippets
 	}
 }
 
-void _extract_from_channel(const sampleMat& data, size_t chan, double thresh,
+void extract::extractNoiseFromChannel(const arma::Col<short>& data, 
+		const size_t& nrandom_snippets, const int& nbefore, const int& nafter,
+		arma::uvec& idx, sampleMat& snips)
+{
+	auto nsamples_per_snip = nbefore + nafter + 1;
+	idx.set_size(nrandom_snippets);
+	randsample(idx, nbefore, data.n_elem - nafter);
+	snips.set_size(nsamples_per_snip, nrandom_snippets);
+	for (auto s = decltype(nrandom_snippets){0}; s < nrandom_snippets; s++) {
+		auto& start = idx.at(s);
+		snips(arma::span::all, s) = data(arma::span(start - nbefore, start + nafter));
+	}
+}
+
+void extract::extractSpikesFromSingleChannel(const arma::Col<short>& data,
+		double thresh, int nbefore, int nafter, arma::uvec& idx, sampleMat& snips)
+{
+	auto nsamples_per_snip = nbefore + nafter + 1;
+	auto nsamples = data.n_elem;
+
+	snips.set_size(nsamples_per_snip, snipfile::DEFAULT_NUM_SNIPPETS);
+	idx.set_size(snipfile::DEFAULT_NUM_SNIPPETS);
+	size_t snip_num = 0;
+
+	arma::uword i = 0;
+	while (i < nsamples - nafter) {
+		if (data(i) > thresh) {
+			if (extract::isLocalMax(data, 0, i, snipfile::WINDOW_SIZE)) {
+				if (snip_num >= snips.n_cols) {
+					snips.resize(snips.n_rows, 2 * snips.n_cols);
+					idx.resize(2 * idx.n_rows);
+				}
+				idx(snip_num) = i;
+				snips(arma::span::all, snip_num) = data(arma::span(i - nbefore, i + nafter));
+				snip_num++;
+			}
+		}
+		i += 1;
+	}
+	snips.resize(snips.n_rows, snip_num);
+	idx.resize(snip_num);
+}
+
+void extract::extractSpikesFromChannel(const sampleMat& data, size_t chan, double thresh,
 		int nbefore, int nafter, arma::uvec& idx, sampleMat& snips)
 {
 	auto nsamples_per_snip = nbefore + nafter + 1;
@@ -173,7 +232,7 @@ void _extract_from_channel_multi(const sampleMat& data, size_t chan,
 		bool verbose, Semaphore& sem, std::mutex& oslock)
 {
 	sem.wait();
-	_extract_from_channel(data, chan, thresh, nbefore, nafter, idx, snips);
+	extract::extractSpikesFromChannel(data, chan, thresh, nbefore, nafter, idx, snips);
 	sem.signal();
 	std::lock_guard<std::mutex> lock(oslock);
 	std::cout << "  Channel " << chan << ": " << idx.size() 
@@ -200,7 +259,10 @@ void extract::extractSpikes(const sampleMat& data, const arma::vec& thresholds,
 				std::ref(idx.at(c)), std::ref(snips.at(c)), verbose, 
 				std::ref(sem), std::ref(oslock));
 #else
-		_extract_from_channel(data, c, thresholds(c), nbefore, nafter,
+		if (verbose)
+			std::cout << "  Channel: " << c;
+
+		extractSpikesFromChannel(data, c, thresholds(c), nbefore, nafter,
 				idx.at(c), snips.at(c));
 		if (verbose)
 			std::cout << "  Channel " << c << ": " idx.at(c).size() 

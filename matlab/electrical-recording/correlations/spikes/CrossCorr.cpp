@@ -1,5 +1,6 @@
 // Compute the crosscorrelation function for a set of spikes, represented
 // by vectors of their arrival times
+#define char16_t UINT16_T
 #include <vector>
 #include "mex.h"
 #include <math.h>

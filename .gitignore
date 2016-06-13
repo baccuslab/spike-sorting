@@ -19,3 +19,4 @@ extract/build/*
 *.snip
 *.bin
 *.o
+*.mexmaci64

@@ -7,8 +7,8 @@ figure ('Name','Array','Position', [150 50 1050 750],'NumberTitle','off');%,'dou
 % number of white boxes in array window
 if strcmp(arraytype, 'hidens')
     visiblechannels = numch;
-    xsize = 1/14;
-    ysize = 1/13;
+    xsize = 1/13;
+    ysize = 1/14;
 else
     visiblechannels = 63;
     xsize = 1/11;

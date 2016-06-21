@@ -5,37 +5,41 @@
  * (C) 2015 Benjamin Naecker bnaecker@stanford.edu
  */
 
-#include <stdlib.h>
-#include <getopt.h>
-#include <sys/stat.h>
+#include <getopt.h> 		// for getopt_long
+#include <sys/stat.h>		// for stat(2)
 
-#include <algorithm>
+#include <algorithm>		// min, max, unique, sort
+#include <numeric>			// iota
 #include <string>
-#include <sstream>
 #include <iostream>
-#include <cstdio>
+#include <cstdio>			// printf
 #include <vector>
-#include <numeric>
+#include <mutex>			// mutex, lock_guard
+#include <thread>			// std::async
+#include <future>			// std::future
 
-#include <armadillo>
+#include <armadillo>		// matrices/vectors holding data in memory
 
-#include "snipfile.h"
-#include "hidensfile.h"
-#include "hidenssnipfile.h"
-#include "extract.h"
-#include "memsize.h"
+#include "snipfile.h"		// implements snippet file API
+#include "hidensfile.h"		// hidens-specific raw file (includes array configuration)
+#include "hidenssnipfile.h"	// hidens-specific snippet file API
+#include "extract.h"		// routines to perform snippet extraction
+#include "semaphore.h"		// basic counting semaphore (restricts number of running threads)
 
 #define UL_PRE "\033[4m"
 #define UL_POST "\033[0m"
+#define ERR_COLOR "\033[31m"
+#define DEFAULT_COLOR "\033[39m"
 #define DEFAULT_THRESHOLD 4.5
 #define DEFAULT_THRESH_STR "4.5"
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 5
+#define VERSION_MINOR 6
 #define HIDENS_CHANNEL_MAX 127
-#define HIDENS_CHANNEL_MIN 1
+#define HIDENS_CHANNEL_MIN 0
 #define MCS_CHANNEL_MAX 64
 #define MCS_CHANNEL_MIN 4
 
+/* Type alias for data stored in memory from data files */
 using sampleMat = arma::Mat<short>;
 
 const char PROGRAM[] = "extract";
@@ -46,6 +50,7 @@ const char SHORT_DESCRIPTION[] = "Candidate spike-snippet extraction program";
 const char USAGE[] = "\n\
  Usage: extract [-v | --version] [-h | --help]\n\
   \t\t[-V | --verbose]\n\
+  \t\t[-N | --nthreads " UL_PRE "nthreads" UL_POST "]\n\
   \t\t[-t | --threshold " UL_PRE "threshold" UL_POST "]\n\
   \t\t[-b | --before " UL_PRE "nbefore" UL_POST "]\n\
   \t\t[-a | --after " UL_PRE "nafter" UL_POST "]\n\
@@ -55,6 +60,11 @@ const char USAGE[] = "\n\
  Extract noise and spike snippets from the given recording file\n\n\
  Parameters:\n\n\
    " UL_PRE "verbose" UL_POST "\tPrint progress of snippet extraction.\n\n\
+   " UL_PRE "nthreads" UL_POST "\tNumber of threads to use. Defaults to the number\n\
+   \t\tof logical CPU cores on the current machine. The program processes channels in\n\
+   \t\tparallel, one in each thread. Thus this argument can be used to limit the memory\n\
+   \t\tusage of the program as well: the file size divided by the number of channels will\n\
+   \t\tgive the amount of memory used in each thread.\n\n\
    " UL_PRE "threshold" UL_POST "\tThreshold multiplier for determining spike\n\
    \t\tsnippets. The threshold will be set independently for each channel, such\n\
    \t\tthat: " UL_PRE "threshold" UL_POST " * median(abs(v)). Default = %0.1f\n\n\
@@ -67,17 +77,10 @@ const char USAGE[] = "\n\
    \t\tsnippets will be extracted. E.g., \"0,1,2,3\" will extract data only from\n\
    \t\tthe first 4 channels, while \"0-4,8,10-\" will extract data from the first\n\
    \t\t4 channels, the 9th, and channels 11 to the number of channels in the file.\n\
-   \t\tFor MCS data files, the default is \"3-63\", and for Hidens files, the default\n\
-   \t\tis \"1-\". Note that ranges are half-open, so that the range specified as \"3-15\"\n\
-   \t\twill collect channels 4 through 14, inclusive, but not channel 15. Also note\n\
-   \t\tthat indexing is 0-based.\n\n";
-
-/* If a data file is larger than this fraction of available memory, 
- * run the extraction on single channels and without threading. This is to avoid
- * huge slowdowns that come with exhausting memory and using swap, especially
- * with threading.
- */
-const double CONSERVE_MEMORY_FRACTION = 0.75;
+   \t\tFor MCS data files, the default is \"4-64\", and for Hidens files, the default\n\
+   \t\tis all channels. Note that ranges are half-open, so that the range specified as\n\
+   \t\t\"3-15\" will collect channels 4 through 14, inclusive, but not channel 15. Also\n\
+   \t\tnote that indexing is 0-based.\n\n";
 
 void print_usage_and_exit()
 {
@@ -112,11 +115,6 @@ size_t channel_max(std::string array)
 bool is_hidens(std::string array)
 {
 	return (array == "hidens");
-}
-
-H5::DataType get_array_dtype(std::string array)
-{
-	return (array == "hidens") ? H5::PredType::STD_I8LE : H5::PredType::STD_I16LE;
 }
 
 void parse_chan_list(std::string arg, arma::uvec& channels, 
@@ -174,7 +172,7 @@ void parse_chan_list(std::string arg, arma::uvec& channels,
 	std::unique(channels.begin(), channels.end());
 }
 
-void parse_command_line(int argc, char **argv, 
+void parse_command_line(int argc, char **argv, size_t& nthreads,
 		double& thresh, size_t& nrandom_snippets, int& nbefore, int& nafter,
 		bool& verbose, std::string& chan_arg, 
 		std::vector<std::string>& filenames)
@@ -185,6 +183,7 @@ void parse_command_line(int argc, char **argv,
 	/* Parse options */
 	struct option options[] = {
 		{ "verbose", 	no_argument,		nullptr, 'V' },
+		{ "nthreads",	required_argument,	nullptr, 'N' },
 		{ "threshold", 	required_argument, 	nullptr, 't' },
 		{ "before", 	required_argument, 	nullptr, 'b' },
 		{ "after", 		required_argument, 	nullptr, 'a' },
@@ -204,6 +203,17 @@ void parse_command_line(int argc, char **argv,
 			case 'V':
 				verbose = true;
 				break;
+			case 'N':
+				try {
+					size_t tmp_nthreads = std::stoul(std::string(optarg));
+					if ( (tmp_nthreads > 1) && (tmp_nthreads <= std::thread::hardware_concurrency()) )
+						nthreads = tmp_nthreads;
+				} catch ( ... ) {
+					std::cerr << "Number of desired threads must be a positive integer" 
+						<< std::endl;
+					exit(EXIT_FAILURE);
+				}
+				break;
 			case 't':
 				try {
 					thresh = std::stof(std::string(optarg));
@@ -213,23 +223,41 @@ void parse_command_line(int argc, char **argv,
 				}
 				break;
 			case 'b':
-				nbefore = std::stoi(std::string(optarg));
+				try {
+					nbefore = std::stoi(std::string(optarg));
+				} catch ( ... ) {
+					std::cerr << "Samples before must be given as an integer" 
+						<< std::endl;
+					exit(EXIT_FAILURE);
+				}
 				break;
 			case 'a':
-				nafter = std::stoi(std::string(optarg));
+				try {
+					nafter = std::stoi(std::string(optarg));
+				} catch ( ... ) {
+					std::cerr << "Samples after must be given as an integer" 
+						<< std::endl;
+					exit(EXIT_FAILURE);
+				}
 				break;
 			case 'c':
 				chan_arg = std::string(optarg);
 				break;
 			case 'n':
-				nrandom_snippets = std::stoul(std::string(optarg));
+				try {
+					nrandom_snippets = std::stoul(std::string(optarg));
+				} catch ( ... ) {
+					std::cerr << "Random snippets must be a positive number" << std::endl;
+					exit(EXIT_FAILURE);
+				}
 				break;
 		}
 	}
 	argv += optind;
 	argc -= optind;
-	if (argc == 0)
-		print_usage_and_exit();
+	if (argc == 0) {
+		std::cerr << "Must specify one or more data files to extract" << std::endl;
+	}
 	for (auto i = 0; i < argc; i++)
 		filenames.push_back(std::string(argv[i]));
 }
@@ -285,14 +313,15 @@ std::string create_snipfile_name(const std::string& name)
 
 int main(int argc, char *argv[])
 {	
-	/* Parse input and get the array type */
+	/* Parse input */
 	auto thresh = DEFAULT_THRESHOLD;
 	auto nrandom_snippets = snipfile::NUM_RANDOM_SNIPPETS;
 	std::string chan_arg;
 	std::vector<std::string> filenames;
 	bool verbose = false;
 	int nbefore = -1, nafter = -1;
-	parse_command_line(argc, argv, thresh, nrandom_snippets, 
+	size_t nthreads = std::thread::hardware_concurrency();
+	parse_command_line(argc, argv, nthreads, thresh, nrandom_snippets, 
 			nbefore, nafter, verbose, chan_arg, filenames);
 
 	for (auto& filename : filenames) {
@@ -311,10 +340,12 @@ int main(int argc, char *argv[])
 			continue;
 		}
 
+		/* Notify */
 		if (verbose)
 			std::cout << "Processing data file: " << UL_PRE << filename 
 					<< UL_POST << std::endl;
 
+		/* Get MEA array type */
 		std::string array = get_array(filename);
 
 		/* Verify the number of samples before/after a spike peak, based on array. */
@@ -326,8 +357,9 @@ int main(int argc, char *argv[])
 			auto min = channel_min(array), max = channel_max(array);
 			channels.set_size(max - min);
 			std::iota(channels.begin(), channels.end(), min);
-		} else
+		} else {
 			parse_chan_list(chan_arg, channels, channel_max(array));
+		}
 
 		/* Open the file and verify the channels requested */
 		datafile::DataFile *file;
@@ -347,104 +379,79 @@ int main(int argc, char *argv[])
 		std::vector<arma::uvec> spike_idx(nchannels), noise_idx(nchannels);
 		std::vector<sampleMat> spike_snips(nchannels), noise_snips(nchannels);
 
-		/* If the size of the data file is greater than some fraction of the available
-		 * physical memory, read a single file at a time, rather than all at
-		 * once
+		/* Semaphore restricts number of running threads */
+		Semaphore sem(nthreads);
+
+		/* Locks synchronizing access across all threads to:
+		 * 	- HDF5 data file
+		 * 	- Noise snippet std::vector
+		 * 	- Spike snippet std::vector
 		 */
-		if (should_conserve_mem(filename, CONSERVE_MEMORY_FRACTION)) {
+		std::mutex file_lock, noise_lock, spike_lock;
 
-			/* Read data from one channel at a time */
-			for (decltype(nchannels) i = 0; i < nchannels; i++) {
-				auto channel = channels(i);
-				if (verbose) {
-					std::cout << " Loading data from channel " << channel << "... ";
-					std::cout.flush();
-				}
-				arma::Col<short> data;
-				file->data(channel, channel + 1, 0, file->nsamples(), data);
-
-				if (verbose) {
-					std::cout << "done." << std::endl << "  Computing thresholds ...";
-					std::cout.flush();
-				}
-				means(i) = arma::mean(arma::conv_to<arma::vec>::from(data));
-				data -= means(i);
-				thresholds(i) = extract::computeThreshold(data, thresh);
-				if (verbose)
-					std::cout << "done." << std::endl << "  Extracting noise snippets ...";
-
-				extract::extractNoiseFromChannel(data, nrandom_snippets, nbefore, nafter,
-						noise_idx.at(i), noise_snips.at(i));
-
-				if (verbose) {
-					std::cout << "done." << std::endl << "  Extracting spike snippets ...";
-					std::cout.flush();
-				}
-				extract::extractSpikesFromSingleChannel(data, thresholds(i), 
-						nbefore, nafter, spike_idx.at(i), spike_snips.at(i));
-				if (verbose) {
-					std::cout << "done. (" << spike_idx.at(i).n_elem << " snippets)" << std::endl;
-				}
-			}
-		} else {
-			/* Read all data from the requested channels */
-			if (verbose) {
-				std::cout << " Loading data from " << channels.size() << " channels ... ";
-				std::cout.flush();
-			}
-
-			sampleMat data;
-			if (sequential_channels(channels))
-				file->data(channels.min(), channels.max() + 1, 
-						0, file->nsamples(), data);
-			else
-				file->data(channels, 0, file->nsamples(), data);
-
-			if (verbose)
-				std::cout << "done." << std::endl;
-
-			/* Compute means and write them to the data file, so they may
-			 * be used later, and channel thresholds.
-			 */
-			if (verbose) {
-				std::cout << " Computing channel thresholds ... "; 
-				std::cout.flush();
-			}
-			means = extract::meanSubtract(data);
-			file->writeMeans(means);
-			thresholds = extract::computeThresholds(data, thresh);
-			if (verbose)
-				std::cout << "done." << std::endl;
-
-			/* Find noise and spike snippets */
-			if (verbose) {
-				std::cout << " Extracting noise snippets ... ";
-				std::cout.flush();
-			}
-			extract::extractNoise(data, nrandom_snippets, nbefore, nafter,
-					noise_idx, noise_snips, verbose);
-			if (verbose)
-				std::cout << "done." << std::endl << " Extracting spike snippets ..." 
-						<< std::endl;
-			extract::extractSpikes(data, thresholds, nbefore, nafter, 
-					spike_idx, spike_snips, verbose);
+		/* Run extraction for each channel in separate thread
+		 * NOTE:
+		 * The reference wrappers around many of the arguments are required.
+		 * This is because std::async and its ilk usually copy arguments, but
+		 * the reference wrappers are essentially pointers. This is also why
+		 * the mutexes above are required.
+		 */
+		std::vector<std::future<void>> futures(nchannels);
+		for (size_t chan = 0; chan < nchannels; chan++) {
+			futures[chan] = std::async(std::launch::async, extract::extract,
+					std::ref(sem), file, std::ref(file_lock), channels(chan), thresh,
+					nrandom_snippets, nbefore, nafter,
+					std::ref(means(chan)), std::ref(thresholds(chan)),
+					std::ref(noise_idx.at(chan)), std::ref(noise_snips.at(chan)), 
+					std::ref(noise_lock),
+					std::ref(spike_idx.at(chan)), std::ref(spike_snips.at(chan)),
+					std::ref(spike_lock));
 
 		}
 
+		/* Wait for all to finish and notify */
+		for (decltype(nchannels) i = 0; i < nchannels; i++) {
+			try {
+				futures[i].get(); // throws any exception from extract::extract
+				if (verbose) {
+					std::cout << "\r Extracting channel " << channels(i) << " ("
+						<< i + 1 << " / " << nchannels << ")";
+					std::cout.flush();
+				}
+			} catch (std::logic_error& e) {
+				std::cerr << std::endl << ERR_COLOR << " Error reading raw data from channel " 
+					<< channels(i) << ": " << e.what() << DEFAULT_COLOR << std::endl; 
+			} catch ( ... ) {
+				std::cerr << std::endl << ERR_COLOR 
+					<< "Unexpected error extracting from channel " 
+					<< channels(i) << std::endl;
+			}
+		}
+
+		/* Write means into original data file */
+		file->writeMeans(means);
+
 		/* Create snippet file */
 		snipfile::SnipFile *snip_file;
-		if (array == "hidens")
+		if (array == "hidens") {
 			snip_file = dynamic_cast<hidenssnipfile::HidensSnipFile*>(
 					new hidenssnipfile::HidensSnipFile(snipfile_name, 
 						*dynamic_cast<hidensfile::HidensFile*>(file),
 					nbefore, nafter));
-		else
+			if (!snip_file) {
+				std::cerr << "Could not cast HiDens snippet-file to base SnipFile object"
+					<< std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else {
 			snip_file = new snipfile::SnipFile(snipfile_name, 
 					*file, nbefore, nafter);
+		}
 
 		/* Write snippets to disk */
 		if (verbose) {
-			std::cout << " Writing snippet file ... ";
+			std::cout << std::endl << " Writing snippet file ... ";
 			std::cout.flush();
 		}
 		snip_file->setChannels(channels);
@@ -458,7 +465,7 @@ int main(int argc, char *argv[])
 
 		if (verbose)
 			std::cout << "done.\nFinished processing file: " << UL_PRE << filename 
-				<< UL_POST << std::endl << std::endl;
+				<< UL_POST << std::endl;
 	}
 	return 0;
 }

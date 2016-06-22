@@ -64,7 +64,8 @@ case 'ThreshStop'
     % exacting, in that data is not visible to a parent, but only the
     % actual object in which it was stored.
     children = get(hfig, 'Children');
-    axs = children(4);
+    %axs = children(4);
+    axs = findobj(children, 'Tag', 'WaveformsAxes');
 	oldthresh = getappdata(axs,'oldthresh');		% Look up old threshold
     
 % 	rmappdata(hfig,'oldthresh');				% It's not clear why this is nec., but it seems to be

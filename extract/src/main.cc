@@ -206,7 +206,7 @@ void parse_command_line(int argc, char **argv, size_t& nthreads,
 			case 'N':
 				try {
 					size_t tmp_nthreads = std::stoul(std::string(optarg));
-					if ( (tmp_nthreads > 1) && (tmp_nthreads <= std::thread::hardware_concurrency()) )
+					if ( (tmp_nthreads >= 1) && (tmp_nthreads <= std::thread::hardware_concurrency()) )
 						nthreads = tmp_nthreads;
 				} catch ( ... ) {
 					std::cerr << "Number of desired threads must be a positive integer" 

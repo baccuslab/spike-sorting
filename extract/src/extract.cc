@@ -53,17 +53,14 @@ void extract::extract(Semaphore& sem, datafile::DataFile* file, std::mutex& file
 		}
 	}
 
-	/* Compute channel mean, and subtract from data
-	 * NOTE: std::accumulate is used to compute the mean as a double, without
-	 * calling std::conv_to<double> on the whole array and duplicating it in
-	 * memory.
-	 */
-	mean = std::accumulate(data.begin(), data.end(), 0.0);
-	mean /= data.n_elem;
+	/* Compute channel mean, and subtract from data */
+	auto dbl_data = arma::conv_to<arma::vec>::from(data);
+	mean = arma::mean(dbl_data);
+	dbl_data -= mean;
 	data -= static_cast<short>(mean);
 
 	/* Compute channel threshold */
-	threshold = thresh * static_cast<double>(arma::median(arma::abs(data)));
+	threshold = thresh * arma::median(arma::abs(dbl_data));
 
 	/* Extract spike snippets */
 	{
@@ -131,7 +128,7 @@ void extract::extractSpikesFromSingleChannel(const arma::Col<short>& data,
 	idx.set_size(snipfile::DEFAULT_NUM_SNIPPETS);
 	size_t snip_num = 0;
 
-	arma::uword i = 0;
+	arma::uword i = nbefore;
 	while (i < nsamples - nafter) {
 		if (data(i) > thresh) {
 			if (extract::isLocalMax(data, 0, i, snipfile::WINDOW_SIZE)) {

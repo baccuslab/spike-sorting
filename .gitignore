@@ -20,3 +20,5 @@ extract/build/*
 *.bin
 *.o
 *.mexmaci64
+*.stash
+Makefile*

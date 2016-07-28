@@ -44,6 +44,7 @@ datafile::DataFile::DataFile(std::string name)
 			readOffset();
 			readDate();
 			readArray();
+			readNumSamples();
 			readDatasetSize();
 		} catch ( ... ) {
 			std::cerr << "File does not contain required dataset attributes" 
@@ -88,12 +89,16 @@ void datafile::DataFile::readArray()
 	readDatasetStringAttr("array", array_);
 }
 
+void datafile::DataFile::readNumSamples()
+{
+	readDatasetAttr("nsamples", &nsamples_);
+}
+
 void datafile::DataFile::readDatasetSize()
 {
 	hsize_t dims[datafile::DATASET_RANK] = {0, 0};
 	dataset.getSpace().getSimpleExtentDims(dims, nullptr);
 	nchannels_ = dims[0];
-	nsamples_ = dims[1];
 	length_ = static_cast<double>(nsamples() / sampleRate());
 }
 

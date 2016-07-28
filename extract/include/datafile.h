@@ -185,6 +185,7 @@ class DataFile {
 		void readDate();
 		void readArray();
 		void readDatasetSize();
+		void readNumSamples();
 		void readDatasetAttr(std::string name, void *buf);
 		void readDatasetStringAttr(std::string name, std::string& s);
 		void computeCoords(const arma::uvec& channels, size_t start, 

@@ -30,9 +30,12 @@ Making extract requires armadillo, a C++ linear algebra library. If you have hom
 armadillo by  
 $ brew install homebrew/science/armadillo 
 
+You will also need the HDF5 libraries, if you don't already have them. You can get these by
+$ brew install homebrew/science/hdf5
+
 To install extract,
 $ cd /path/to/extract/  
-$ mkdir build  
+$ mkdir build lib bin 
 $ make  
 $ make install # optional  
 

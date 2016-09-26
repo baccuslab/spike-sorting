@@ -36,6 +36,7 @@ You will also need the HDF5 libraries, if you don't already have them. You can g
 $ brew install homebrew/science/hdf5
 
 To install extract,
+======
 $ cd /path/to/extract/  
 $ mkdir build lib bin 
 $ make  

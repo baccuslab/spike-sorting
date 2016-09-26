@@ -17,12 +17,10 @@ datafile::DataFile::DataFile(std::string name)
 	filename_ = name;
 	struct stat buf;
 	if (stat(name.c_str(), &buf) == 0) {
-		/* File exists */
-		rdonly = true;
-
 		/* Open HDF5 file */
+		new_file = false;
 		try {
-			file = H5::H5File(filename_, H5F_ACC_RDONLY);
+			file = H5::H5File(filename_, H5F_ACC_RDWR);
 		} catch (H5::FileIException &e) {
 			std::cerr << "Could not open HDF5 file" << std::endl;
 			throw std::runtime_error("Could not open HDF5 file");
@@ -55,7 +53,7 @@ datafile::DataFile::DataFile(std::string name)
 		}
 	} else {
 		/* File does not exist */
-		rdonly = false;
+		new_file = true;
 		throw std::runtime_error("Creating files is not yet supported");
 	}
 }
@@ -177,8 +175,8 @@ void datafile::DataFile::computeCoords(const arma::uvec& channels,
 	auto nchan = channels.n_elem;
 	*nelem = nsamp * nchan;
 	out->set_size(datafile::DATASET_RANK, *nelem);
-	for (auto c = 0; c < nchan; c++) {
-		for (auto s = 0; s < nsamp; s++) {
+	for (decltype(nchan) c = 0; c < nchan; c++) {
+		for (decltype(nsamp) s = 0; s < nsamp; s++) {
 			(*out)(0, c * nsamp + s) = channels(c);
 			(*out)(1, c * nsamp + s) = s + start;
 		}
@@ -200,5 +198,35 @@ void datafile::DataFile::data(const arma::uvec& channels, size_t start,
 		size_t end, arma::Mat<short>& out)
 {
 	_read_data(channels, start, end, out);
+}
+
+void datafile::DataFile::writeMeans(const arma::vec& means)
+{
+	const char name[] = "channel-means";
+	if (dataset.attrExists(name))
+		dataset.removeAttr(name);
+	hsize_t dims[1] = {static_cast<hsize_t>(means.n_elem)};
+	auto space = H5::DataSpace(1, dims);
+	auto attr = dataset.createAttribute(name, 
+			H5::PredType::IEEE_F64LE, space);
+	attr.write(H5::PredType::IEEE_F64LE, means.memptr());
+	attr.close();
+}
+
+arma::vec datafile::DataFile::readMeans()
+{
+	arma::vec ret;
+	H5::Attribute attr;
+	try {
+		attr = dataset.openAttribute("channel-means");
+	} catch (H5::AttributeIException& e) {
+		return ret;
+	}
+	auto space = attr.getSpace();
+	hsize_t dims[1] = {0};
+	space.getSimpleExtentDims(dims);
+	ret.set_size(dims[0]);
+	attr.read(H5::PredType::IEEE_F64LE, ret.memptr());
+	return ret;
 }
 

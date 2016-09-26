@@ -15,8 +15,9 @@ hidenssnipfile::HidensSnipFile::HidensSnipFile(const std::string& name)
 }
 
 hidenssnipfile::HidensSnipFile::HidensSnipFile(const std::string& name,
-		const hidensfile::HidensFile& source)
-	: snipfile::SnipFile(name, source)
+		const hidensfile::HidensFile& source,
+		const size_t nbefore, const size_t nafter)
+	: snipfile::SnipFile(name, source, nbefore, nafter)
 {
 	copyConfiguration(source);
 }
@@ -92,7 +93,7 @@ void hidenssnipfile::HidensSnipFile::readConfiguration()
 	readConfigDataset(yDataset, y_);
 	auto labelDataset = configGroup.openDataSet("label");
 	readConfigDataset(labelDataset, label_);
-	auto channelDataset = configGroup.openDataSet("channels");
+	auto channelDataset = configGroup.openDataSet("extracted-channels");
 	readConfigDataset(channelDataset, connectedChannels_);
 }
 

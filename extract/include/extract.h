@@ -1,4 +1,4 @@
-/* extract.h
+/*! \file extract.h
  *
  * Header file for library components to extract noise and spike
  * snippets from raw data files.
@@ -9,43 +9,124 @@
 #ifndef EXTRACT_EXTRACT_H_
 #define EXTRACT_EXTRACT_H_
 
+#ifndef NOTHREAD
+#define WITH_THREADS
+#endif
+
 #include <vector>
 #include <random>
 #include <numeric>
 
 #include <armadillo>
 
+/*! Type alias for standard samples of data from an MCS file */
 using sampleMat = arma::Mat<short>;
 
+/*! Contains routines for performing actual snippet extraction. */
 namespace extract {
 
-/* Generate random samples without replacement on the interval [min, max).
+/* Generate random samples with replacement on the interval [min, max).
  * Each vector in `out` is an independent resampling of the population
  */
+/*! Generates random samples with replacement on the interval [min, max).
+ * \param out A vector of vectors, each of which is loaded with an 
+ * independent resample of the population.
+ * \param min The minimum value of the range of the random sample
+ * \param max The maximum value of the range of the random sample
+ */
 void randsample(std::vector<arma::uvec>& out, size_t min, size_t max);
+void randsample(arma::uvec& out, size_t min, size_t max);
 
-/* Mean-subtract each column of the given data */
-void meanSubtract(sampleMat& data);
+/*! Subtract the mean from each column of data, and return them */
+arma::vec meanSubtract(sampleMat& data);
 
-/* Compute thresholds independently for each colum of the given data.
- * The input `thresh` is the multiplier.
+/*! Compute the threshold value for each data column.
+ * \param data The matrix storing raw data.
+ * \param thresh The threshold multiplier.
+ *
+ * The threshold is actually computed as:
+ *
+ * t = thresh * median(abs(meanSubtract(data)))
  */
 arma::vec computeThresholds(const sampleMat& data, double thresh);
 
-/* Return true if the given point of the data matrix is a local
- * maximum, using a boxcar filter to smooth the data first.
+/*! Compute the threshold value for the given channel of data.
+ * \param data The single channel vector of data.
+ * \param thresh The threshold multiplier.
+ *
+ * The threshold is actually computed as:
+ *
+ * t = thresh * median(abs(meanSubtract(data)))
+ */
+double computeThreshold(const arma::Col<short>& data, double thresh);
+
+/*! Return true if the given data sample is a local maximum
+ * \param data The full matrix of data
+ * \param channel Which channel to consider
+ * \param sample The actual sample number
+ * \param winsz The size of the smoothing window to apply.
+ *
+ * This function applies a boxcar filter to the data around
+ * the given sample, and returns true if the given sample is
+ * greater than the other values within that boxcar's size.
  */
 bool isLocalMax(const sampleMat& data, size_t channel, 
 		size_t sample, size_t winsz);
 
-/* Extract noise snippets from the data */
+/*! Extract all noise snippets from the data
+ * \param data The data matrix
+ * \param nrandom The number of random snippets to extract.
+ * \param nbefore Number of samples before random index peak to extract.
+ * \param nafter Number of samples after random index peak to extract.
+ * \param idx The vector of indices of the random snippets
+ * \param snips The arrays of actual snippets.
+ * \param verbose Print progress of sorting to standard out.
+ *
+ * Noise snippets are simply random sections of the raw data.
+ * This function chooses `nrandom` random points in the file,
+ * and fills the output array `idx` with those indices, and 
+ * the output array `snips` with the raw data at those times.
+ */
 void extractNoise(const sampleMat& data, const size_t& nrandom,
-		std::vector<arma::uvec>& idx, std::vector<sampleMat>& snips);
+		const int& nbefore, const int& nafter,
+		std::vector<arma::uvec>& idx, 
+		std::vector<sampleMat>& snips, bool verbose);
 
-/* Extract spike snippets from the data */
+void extractNoiseFromChannel(const arma::Col<short>& data, 
+		const size_t& nrandom_snippets, const int& nbefore, const int& nafter,
+		arma::uvec& idx, sampleMat& snips);
+
+/*! Extract all spikes from the raw data.
+ * \param data The data matrix from which to extract.
+ * \param thresholds An array of thresholds for each channel.
+ * \param nbefore Number of samples before a spike peak to extract.
+ * \param nafter Number of samples after a spike peak to extract.
+ * \param idx Array filled with indices of each extract snippet.
+ * \param snips The extracted snippets for each channel.
+ * \param verbose Print progress of sorting to standard out.
+ *
+ * After computing thresholds, this function extracts small sections
+ * of the raw data file that are:
+ *
+ * 	- Above the threshold and
+ * 	- A local maximum
+ *
+ * A small number of samples before and slightly larger number of 
+ * samples after this peak value is extracted from the file and 
+ * considered a candidate spike, or snippet.
+ *
+ * The output array's contain one element for each channel.
+ */
 void extractSpikes(const sampleMat& data, const arma::vec& thresholds,
-		std::vector<arma::uvec>& idx, std::vector<sampleMat>& snips);
+		const int& nbefore, const int& nafter,
+		std::vector<arma::uvec>& idx, std::vector<sampleMat>& snips, 
+		bool verbose);
 
+void extractSpikesFromChannel(const sampleMat& data, size_t chan, double thresh,
+		int nbefore, int nafter, arma::uvec& idx, sampleMat& snips);
+
+void extractSpikesFromSingleChannel(const arma::Col<short>& data, double thresh,
+		int nbefore, int nafter, arma::uvec& idx, sampleMat& snips);
 };
 
 #endif

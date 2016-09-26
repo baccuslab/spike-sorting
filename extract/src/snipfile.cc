@@ -12,7 +12,10 @@
 
 #include "snipfile.h"
 
-snipfile::SnipFile::SnipFile(std::string fname, const datafile::DataFile& source)
+snipfile::SnipFile::SnipFile(std::string fname, const datafile::DataFile& source, 
+		const size_t nbefore, const size_t nafter)
+	: samplesBefore_(-nbefore),
+	samplesAfter_(nafter)
 {
 	filename_ = fname;
 	struct stat buf;
@@ -56,6 +59,9 @@ void snipfile::SnipFile::writeAttributes()
 	writeFileAttr("nsamples", H5::PredType::STD_U64LE, &nsamples_);
 	writeFileAttr("gain", H5::PredType::IEEE_F32LE, &gain_);
 	writeFileAttr("offset", H5::PredType::IEEE_F32LE, &offset_);
+	writeFileAttr("nsamples-before", H5::PredType::STD_I32LE, &samplesBefore_);
+	writeFileAttr("nsamples-after", H5::PredType::STD_I32LE, &samplesAfter_);
+	writeFileAttr("sample-rate", H5::PredType::IEEE_F32LE, &sampleRate_);
 }
 
 void snipfile::SnipFile::readAttributes()
@@ -66,6 +72,9 @@ void snipfile::SnipFile::readAttributes()
 	readFileAttr("nsamples", &nsamples_);
 	readFileAttr("gain", &gain_);
 	readFileAttr("offset", &offset_);
+	readFileAttr("nsamples-before", &samplesBefore_);
+	readFileAttr("nsamples-after", &samplesAfter_);
+	readFileAttr("sample-rate", &sampleRate_);
 }
 
 void snipfile::SnipFile::getSourceInfo(const datafile::DataFile& source)
@@ -127,7 +136,7 @@ void snipfile::SnipFile::writeNoiseSnips(const std::vector<arma::uvec> &idx,
 void snipfile::SnipFile::writeSnips(const std::string& type, 
 		const std::vector<arma::uvec>& idx, const std::vector<arma::Mat<short> >& snips)
 {
-	for (auto i = 0; i < nchannels_; i++) {
+	for (decltype(nchannels_) i = 0; i < nchannels_; i++) {
 		/* Create data{space,set} for each channel's spike snippets and indices */
 		auto& grp = channelGroups[i];
 		hsize_t idxDims[snipfile::IDX_DATASET_RANK] = {idx.at(i).n_elem};
@@ -189,17 +198,21 @@ void snipfile::SnipFile::readFileAttr(const std::string& name,
 
 void snipfile::SnipFile::writeChannels(const arma::uvec& channels)
 {
-	H5::DataType type(H5::PredType::STD_U64LE);
+	H5::DataType type;
+	if (sizeof(arma::uword) == sizeof(uint32_t))
+		type = H5::DataType(H5::PredType::STD_U32LE);
+	else
+		type = H5::DataType(H5::PredType::STD_U64LE);
 	writeFileAttr("nchannels", type, &channels.n_elem);
 	hsize_t dims[1] = {channels.n_elem};
 	H5::DataSpace space(1, dims);
-	H5::DataSet set = file.createDataSet("channels", type, space);
+	H5::DataSet set = file.createDataSet("extracted-channels", type, space);
 	set.write(channels.memptr(), type);
 }
 
 void snipfile::SnipFile::readChannels()
 {
-	auto chanSet = file.openDataSet("channels");
+	auto chanSet = file.openDataSet("extracted-channels");
 	auto chanSpace = chanSet.getSpace();
 	hsize_t dims[1] = {0};
 	chanSpace.getSimpleExtentDims(dims);
@@ -258,7 +271,7 @@ void snipfile::SnipFile::spikeSnips(std::vector<arma::uvec>& idx,
 	std::vector<arma::Mat<short> > tmp;
 	spikeSnips(idx, tmp);
 	snippets.resize(tmp.size());
-	for (auto i = 0; i < tmp.size(); i++)
+	for (decltype(tmp.size()) i = 0; i < tmp.size(); i++)
 		snippets[i] = gain() * arma::conv_to<arma::mat>::from(tmp[i]) + offset();
 }
 
@@ -268,7 +281,7 @@ void snipfile::SnipFile::noiseSnips(std::vector<arma::uvec>& idx,
 	std::vector<arma::Mat<short> > tmp;
 	noiseSnips(idx, tmp);
 	snippets.resize(tmp.size());
-	for (auto i = 0; i < tmp.size(); i++)
+	for (decltype(tmp.size()) i = 0; i < tmp.size(); i++)
 		snippets[i] = gain() * arma::conv_to<arma::mat>::from(tmp[i]) + offset();
 }
 
@@ -278,7 +291,7 @@ void snipfile::SnipFile::snips(const std::string& type,
 	snippets.resize(nchannels());
 	idx.resize(nchannels());
 	std::string grpName(32, '\0');
-	for (auto c = 0; c < nchannels(); c++) {
+	for (decltype(nchannels()) c = 0; c < nchannels(); c++) {
 		grpName.erase();
 		std::snprintf(&grpName[0], grpName.capacity(), "channel-%03llu", channels_(c));
 		H5::Group grp;

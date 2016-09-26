@@ -1,1 +1,0 @@
-function I = chooseRandomTimes(m,n,sniprange)% I = chooseRandomTimes(m,n,sniprange)% Choose a set of n random times from 1-sniprange(1):m-sniprange(2)scale = m-(sniprange(2)-sniprange(1)+1);I = round(scale*rand(1,n)+1-sniprange(1));

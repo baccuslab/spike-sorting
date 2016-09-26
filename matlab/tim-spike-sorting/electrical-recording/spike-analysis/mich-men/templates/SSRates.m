@@ -1,1 +1,0 @@
-function ssrates = SSRates(zspike)% SSRates: Estimate the steady-state rates from the data% ssrates = SSRates(zspike)nexp = length(zspike);ssrates = [];for i = 4:4:32	temp = HistSplit(cat(2,zspike{i}{:}),[1 4]);	ssrates(end+1) = temp(2)/(3*length(zspike{i}));end

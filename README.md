@@ -38,8 +38,8 @@ $ brew install homebrew/science/hdf5
 To install extract,
 -------
 $ cd /path/to/extract/  
-$ mkdir build lib bin 
-$ make  
+$ mkdir build lib bin   
+$ make    
 $ make install # optional  
 
 wiki

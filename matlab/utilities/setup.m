@@ -112,7 +112,7 @@ else
 end
 
 %Create array plot
-handles = makearraywindow (channels);
+handles = makearraywindow (channels, getArrayType(datafiles{1}));
 
 %Definitions
 chanclust = cell(1,numch);			%Cell clusters, contains spike times
@@ -144,7 +144,7 @@ if ~pwflag
 end
 
 %Define parameters to be 'globally' available
-if (strcmp(subsetbutton,'yes')) 
+if (exist('subsetbutton', 'var') && strcmp(subsetbutton,'yes')) 
 	g.samplesorting=1;
 else
 	g.samplesorting=0;
@@ -170,6 +170,7 @@ g.allchannels=channels;
 g.pwflag=pwflag;
 g.scanrate=scanrate(1);
 g.subsetnum=20000;
+g.array=getArrayType(datafiles{1});
 setappdata (handles.main,'g',g);
 hmain=handles.main; %Return handle to main array figure
 

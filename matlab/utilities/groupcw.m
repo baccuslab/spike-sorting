@@ -81,7 +81,7 @@ if (~pwflag) %Continuous waveform data
 			removedCT=cell(nchans,nfiles);
 		end
 		%Setup array window
-		handles = makearraywindow (g.channels);
+		handles = makearraywindow (g.channels, g.array);
 		Arrayplot (g.channels,handles.ch,g.xc,g.yc,g.nspikes) ;
 		setappdata (handles.main,'g',g);		
 	end %end continuous waveform case

@@ -32,13 +32,14 @@ armadillo by
 brew install homebrew/science/armadillo 
 ```
 
+You will also need the HDF5 libraries, if you don't already have them. You can get these by
+$ brew install homebrew/science/hdf5
+
 To install extract,
-```bash
-cd /path/to/extract/  
-mkdir build  
-make  
-make install
-```
+$ cd /path/to/extract/  
+$ mkdir build lib bin 
+$ make  
+$ make install # optional  
 
 wiki
 ----

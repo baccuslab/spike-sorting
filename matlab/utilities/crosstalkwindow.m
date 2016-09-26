@@ -3,15 +3,27 @@ snipsize=[-6 20];
 numch=size(g.channels,2);
 %open figure
 figure ('Name','Crosstalk','Position', [300 50 750 750]);%,'doublebuffer','on');
+
+% number of white boxes in array window
+if strcmp(g.array, 'hidens')
+    visiblechannels = numch;
+    xsize = 1/14;
+    ysize = 1/13;
+else
+    visiblechannels = 63;
+    xsize = 0.11;
+    ysize = 0.11;
+end
+
 %Create axis for each channel
-for chan= 0:63
-	pos=GetPosition(chan);
-	axes('position',[pos 0.11 0.11]);
+for chan= 0:visiblechannels
+	pos=GetPosition(chan, g.array);
+	axes('position',[pos xsize ysize]);
 	set(gca,'XTickLabel',{''},'xtick',[],'YTickLabel',{''},'Ytick',[],'XColor',[0.8 0.8 0.8],'YColor',[0.8 0.8 0.8]);
 end
 for chindx=1:numch
-	pos=GetPosition(g.channels(chindx));
-	axes('position',[pos 0.11 0.11]);
+	pos=GetPosition(g.channels(chindx), g.array);
+	axes('position',[pos xsize ysize]);
 	hcc(chindx)=gca;	
 end
 h1 = uicontrol('Parent',gcf, ...

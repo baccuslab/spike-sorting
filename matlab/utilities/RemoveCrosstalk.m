@@ -85,6 +85,7 @@ else
 			[tcctemp,indxout{i}] = CrossCorr(t1{i},allt{i}(1,:),tmax);
 			tccout(end+1:end+length(tcctemp)) = tcctemp;
 		else
+			indxout{i} = [];
 			warning('Skipping cross-talk on apparently empty channel');
 		end
 	end

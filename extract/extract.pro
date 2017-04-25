@@ -13,6 +13,7 @@ LIBS += -L/usr/local/lib -larmadillo -lhdf5_cpp -lhdf5
 QT -= widgets core gui
 CONFIG += c++11 debug_and_release
 CONFIG -= app_bundle
+QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.8
 
 debug {
 	DEFINES += DEBUG

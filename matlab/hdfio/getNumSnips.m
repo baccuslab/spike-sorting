@@ -43,24 +43,31 @@ else
     dsetIdx = 3;
 end
 
+if ~all(ismember(chans, fileChannels))
+    badChannels = setdiff(chans, fileChannels);
+    fmt = repmat('%d', [1 length(badChannels)]);
+    error(['The snippet file does not contain extracted snippets ' ...
+        'from all the requested channels: ' fmt], badChannels);
+end
+
 nchans = length(chans);
 nfiles = length(filenames);
 nsnips = zeros(nchans, nfiles);
 
 for fi = 1:nfiles
 	
-	try 
+    try 
 		info = h5info(filenames{fi});
 	catch me
 		error('hdfio:snips:getNumSnips', ...
 			'The snippet file does not exist or is invalid: %s', ...
 			filenames{fi});
     end
-	channelOffset = fileChannels(1);
-	channels = intersect(fileChannels, chans);
+    channelNames = {info.Groups.Name};
 	for ci = 1:nchans
-		nsnips(ci, fi) = info.Groups(channels(ci) - ...
-			channelOffset + 1).Datasets(dsetIdx).Dataspace.Size;
+        channelName = sprintf('/channel-%03d', chans(ci));
+        ix = strcmp(channelName, channelNames);
+		nsnips(ci, fi) = info.Groups(ix).Datasets(dsetIdx).Dataspace.Size;
 	end
 end
 

@@ -23,17 +23,25 @@ else
     nfiles = length(g.snipfiles);
 	for ch=1:nchans
 		chindices(ch)=find(sortchannels(ch)==g.channels);
-	end
+    end
+    scanrate = zeros(nfiles, 1);
+    rectime = zeros(nfiles, 1);
 	for fnum= 1:nfiles
 % 		[fid,message] = fopen(g.spikefiles{fnum},'r', 'b');
 % 		header{fnum} = ReadSnipHeader(fid);
 % 		scanrate(fnum) = header{fnum}.scanrate;
 % 		rectime(fnum) = header{fnum}.nscans/header{fnum}.scanrate;
-        info = h5info(g.snipfiles{fnum});
+        %info = h5info(g.snipfiles{fnum});
+        info = h5info(g.ctfiles{fnum});
         scanrate(fnum) = ...
-            double(info.Attributes(strcmp('sample-rate', {info.Attributes.Name})).Value);
+            double(info.Datasets.Attributes(...
+                strcmp('sample-rate', {info.Datasets.Attributes.Name})).Value);
         rectime(fnum) = ...
-            info.Groups(1).Datasets(3).Dataspace.Size / scanrate(fnum);
+            info.Datasets.Dataspace.Size(1) / scanrate(fnum);
+%         scanrate(fnum) = ...
+%             double(info.Datasets.Attributes(strcmp('sample-rate', {info.Attributes.Name})).Value);
+%         rectime(fnum) = ...
+%             info.Groups(1).Datasets(3).Dataspace.Size / scanrate(fnum);
 	end
 end
 %Get times of spikes on first channel and coincident spikes on other channels

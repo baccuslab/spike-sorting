@@ -17,6 +17,7 @@
 #include <mutex>			// mutex, lock_guard
 #include <thread>			// std::async
 #include <future>			// std::future
+#include <set>
 
 #include <armadillo>		// matrices/vectors holding data in memory
 
@@ -98,55 +99,44 @@ void print_version_and_exit()
 	exit(EXIT_SUCCESS);
 }
 
-size_t channel_min(std::string array)
+size_t channel_min(const std::string& array)
 {
 	if (array == "unknown" || array == "hidens") 
 		return HIDENS_CHANNEL_MIN;
 	return MCS_CHANNEL_MIN;
 }
 
-size_t channel_max(std::string array)
+size_t channel_max(const std::string& array)
 {
 	if (array == "unknown" || array == "hidens") 
 		return HIDENS_CHANNEL_MAX;
 	return MCS_CHANNEL_MAX;
 }
 
-bool is_hidens(std::string array)
-{
-	return (array == "hidens");
-}
-
-void parse_chan_list(std::string arg, arma::uvec& channels, 
+void parse_chan_list(const std::string& arg, arma::uvec& channels, 
 		unsigned int max)
 {
 	/* Split the input string on ','. Each element is either a single channel
 	 * or a dash-separated list of channels
 	 */
-	std::vector<std::string> ss;
-	std::string tmp;
-	for (auto& c : arg) {
-		if (c == ',') {
-			ss.push_back(tmp);
-			tmp.erase();
-		} else {
-			tmp.append(1, c);
-		}
+	std::vector<std::string> groups;
+	std::stringstream stream(arg);
+	std::string group;
+	while (std::getline(stream, group, ',')) {
+		groups.push_back(group);
 	}
-	if (!tmp.empty())
-		ss.push_back(tmp);
 
 	/* Parse each element. Singleton strings are expected to be integers,
 	 * and are added directly. Others are dash-separated; the two ends are
 	 * converted to ints, and then everything between is filled in.
 	 */
+	std::set<arma::uword> chanset;
 	try { 
-		for (auto& each : ss) {
+		for (auto& each : groups) {
 			auto dash = each.find('-');
 			if (dash == std::string::npos) {
 				auto x = std::stoul(each);
-				channels.resize(channels.n_elem + 1);
-				channels(channels.n_elem - 1) = x;
+				chanset.insert(x);
 			} else {
 				size_t pos;
 				unsigned long start;
@@ -158,18 +148,18 @@ void parse_chan_list(std::string arg, arma::uvec& channels,
 					auto tmp = std::stoul(each.substr(dash + 1));
 					end = (tmp > max) ? max : tmp;
 				}
-				auto num = end - start;
-				channels.resize(channels.n_elem + num);
-				for (decltype(num) i = 0; i < num; i++)
-					channels(channels.n_elem - i - 1) = start + i;
+				for (auto i = start; i < end; i++)
+					chanset.insert(i);
 			}
 		}
 	} catch ( std::exception& e ) {
 		std::cerr << "Invalid channel list: " << arg << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	std::sort(channels.begin(), channels.end());
-	std::unique(channels.begin(), channels.end());
+
+	/* Convert to arma array. */
+	channels.set_size(chanset.size());
+	std::copy(chanset.begin(), chanset.end(), channels.begin());
 }
 
 void parse_command_line(int argc, char **argv, size_t& nthreads,
@@ -262,17 +252,9 @@ void parse_command_line(int argc, char **argv, size_t& nthreads,
 		filenames.push_back(std::string(argv[i]));
 }
 
-std::string get_array(std::string filename)
+std::string get_array(const std::string& filename)
 {
 	return datafile::DataFile(filename).array();
-}
-
-bool sequential_channels(const arma::uvec& channels)
-{
-	if (channels.n_elem == 1)
-		return true;
-	return !arma::any(channels(arma::span(1, channels.n_elem - 1)) -
-			channels(arma::span(0, channels.n_elem - 2)) > 1);
 }
 
 void verify_channels(arma::uvec& channels, const datafile::DataFile* file)
@@ -359,6 +341,13 @@ int main(int argc, char *argv[])
 			std::iota(channels.begin(), channels.end(), min);
 		} else {
 			parse_chan_list(chan_arg, channels, channel_max(array));
+		}
+		if (verbose) {
+			std::cout << " Using channels: ";
+			for (auto &c : channels) {
+				std::cout << c << " ";
+			}
+			std::cout << std::endl;
 		}
 
 		/* Open the file and verify the channels requested */

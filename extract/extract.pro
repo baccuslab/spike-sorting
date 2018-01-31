@@ -8,6 +8,10 @@ TARGET = extract
 VERSION = 0.5.0
 INCLUDEPATH += . ./include \
 	/usr/local/include
+linux {
+	INCLUDEPATH += /usr/lib/x64_64-linux-gnu/hdf5/serial/include
+	LIBS += -L/usr/lib/x86_64-linux-gnu/hdf5/serial/lib
+}
 LIBS += -L/usr/local/lib -larmadillo -lhdf5_cpp -lhdf5
 
 QT -= widgets core gui

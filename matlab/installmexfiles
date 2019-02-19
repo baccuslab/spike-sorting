@@ -26,13 +26,32 @@
 # mex codes dir, and compile matlab code, and matlab executable.
 MEXCODESDIR="mexcodes"
 COMPILE="compile_mex.m"
-if [ "$(hostname)" == 'sni-vcs-baccus.stanford.edu' ]; then
+if [ -z "$(which matlab)" ]; then
+	# Always use environment version if it's there
+	MATLAB="$(which matlab)"
+elif [ "$(hostname)" == 'sni-vcs-baccus.stanford.edu' ]; then
   MATLAB="/share/software/MATLAB-R2014b/bin/matlab"
-elif [ "$(hostname)" == 'lane.local' ]; then
-  MATLAB="/Applications/MATLAB_R2012a_Student.app/bin/matlab"
+elif [ "$(uname -s)" == "Darwin" ]; then
+  EXTENSION="bin/matlab"
+  # Find all versions and use latest
+  declare -a VERSIONS="$(find /Applications/ -maxdepth 1 -iname "matlab*")"
+  MATLAB="${VERSIONS[-1]}/$EXTENSION"
 else
-  MATLAB="/Applications/MATLAB_R2014a.app/bin/matlab"
+  # Assume Linux
+  MATLAB="$(which matlab)"
+  if [ -z "$MATLAB" ]; then
+	  PATHS=$("/usr/local/bin/matlab" "/usr/bin/matlab")
+	  for P in ${PATHS[@]}; do
+		  if [ -n "$(which "$P")" ]; then
+			  break
+		  fi
+		  echo "Couldn't find a valid matlab executable for your system"
+		  echo "Make a link to it in /usr/local/bin or edit this script"
+		  exit 1
+	  done
+  fi
 fi
+echo "Using MATLAB at path $MATLAB"
 # ************************************ #
 
 if [ ! -f "$COMPILE" ]; then

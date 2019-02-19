@@ -80,7 +80,7 @@ for fi = 1:nfiles
 		time = [time; time + 1];
 	end
 	info = h5info(filenames{fi});
-	if any([max(time) + len max(channels)] > info.Datasets.Dataspace.Size)
+	if any([max(time) + range(2) max(channels)] > info.Datasets.Dataspace.Size)
 		error('hdfio:raw:loadRawData:IndicesOutOfBounds', ...
 			'The indices [%d %d] are out of bounds for the dataset of size [%d %d]', ...
 			max(time), max(channels), info.Datasets.Dataspace.Size);

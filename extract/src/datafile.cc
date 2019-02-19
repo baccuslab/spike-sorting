@@ -44,6 +44,7 @@ datafile::DataFile::DataFile(std::string name)
 			readOffset();
 			readDate();
 			readArray();
+			readNumSamples();
 			readDatasetSize();
 		} catch ( ... ) {
 			std::cerr << "File does not contain required dataset attributes" 
@@ -88,12 +89,16 @@ void datafile::DataFile::readArray()
 	readDatasetStringAttr("array", array_);
 }
 
+void datafile::DataFile::readNumSamples()
+{
+	readDatasetAttr("nsamples", &nsamples_);
+}
+
 void datafile::DataFile::readDatasetSize()
 {
 	hsize_t dims[datafile::DATASET_RANK] = {0, 0};
 	dataset.getSpace().getSimpleExtentDims(dims, nullptr);
 	nchannels_ = dims[0];
-	nsamples_ = dims[1];
 	length_ = static_cast<double>(nsamples() / sampleRate());
 }
 
@@ -151,36 +156,18 @@ void datafile::DataFile::data(size_t start, size_t end, arma::mat& out)
 
 void datafile::DataFile::data(size_t channel, size_t start, size_t end, arma::vec& out)
 {
-	arma::mat tmp;
-	_read_data(channel, channel + 1, start, end, tmp);
-	out = tmp;
+	_read_data_channel(channel, start, end, out);
+}
+
+void datafile::DataFile::data(size_t channel, size_t start, size_t end, arma::Col<short>& out)
+{
+	_read_data_channel(channel, start, end, out);
 }
 
 void datafile::DataFile::data(size_t startChan, size_t endChan,
 		size_t start, size_t end, arma::mat& out)
 {
 	_read_data(startChan, endChan, start, end, out);
-}
-
-void datafile::DataFile::data(const arma::uvec& channels, size_t start,
-		size_t end, arma::mat& out)
-{
-	_read_data(channels, start, end, out);
-}
-
-void datafile::DataFile::computeCoords(const arma::uvec& channels, 
-		size_t start, size_t end, arma::Mat<hsize_t> *out, hsize_t *nelem)
-{
-	auto nsamp = end - start;
-	auto nchan = channels.n_elem;
-	*nelem = nsamp * nchan;
-	out->set_size(datafile::DATASET_RANK, *nelem);
-	for (decltype(nchan) c = 0; c < nchan; c++) {
-		for (decltype(nsamp) s = 0; s < nsamp; s++) {
-			(*out)(0, c * nsamp + s) = channels(c);
-			(*out)(1, c * nsamp + s) = s + start;
-		}
-	}
 }
 
 void datafile::DataFile::data(size_t start, size_t end, arma::Mat<short>& out)
@@ -192,12 +179,6 @@ void datafile::DataFile::data(size_t startChan, size_t endChan,
 		size_t start, size_t end, arma::Mat<short>& out)
 {
 	_read_data(startChan, endChan, start, end, out);
-}
-
-void datafile::DataFile::data(const arma::uvec& channels, size_t start,
-		size_t end, arma::Mat<short>& out)
-{
-	_read_data(channels, start, end, out);
 }
 
 void datafile::DataFile::writeMeans(const arma::vec& means)

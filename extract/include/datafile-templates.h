@@ -2,10 +2,43 @@
  * Includes template function definitions used in the DataFile class.
  */
 
+/* A set of templated functions that return the HDF5 data type corresponding
+ * to the Armadillo matrix or vector into which data is to be read
+ */
+template<class ElemType,
+	typename std::enable_if<std::is_same<ElemType, double>::value>::type* = nullptr>
+H5::PredType data_type() {
+	return H5::PredType::IEEE_F64LE;
+}
+
+template<class ElemType,
+	typename std::enable_if<std::is_same<ElemType, short>::value>::type* = nullptr>
+H5::PredType data_type() {
+	return H5::PredType::STD_I16LE;
+}
+
+template<class ElemType,
+	typename std::enable_if<std::is_same<ElemType, uint8_t>::value>::type* = nullptr>
+H5::PredType data_type() {
+	return H5::PredType::STD_U8LE;
+}
+
+template<class ElemType,
+	typename std::enable_if<std::is_same<ElemType, int8_t>::value>::type* = nullptr>
+H5::PredType data_type() {
+	return H5::PredType::STD_I8LE;
+}
+
+template<class ElemType,
+	typename std::enable_if<std::is_same<ElemType, float>::value>::type* = nullptr>
+H5::PredType data_type() {
+	return H5::PredType::IEEE_F32LE;
+}
+/* Template used to read multiple contiguous channels into memory at once */
 template<class T>
 void datafile::DataFile::_read_data(
 		const size_t startChan, const size_t endChan, 
-		const size_t start, const size_t end, T& out)
+		const size_t start, const size_t end, arma::Mat<T>& out)
 {
 	/* Verify input and resize return array */
 	if (end <= start) {
@@ -46,23 +79,14 @@ void datafile::DataFile::_read_data(
 	}
 
 	/* Get datatype of memory data space and read */
-	H5::DataType dtype;
-	auto hash = typeid(T).hash_code();
-	if (hash == typeid(arma::mat).hash_code())
-		dtype = H5::PredType::IEEE_F64LE;
-	else if (hash == typeid(arma::Mat<short>).hash_code())
-		dtype = H5::PredType::STD_I16LE;
-	else if (hash == typeid(arma::Mat<uint8_t>).hash_code())
-		dtype = H5::PredType::STD_U8LE;
-	else if (hash == typeid(arma::Mat<int8_t>).hash_code())
-		dtype = H5::PredType::STD_I8LE;
+	H5::DataType dtype = data_type<T>();
 	dataset.read(out.memptr(), dtype, mspace, dataspace);
 }
 
+/* Template function to read single data channel into memory. */
 template<class T>
-void datafile::DataFile::_read_data(
-		const arma::uvec& channels,
-		const size_t start, const size_t end, T& out)
+void datafile::DataFile::_read_data_channel(const size_t channel,
+		const size_t start, const size_t end, arma::Col<T>& out)
 {
 	/* Verify input and resize return array */
 	if (end <= start) {
@@ -70,58 +94,35 @@ void datafile::DataFile::_read_data(
 			<< start << " - " << end << std::endl;
 		throw std::logic_error("Requested sample range invalid");
 	}
+
 	size_t nreqSamples = end - start;
-	size_t nreqChannels = channels.size();
-	auto startChan = channels.at(0), endChan = channels.at(nreqChannels - 1) + 1;
-	if (endChan <= startChan) {
-		std::cerr << "Requested sample range is invalid: Channels " 
-			<< startChan << " - " << endChan << std::endl;
-		throw std::logic_error("Requested sample range invalid");
-	}
-	T tmp;
-	tmp.set_size(nreqSamples, endChan);
+	out.set_size(nreqSamples);
 
 	/* Select hyperslab from the file */
-	hsize_t spaceOffset[datafile::DATASET_RANK] = {startChan, start};
-	hsize_t spaceCount[datafile::DATASET_RANK] = {endChan, nreqSamples};
+	hsize_t spaceOffset[datafile::DATASET_RANK] = {channel, start};
+	hsize_t spaceCount[datafile::DATASET_RANK] = {1, nreqSamples};
 	dataspace.selectHyperslab(H5S_SELECT_SET, spaceCount, spaceOffset);
 	if (!dataspace.selectValid()) {
 		std::cerr << "Dataset selection invalid" << std::endl;
-		std::cerr << "Offset: (, "<< startChan << ", " << start << ")" << std::endl;
-		std::cerr << "Count: (" << endChan << ", " << nreqSamples << ")" << std::endl;
+		std::cerr << "Offset: (, "<< channel << ", " << start << ")" << std::endl;
+		std::cerr << "Count: (" << 1 << ", " << nreqSamples << ")" << std::endl;
 		throw std::logic_error("Dataset selection invalid");
 	}
 
 	/* Define memory dataspace */
-	hsize_t mdims[datafile::DATASET_RANK] = {endChan, nreqSamples};
+	hsize_t mdims[datafile::DATASET_RANK] = {1, nreqSamples};
 	H5::DataSpace mspace(datafile::DATASET_RANK, mdims);
 	hsize_t moffset[datafile::DATASET_RANK] = {0, 0};
-	hsize_t mcount[datafile::DATASET_RANK] = {endChan, nreqSamples};
+	hsize_t mcount[datafile::DATASET_RANK] = {1, nreqSamples};
 	mspace.selectHyperslab(H5S_SELECT_SET, mcount, moffset);
 	if (!mspace.selectValid()) {
 		std::cerr << "Memory dataspace selection invalid" << std::endl;
-		std::cerr << "Count: (" << nreqSamples << ", " << endChan << ")" << std::endl;
+		std::cerr << "Count: (" << nreqSamples << ", " << 1 << ")" << std::endl;
 		throw std::logic_error("Memory dataspace selection invalid");
 	}
 
 	/* Get datatype of memory data space and read */
-	H5::DataType dtype;
-	auto hash = typeid(T).hash_code();
-	if (hash == typeid(arma::mat).hash_code())
-		dtype = H5::PredType::IEEE_F64LE;
-	else if (hash == typeid(arma::Mat<short>).hash_code())
-		dtype = H5::PredType::STD_I16LE;
-	else if (hash == typeid(arma::Mat<uint8_t>).hash_code())
-		dtype = H5::PredType::STD_U8LE;
-	else if (hash == typeid(arma::Mat<int8_t>).hash_code())
-		dtype = H5::PredType::STD_I8LE;
-	dataset.read(tmp.memptr(), dtype, mspace, dataspace);
-
-	/* Keep only desired data channels.
-	 * This is based on the assumption that we usually load almost all of the data,
-	 * in which case a bulk load and the sub-selecting is much faster than loading
-	 * individual samples one at a time.
-	 */
-	out = tmp.cols(channels);
+	H5::DataType dtype = data_type<T>();
+	dataset.read(out.memptr(), dtype, mspace, dataspace);
 }
 

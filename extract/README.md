@@ -25,6 +25,10 @@ Parameters
 	- Display version info and exit
 - `-h | --help` 
 	- Display help and exit
+- `-N | --nthreads <nthreads>`
+	- Process data using up to `<nthreads>` simultaneous threads. As data is processed a full
+	channel at a time, this also limits the amount of memory consumed by the process to
+	roughly the number of running threads times the size of a single channel in memory.
 - `-V | --verbose`
 	- Display information about the progress of the extraction process.
 - `-t | --threshold <threshold>` 
@@ -70,17 +74,6 @@ some Linux distributions, which often put HDF5 libraries in `/usr/lib/x86_64-lin
 This path, or any other, can be added using
 
 	$ make LDFLAGS=-L/path/to/library/folder
-
-By default, `extract` uses multi-threading to improve performance. This can be
-disabled by compiling as follows:
-	
-	$ make CXXFLAGS=-DNOTHREAD
-
-`extract` will also dynamically disable threading, and process a single channel at a
-time, if the data file to be processed is larger than some fraction of the available
-system physical memory. This fraction is a compile-time constant, and is defined in
-`src/main.cc` as `CONSERVE_MEMORY_FRACTION`. This is used to prevent the huge slowdowns
-that come with moving to swap space.
 
 Library
 -------

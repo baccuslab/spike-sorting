@@ -19,3 +19,6 @@ extract/build/*
 *.snip
 *.bin
 *.o
+*.mexmaci64
+*.stash
+Makefile*

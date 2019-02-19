@@ -122,21 +122,6 @@ class DataFile {
 				arma::mat& out);
 
 		/*! Read data from the file
-		 * \param channels A list of arbitrary channels to load
-		 * \param start The first sample to load
-		 * \param end The last sample to load.
-		 * \param out The matrix into which data is written.
-		 *
-		 * This is an overloaded function. It reads data from an arbitrary,
-		 * not necessarily contiguous, list of channels in the file, over
-		 * the contiguous sample range.
-		 *
-		 * Data is converted into true voltage values.
-		 */
-		void data(const arma::uvec& channels, size_t start, size_t end,
-				arma::mat& out);
-
-		/*! Read data from the file
 		 * \param start The first sample to load.
 		 * \param end The last sample to load.
 		 * \param out The matrix into which data is read.
@@ -149,6 +134,7 @@ class DataFile {
 		void data(size_t start, size_t end, arma::Mat<short>& out);
 
 		/*! Read data from the file
+		 * \param channel Data channel to load.
 		 * \param start The first sample to load.
 		 * \param end The last sample to load.
 		 * \param out The matrix into which data is read.
@@ -175,20 +161,6 @@ class DataFile {
 		void data(size_t startChan, size_t endChan, size_t start, size_t end, 
 				arma::Mat<short>& out);
 
-		/*! Read data from the file
-		 * \param channels An arbitrary list of channels to load
-		 * \param start The first sample to load.
-		 * \param end The last sample to load.
-		 * \param out The matrix into which data is read.
-		 *
-		 * This is an overloaded function. It loads data from an arbitrary,
-		 * not necessarily contiguous, set of channels over the contiguous 
-		 * sample range given. However, data is loaded as the raw values in 
-		 * which they are stored, and not converted into voltage units.
-		 */
-		void data(const arma::uvec& channels, size_t start, size_t end,
-				arma::Mat<short>& out);
-
 	protected:
 		std::string filename_;
 		std::string date_;
@@ -213,15 +185,16 @@ class DataFile {
 		void readDate();
 		void readArray();
 		void readDatasetSize();
+		void readNumSamples();
 		void readDatasetAttr(std::string name, void *buf);
 		void readDatasetStringAttr(std::string name, std::string& s);
 		void computeCoords(const arma::uvec& channels, size_t start, 
 				size_t end, arma::Mat<hsize_t> *coords, hsize_t *nelem);
 
 		template<class T>
-		void _read_data(const size_t, const size_t, const size_t, const size_t, T&);
+		void _read_data(const size_t, const size_t, const size_t, const size_t, arma::Mat<T>&);
 		template<class T>
-		void _read_data(const arma::uvec&, const size_t, const size_t, T&);
+		void _read_data_channel(const size_t, const size_t, const size_t, arma::Col<T>&);
 };
 };
 

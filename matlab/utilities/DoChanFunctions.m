@@ -4,6 +4,7 @@ if (nargin == 1)
 end
 switch(action)
 case 'SetCAxProp'
+    disp('hi3')
 	set(h,'KeyPressFcn','DoChanFunctions KeyTrap');	 %This seems to get overwritten
 	haxc = getappdata(h,'haxc');
 	axcol = [0.6 0.6 0.6];
@@ -204,6 +205,7 @@ case 'Cluster'
 	DoChanFunctions('SetCAxProp',h);
 case 'UpdateDisplay'
 	% Update the display
+    disp('hi2')
 	haxc = getappdata(h,'haxc');
 	t = getappdata(h,'t');
 	scanrate = getappdata(h,'scanrate');

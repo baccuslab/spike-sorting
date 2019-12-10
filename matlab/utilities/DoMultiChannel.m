@@ -67,6 +67,7 @@ for i = 1:3
 		else
 			bottom = 325; height=64;
 		end
+        bottom = bottom + 200;
 		pos = [left,bottom,109,height];
 		haxc(i,j) = axes('Parent',hfig, ...
 		'Units','pixels', ...
